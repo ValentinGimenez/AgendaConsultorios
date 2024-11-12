@@ -55,6 +55,10 @@ const medicoEspecialidadController = {
       async agregarEspecialidad(req, res) {
         try {
           const { matricula } = req.body;
+          const matriculaExistente  = await MedicoEspecialidad.findMatricula (matricula);
+          if (matriculaExistente) {
+            return res.status(400).json({ message: "Ya existe un médico con esa matrícula!" });
+          }
           const medicoId = req.params.id;
           const especialidadId = req.params.especialidadId;
           await MedicoEspecialidad.agregarEspecialidad(medicoId, especialidadId, matricula);

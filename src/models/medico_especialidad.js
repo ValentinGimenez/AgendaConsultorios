@@ -85,6 +85,15 @@ const MedicoEspecialidad = {
             throw error;
         }
     },
+    async findMatricula(matricula) {
+      try {
+        const [rows] = await pool.query('SELECT id FROM medico_especialidad WHERE matricula = ?', [matricula]);
+        return rows.length > 0; // Devuelve true si se encuentra la matrícula
+      } catch (error) {
+        console.error('Error al buscar la matrícula:', error);
+        throw error;
+      }
+    },
 };
 
 module.exports = MedicoEspecialidad;
