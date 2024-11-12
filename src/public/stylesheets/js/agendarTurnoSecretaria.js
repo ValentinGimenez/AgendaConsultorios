@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     function obtenerDiasSemana(dataAgenda) {
       const diasSemana = [];
+     
       dataAgenda.forEach(agenda => {
         if (agenda.dia_semana) {
           let diaNumerico;
@@ -76,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }  
         
     });
-
+    console.log("AGENDA",dataAgenda)
       return diasSemana;
   }
   let diasemanas;
@@ -126,6 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
               if(dataAgenda.length > 0){
                 
                 diasemanas = obtenerDiasSemana(dataAgenda);
+                console.log("DIAS SEMANA: ", diasemanas);
                 //obtener los turnos
                 turnosDisponibles = await obtenerTurnosLibres(dataAgenda);
                 console.log("TURNOS DISPONIBLES: ", turnosDisponibles);
@@ -236,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
         especialidades.forEach(especialidad => {
             const option = document.createElement('option'); 
-            option.value = especialidad.idEspecialidad;
+            option.value = especialidad.especialidad_id;
             option.textContent = especialidad.nombre; 
             selectEspecialidad.appendChild(option);
         });
@@ -340,13 +342,11 @@ document.addEventListener('DOMContentLoaded', function() {
     headerToolbar: {
       left: 'prev,next,today',
       center: 'title',
-      right: 'dayGridMonth,dayGridDay'
+      right: ''
     },
     
     businessHours: {
-      // Define los días de la semana y horarios habilitados
       daysOfWeek: DiasSemana, 
-      
     },
     validRange: {
       start: new Date()  
@@ -369,11 +369,11 @@ document.addEventListener('DOMContentLoaded', function() {
           turno.forEach(data => {
             const turnoFecha = new Date(data.fecha);
             const fechaFormat = turnoFecha.toISOString().split('T')[0];
-    
             if (fechaFormat === selectedDate) {
               horariosDisponibles.push({
                 hora_inicio: data.hora_inicio,
-                id: data.ID
+                id: data.ID,
+                idAgenda: data.idAgenda
               });
             }
           });
@@ -405,7 +405,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             horariosDisponibles.forEach(turno => {
               
-            console.log("turno:", turno);
              
                 const timeBtn = document.createElement('div');
                 timeBtn.className = 'hora-disponible';
@@ -414,18 +413,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Asignar un id único al timeBtn
                 timeBtn.id = `${turno.id}`; 
                 
-                timeBtn.addEventListener('click', function() {
+                timeBtn.addEventListener('click', async function() {
                  // alert(`Has seleccionado la hora: ${turno.hora_inicio} para el día ${selectedDate}`);
                     //importante agregar los datos de sucursal
                     const medico = selectMedico.options[selectMedico.selectedIndex];
                     const especialidad = selectEspecialidad.options[selectEspecialidad.selectedIndex];
                     const doctorinput = document.getElementById('doctor');
-                   // const sucursalinput = document.getElementById('sucursal');
+                    const sucursalinput = document.getElementById('sucursal');
                     const especialidadinput = document.getElementById('especialidadDoctor');
                     const horarioinput = document.getElementById('horario');
                     const fechainput = document.getElementById('fecha');
                     doctorinput.textContent= medico.textContent;
-                   // sucursalinput.textContent= turno.sucu;
+                    //obtener la sucursal
+                    const idAgenda= turno.idAgenda;
+                    console.log("turno:", turno); 
+                    const response = await fetch(`/sucursal/obtenerSucursal/${idAgenda}`);
+                    const sucu = await response.json();
+                    sucursalinput.textContent= sucu.nombre;
                     especialidadinput.textContent= especialidad.textContent;
                     horarioinput.textContent= turno.hora_inicio;
                     fechainput.textContent= selectedDate;

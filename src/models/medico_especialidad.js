@@ -30,11 +30,11 @@ const MedicoEspecialidad = {
         return rows;
     },
     async obtenerTodosMedicos(){
-        const [rows] =await pool.query('SELECT DISTINCT m.id AS medico_id, CONCAT(p.nombre, " ", p.apellido) AS nombre_completo, p.dni, p.telefono, m.estado FROM medico m JOIN medico_especialidad me ON m.id = me.idMedico JOIN persona p ON m.idPersona = p.id');
+        const [rows] =await pool.query('SELECT DISTINCT m.id AS medico_id, CONCAT(p.nombre, " ", p.apellido) AS nombre_completo, p.dni, p.telefono, m.estado FROM medico m JOIN medico_especialidad me ON m.id = me.idMedico JOIN persona p ON m.idPersona = p.id WHERE  m.estado = TRUE');
         return rows;
     },
     async obtenerTodasEspecialidades(){
-        const [rows] =await pool.query('SELECT DISTINCT e.id, e.nombre FROM especialidad e JOIN medico_especialidad me ON e.id = me.idEspecialidad');
+        const [rows] =await pool.query('SELECT DISTINCT e.id AS especialidad_id, e.nombre AS nombre FROM especialidad e JOIN medico_especialidad me ON e.id = me.idEspecialidad JOIN medico m ON me.idMedico=m.id WHERE m.estado = TRUE');
         return rows;
     },
     async obtenerid(data){

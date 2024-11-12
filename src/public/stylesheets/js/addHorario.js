@@ -152,7 +152,7 @@ const obtenerSelectSemana = () => {
                     body: JSON.stringify({
                         idMedico_especialidad,
                         idSucursal,
-                        diaSemana: dia,
+                        semana: dia,
                         duracionTurno,
                         sobreTurnoMax
                     }),
