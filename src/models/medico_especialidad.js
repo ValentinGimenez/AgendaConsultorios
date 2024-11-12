@@ -34,7 +34,7 @@ const MedicoEspecialidad = {
         return rows;
     },
     async obtenerTodasEspecialidades(){
-        const [rows] =await pool.query('SELECT * FROM especialidad e JOIN medico_especialidad me ON e.id = me.idEspecialidad ');
+        const [rows] =await pool.query('SELECT DISTINCT e.id, e.nombre FROM especialidad e JOIN medico_especialidad me ON e.id = me.idEspecialidad');
         return rows;
     },
     async obtenerid(data){

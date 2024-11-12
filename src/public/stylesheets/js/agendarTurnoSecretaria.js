@@ -88,7 +88,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const response = await fetch(`/turno/turnosLibres/${idAgenda}`);
       if (response.ok) {
           const data = await response.json(); 
+          if(data.length > 0){
           turnosLibres.push( data ); 
+            
+          }
       } else {
           console.error(`Error al obtener turnos libres para la agenda con id ${idAgenda}:`, response.status);
       }
@@ -121,29 +124,45 @@ document.addEventListener('DOMContentLoaded', function() {
             const dataAgenda = await responseAgenda.json();
             console.log("dataAgenda",dataAgenda);
               if(dataAgenda.length > 0){
-                document.getElementById('date-title').style.display = 'flex';  
-
-                if (calendar) {
-                  calendar.destroy(); 
-                  document.getElementById('agenda').style.display = 'none';
-                  document.getElementById('texto').style.display = 'none'; 
-                }
+                
                 diasemanas = obtenerDiasSemana(dataAgenda);
                 //obtener los turnos
                 turnosDisponibles = await obtenerTurnosLibres(dataAgenda);
-                const agenda = document.getElementById('agenda');
-                agenda.style.display = 'flex';
-                document.getElementById('texto').style.display = 'flex';
-                agenda.innerHTML = "Agenda de "+ medico.textContent + " Especialidad: " + especialidad.textContent;
+                console.log("TURNOS DISPONIBLES: ", turnosDisponibles);
+                if(turnosDisponibles.length > 0){
+                  document.getElementById('date-title').style.display = 'flex';  
 
-                crearCalendario(diasemanas, turnosDisponibles);
+                  if (calendar) {
+                    calendar.destroy(); 
+                    document.getElementById('agenda').style.display = 'none';
+                    document.getElementById('texto').style.display = 'none'; 
+                  }
+                  const agenda = document.getElementById('agenda');
+                  agenda.style.display = 'flex';
+                  document.getElementById('texto').style.display = 'flex';
+                  agenda.innerHTML = "Agenda de "+ medico.textContent + " Especialidad: " + especialidad.textContent;
+                  
+                  crearCalendario(diasemanas, turnosDisponibles);
+                }else{
+                  alert("Sin turnos disponibles");
+                  const divs = document.querySelectorAll('.hora-disponible');
+                  divs.forEach(div => {
+                    div.style.display = 'none';  
+                  });
+                  document.getElementById('agenda').style.display = 'none';
+                  document.getElementById('date-title').style.display = 'none'; 
+                  if(calendar){
+                    calendar.destroy(); 
+                  }
+                }
+                
          
               }else{
                 alert('Sin agendas disponibles');
                //importante si
                  const divs = document.querySelectorAll('.hora-disponible');
                 divs.forEach(div => {
-                  div.style.display = 'none';  // Esto los oculta
+                  div.style.display = 'none';  
                 });
                 document.getElementById('agenda').style.display = 'none';
                 document.getElementById('date-title').style.display = 'none'; 
