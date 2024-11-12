@@ -153,7 +153,8 @@ const obtenerSelectSemana = () => {
                         idMedico_especialidad,
                         idSucursal,
                         diaSemana: dia,
-                        duracionTurno
+                        duracionTurno,
+                        sobreTurnoMax
                     }),
                 });
     
@@ -193,7 +194,8 @@ const obtenerSelectSemana = () => {
                                 fecha_inicio: fecha_init,
                                 fecha_fin: fecha_fin,
                                 diaSemana: dia, 
-                                duracionTurno
+                                duracionTurno,
+                                sobreTurnoMax
                             })
                         });
     
