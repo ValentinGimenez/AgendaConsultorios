@@ -60,12 +60,12 @@ const Turno = {
         }
     },
     async generarTurnos(data) {
-        const { idAgenda, horafinFormat, horainitFormat, fecha_inicio, fecha_fin, diaSemana, duracionTurno } = data;
+        const { idAgenda, hora_fin, hora_inicio, fecha_inicio, fecha_fin, diaSemana, duracionTurno } = data;
             console.log("data:",data);
         try {
             // Asegúrate de que el procedimiento almacenado se está llamando correctamente
             const [result] = await pool.query('CALL generarTurnos(?,?,?,?,?,?,?)', [
-                idAgenda, horainitFormat, horafinFormat, fecha_inicio, fecha_fin, diaSemana, duracionTurno
+                idAgenda, hora_inicio, hora_fin, fecha_inicio, fecha_fin, diaSemana, duracionTurno
             ]);
             
             // Verifica si hay resultados o si ocurrió un error
