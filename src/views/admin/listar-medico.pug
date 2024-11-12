@@ -28,6 +28,7 @@ block content
               a(href=`/medico/${medico.id}/desactivar`, data-medico-id=medico.id, class="activar-btn") Desactivar
             else
               a(href=`/medico/${medico.id}/activar`, data-medico-id=medico.id, class="activar-btn") Activar
+            a(href=`/medico/${medico.id}/horario`) Horario
 
 block scripts
   script(src='https://code.jquery.com/jquery-3.7.1.min.js')

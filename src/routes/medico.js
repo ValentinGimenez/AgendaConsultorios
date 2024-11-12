@@ -52,4 +52,8 @@ router.post('/:id/agregarEspecialidad/:especialidadId',userMiddleware, authMiddl
 router.post('/:id/quitarEspecialidad/:especialidadId', userMiddleware, authMiddleware, adminMiddleware,medicoEspecialidadController.quitarEspecialidad);
 router.post("/:id/actualizar/",userMiddleware, authMiddleware, adminMiddleware, medicoController.actualizarCorreoTelefono);
 
+router.get("/:id/horario/", async (req, res) => {
+  const id = req.params.id;
+  res.render("admin/horario-medico", { id });
+});
 module.exports = router;

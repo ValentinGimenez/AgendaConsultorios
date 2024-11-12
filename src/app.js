@@ -48,11 +48,6 @@ app.get("/turnos", async (req, res) => {
   const id = req.query.id;
   res.render("calendar", { id });
 });
-
-app.get("/horario/:id", async (req, res) => {
-  const id = req.params.id;
-  res.render("horario", { id });
-});
 // Middlewares
 app.use(logger("dev"));
 app.use(express.json());
