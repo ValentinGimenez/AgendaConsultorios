@@ -82,6 +82,14 @@ block scripts
           const medicoId = btn.dataset.medicoId;
           const matriculaInput = document.getElementById(`matricula-${especialidadId}`);
           const matricula = matriculaInput ? matriculaInput.value.trim() : '';
+          if (!matricula) {
+            alert('Por favor, ingresa una matrícula.');
+            return;
+          }
+          if (!/^\d+$/.test(matricula)) {  // Expresión regular para validar que solo sean números
+            alert('La matrícula solo puede contener números.');
+            return;
+          }
           const url = btn.href;
           try {
             const response = await fetch(url, { 
@@ -140,8 +148,16 @@ block scripts
           alert('Por favor, ingresa un correo electrónico.');
           return;
         }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
+          alert('Por favor ingresa un email válido.');
+          return;
+        }
         if (!telefono) {
           alert('Por favor, ingresa un número de teléfono.');
+          return;
+        }
+        if (!/^\d{10}$/.test(telefono)) { 
+          alert('Por favor ingresa un número de teléfono válido de 10 dígitos.');
           return;
         }
 
