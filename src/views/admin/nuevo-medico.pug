@@ -1,0 +1,95 @@
+extends ../layout
+
+block content
+  h1 Registrar Médico
+
+  form#formMedico.container(method="POST" action="/medico")
+    h2 Datos de la Persona
+    div#formPersonaContainer
+      div.form-group
+        label(for="nombre") Nombre:
+        br
+        input(type="text" name="nombre" id="nombre" required)
+      div.form-group
+        label(for="apellido") Apellido:
+        br
+        input(type="text" name="apellido" id="apellido" required)
+      div.form-group
+        label(for="dni") DNI:
+        br
+        input(type="text" name="dni" id="dni" required)
+      div.form-group
+        label(for="mail") Email:
+        br
+        input(type="email" name="mail" id="mail" required)
+      div.form-group
+        label(for="telefono") Teléfono:
+        br
+        input(type="text" name="telefono" id="telefono" required)
+
+    button(type="submit" id="AgregarMedico") Registrar Médico
+    br
+    br
+    a(href="/login") ¿Ya tienes una cuenta?
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', async () => {
+      const formMedico = document.getElementById('formMedico');
+
+      formMedico.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const nombre = document.getElementById('nombre').value.trim().toUpperCase();
+        const apellido = document.getElementById('apellido').value.trim().toUpperCase();
+        const dni = document.getElementById('dni').value.trim();
+        const mail = document.getElementById('mail').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+
+        // Validación de campos
+        if (!nombre || !apellido || !dni || !mail || !telefono) {
+          alert('Todos los campos son obligatorios.');
+          return;
+        }
+
+        // Validación de formato de email
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(mail)) {
+          alert('Por favor ingresa un email válido.');
+          return;
+        }
+
+        // Validación de DNI
+        if (!/^\d{8}$/.test(dni)) {
+          alert('El DNI debe contener 8 dígitos.');
+          return;
+        }
+
+        try {
+          const response = await fetch('/medico', { // Asegúrate de que la acción del formulario sea la correcta
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              nombre,
+              apellido,
+              dni,
+              mail,
+              telefono,
+            }),
+          });
+
+          if (response.ok) {
+            formMedico.reset(); 
+            alert('Médico registrado exitosamente');
+          } else {
+            const errorData = await response.json();
+            alert('Error al registrar el médico: ' + (errorData.message || 'Error desconocido')); 
+          }
+        } catch (error) {
+          console.error('Error al enviar el formulario:', error);
+          alert('Error al enviar el formulario.');
+        }
+      });
+    });

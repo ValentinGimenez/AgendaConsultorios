@@ -1,0 +1,59 @@
+extends layout 
+
+block scripts 
+    script(src="/stylesheets/js/addHorario.js") 
+
+block content 
+    h1 Registro de horarios
+    form#formHorario.container
+        div.form-group
+            label(for="especialidad") Seleccione Especialidad:
+            br
+            select(name="especialidad" id="especialidad" required)
+        div.form-group
+            label(for="sucursal") Seleccione Sucursal:
+            br
+            select(name="sucursal" id="sucursal" required)
+        div.form-group
+            label(for="duracionTurno") Duración de turno en minutos:  
+            br
+            input(type="number" name="duracionTurno" id="duracionTurno" min="10" max="60" step="10" required)
+        div.form-group
+            label(for="semana") Dia de la semana:  
+            br
+            input(type="checkbox" id="lunes" name="dia" value="Lunes")
+            label(for="lunes") LUNES
+            br
+            input(type="checkbox" id="martes" name="dia" value="Martes")
+            label(for="martes") MARTES
+            br
+            input(type="checkbox" id="miercoles" name="dia" value="Miercoles")
+            label(for="miercoles") MIERCOLES
+            br
+            input(type="checkbox" id="jueves" name="dia" value="Jueves")
+            label(for="jueves") JUEVES
+            br
+            input(type="checkbox" id="viernes" name="dia" value="Viernes")
+            label(for="viernes") VIERNES
+            br
+            input(type="checkbox" id="sabado" name="dia" value="sabado")
+            label(for="sabado") SABADO
+            br
+        div.form-group
+            label(for="hora_inicio") Hora inicio:  
+            br
+            input(type="time" id="hora_inicio" name="hora_inicio" required)
+        div.form-group
+            label(for="hora_fin") Hora fin:      
+            br
+            input(type="time" id="hora_fin" name="horafin" required)
+        div.form-group
+            label(for="fecha_inicio") fecha de inicio:      
+            br
+            input(type="date" id="fecha_inicio" name="fecha" required)
+        div.form-group
+            label(for="fecha_fin") fecha de final:      
+            br
+            input(type="date" id="fecha_fin" name="fecha" required)
+
+    button(type="submit" id="agregarHorario") Confirmar horario  

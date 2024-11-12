@@ -1,0 +1,59 @@
+extends layout
+
+block content
+  h1 Iniciar Sesión
+
+  form#loginForm.container(method="POST" action="/usuario/login")
+    div.form-group
+      label(for="nombre") Usuario:
+      input(type="text" name="nombre" id="nombre" required)
+    div.form-group
+      label(for="password") Contraseña:
+      input(type="password" name="password" id="password" required)
+
+    button(type="submit") Iniciar Sesión   
+
+
+  a(href="/usuario/nuevo") ¿No tienes una cuenta? Regístrate
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      const loginForm = document.getElementById('loginForm');
+
+      loginForm.addEventListener('submit', async   
+      (event) => {
+      event.preventDefault();
+
+      const nombre = document.getElementById('nombre').value.trim();
+      const password = document.getElementById('password').value;
+
+      // Validaciones (puedes agregar más validaciones aquí)
+      if (!nombre || !password) {
+        alert('Por favor, completa todos los campos.');
+        return;
+      }
+
+      try {
+        const response = await fetch('/usuario/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ nombre, password }),
+        });
+
+        if (response.ok) {
+          // Inicio de sesión exitoso
+          // Redirigir a la página principal o a la página del usuario
+          window.location.href = '/index'; // Cambia la ruta según tu aplicación
+        } else {
+          const errorData = await response.json();
+          alert('Error al iniciar sesión: ' + (errorData.message || 'Error desconocido'));
+        }
+      } catch (error) {
+        console.error('Error al enviar el formulario:', error);
+        alert('Error al enviar el formulario.');
+      }
+        });
+    });

@@ -1,0 +1,155 @@
+extends ../layout
+
+block content
+    h1 Registrar Paciente 
+
+    form#formPaciente.container(method="POST" action="/paciente") 
+        h2 Datos de la Persona
+        div#formPersonaContainer
+            div.form-group
+                label(for="nombre") Nombre:
+                br
+                input(type="text" name="nombre" id="nombre" required)
+            div.form-group
+                label(for="apellido") Apellido:
+                br
+                input(type="text" name="apellido" id="apellido" required)
+            div.form-group
+                label(for="dni") DNI:
+                br
+                input(type="text" name="dni" id="dni" required)
+            div.form-group
+                label(for="mail") Email:
+                br
+                input(type="email" name="mail" id="mail" required)
+            div.form-group
+                label(for="telefono") Teléfono:
+                br
+                input(type="text" name="telefono" id="telefono" required)
+            div.form-group
+                label(for="fotodni") Foto DNI:
+                br
+                input(type="file" name="fotodni" id="fotodni" accept="image/*" required)
+            div.form-group
+            label(for="obrasocial") Obra Social:
+            br
+            select(name="obrasocial" id="obrasocial" required)
+                each obraSocial in obrasSociales
+                    option(value=obraSocial.id)= obraSocial.nombre
+            button(type="submit" id="AgregarPaciente") Registrar Paciente
+
+block scripts
+    script.
+        document.addEventListener('DOMContentLoaded', async () => {
+            const formPaciente = document.getElementById('formPaciente');
+
+            formPaciente.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const nombre = document.getElementById('nombre').value.trim().toUpperCase();
+                const apellido = document.getElementById('apellido').value.trim().toUpperCase();
+                const dni = document.getElementById('dni').value.trim();
+                const mail = document.getElementById('mail').value.trim();
+                const telefono = document.getElementById('telefono').value.trim();
+                const fotoDni = document.getElementById('fotodni').value; 
+                const idObraSocial = document.getElementById('obrasocial').value; 
+                // Validación de campos
+                if (!nombre || !apellido || !dni || !mail || !telefono) {
+                    alert('Todos los campos son obligatorios.');
+                    return;
+                }
+
+                // Validación de formato de email
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(mail)) {
+                    alert('Por favor ingresa un email válido.');
+                    return;
+                }
+
+                // Validación de DNI
+                if (!/^\d{8}$/.test(dni)) {
+                    alert('El DNI debe contener 8 dígitos.');
+                    return;
+                }
+                try {
+                    const response = await fetch('/paciente/nuevo', { 
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            nombre,
+                            apellido,
+                            dni,
+                            mail,
+                            telefono,
+                            fotoDni,
+                            idObraSocial
+                        }),
+                    });
+
+                    if (response.ok) {
+                        formPaciente.reset(); 
+                        alert('Paciente registrado exitosamente');
+                    } else {
+                        const errorData = await response.json();
+                        alert('Error al registrar el Paciente: ' + (errorData.message || 'Error desconocido')); 
+                    }
+                } catch (error) {
+                    console.error('Error al enviar el formulario:', error);
+                    alert('Error al enviar el formulario.');
+                }
+            });
+        });
+    block styles
+        style.
+            #formPaciente.container {
+            width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            }
+            #formPaciente h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            }
+            .form-group {
+            margin-bottom: 15px;
+            }
+            label {
+            display: block;
+            margin-bottom: 5px;
+            }
+            input[type="text"],
+            input[type="email"],
+            input[type="file"],
+            select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            white-space: nowrap;        
+            overflow: hidden;          
+            text-overflow: ellipsis;
+            }
+            button[type="submit"] {
+            background-color: #4CAF50; 
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top:20px;
+            }
+            button[type="submit"]:hover {
+            background-color: #45a049; 
+            }
+            a {
+            color: #007bff;
+            text-decoration: none;
+            }
+
+            a:hover {
+            text-decoration: underline;
+            }

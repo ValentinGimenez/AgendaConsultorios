@@ -1,0 +1,67 @@
+extends layout
+
+block content
+  h1 Crear Usuario
+
+  form#createUserForm.container(method="POST" action="/usuario")
+    div.form-group
+      label(for="persona") Seleccionar Persona:
+      select(name="idPersona" id="persona" required)
+        option(value="") -- Seleccione una persona --
+        each persona in personas
+          option(value=persona.id)= persona.nombre + ' ' + persona.apellido
+    div.form-group
+      label(for="nombre") Nombre de usuario:
+      input(type="text" name="nombre" id="nombre" required)
+    div.form-group
+      label(for="password") Contraseña:
+      input(type="password" name="password" id="password" required)
+    div.form-group
+      label(for="tipo") Tipo de usuario:
+      select(name="tipo" id="tipo" required)
+        option(value="secretaria") Secretaria
+        option(value="admin") Admin
+        option(value="paciente") Paciente
+
+    button(type="submit") Crear Usuario
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', async () => {
+      const createUserForm = document.getElementById('createUserForm');
+      createUserForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const idPersona = document.getElementById('persona').value;
+        const nombre = document.getElementById('nombre').value.trim();
+        const password = document.getElementById('password').value;
+        const tipo = document.getElementById('tipo').value;
+
+        // Validaciones
+        if (!idPersona || !nombre || !password || !tipo) {
+          alert('Por favor, completa todos los campos.');
+          return;
+        }
+
+        try {
+          const response = await fetch('/usuario', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ idPersona, nombre, password, tipo }),
+          });
+
+          if (response.ok) {
+            createUserForm.reset();
+            alert('Usuario creado exitosamente.');
+          } else {
+            const errorData = await response.json();
+            alert('Error al crear el usuario: ' + (errorData.message || 'Error desconocido'));
+          }
+        } catch (error) {
+          console.error('Error al enviar el formulario:', error);
+          alert('Error al enviar el formulario.');
+        }
+      });
+    });

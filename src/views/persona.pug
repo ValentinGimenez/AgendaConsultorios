@@ -1,0 +1,66 @@
+extends layout
+
+block content
+  h1 Crear Persona
+
+  form#crearPersonaForm.container(method="POST" action="/persona")
+    div.form-group
+      label(for="nombre") Nombre:
+      input(type="text" name="nombre" id="nombre" required)
+    div.form-group
+      label(for="apellido") Apellido:
+      input(type="text" name="apellido" id="apellido" required)
+    div.form-group
+      label(for="dni") DNI:
+      input(type="text" name="dni" id="dni" required)
+    div.form-group
+      label(for="mail") Email:
+      input(type="email" name="mail" id="mail" required)
+    div.form-group
+      label(for="telefono") Teléfono:
+      input(type="text" name="telefono" id="telefono" required)
+
+    button(type="submit") Crear Persona
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      const crearPersonaForm = document.getElementById('crearPersonaForm');
+
+      crearPersonaForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const nombre = document.getElementById('nombre').value.trim();
+        const apellido = document.getElementById('apellido').value.trim();
+        const dni = document.getElementById('dni').value.trim();
+        const mail = document.getElementById('mail').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+
+        // Validaciones (puedes agregar más validaciones aquí)
+        if (!nombre || !apellido || !dni || !mail || !telefono) {
+          alert('Por favor, completa todos los campos.');
+          return;
+        }
+
+        try {
+          const response = await fetch('/persona/crearPersona', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ nombre, apellido, dni, mail, telefono }),
+          });
+
+          if (response.ok) {
+            crearPersonaForm.reset();
+            alert('Persona creada exitosamente.');
+          } else {
+            const errorData = await response.json();
+            alert('Error al crear la persona: ' + (errorData.message || 'Error desconocido'));
+          }
+        } catch (error) {
+          console.error('Error al enviar el formulario:', error);
+          alert('Error al enviar el formulario.');
+        }
+      });
+    });

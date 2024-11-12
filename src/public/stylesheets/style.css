@@ -1,0 +1,159 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+}
+
+/*INICIO HEADER */
+/* Estilos del header */
+/* Estilos del header */
+header {
+  display: flex;
+  align-items: center; /* Centra verticalmente los elementos */
+  justify-content: space-between; /* Espacia el contenido entre los extremos */
+  padding: 20px;
+  background-color: #333; /* Fondo del header */
+  color: white;
+}
+
+/* Estilo para el nombre del negocio */
+.business-name {
+  font-size: 24px;
+  font-weight: bold;
+  color: rgb(116, 6, 116);
+}
+
+/* Estilo para la barra de navegación */
+nav ul {
+  display: flex; /* Alinea los elementos del menú en fila */
+  gap: 20px; /* Espacio entre los elementos del menú */
+  list-style: none; /* Quita los puntos de la lista */
+  padding: 0;
+  margin: 0;
+}
+
+/* Estilo de los enlaces */
+nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* Cambio de color en hover */
+nav ul li a:hover {
+  color: purple;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
+
+body {
+  background-color: #f2f2f2;
+}
+
+header {
+  background-color: #3399ff;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+section {
+  margin: 50px;
+  text-align: center;
+  background-color: white;
+  padding: 30px;
+  /* border-radius: 8px; */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+form {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+  border-top: 4px solid black;
+}
+
+input,
+select,
+button {
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  width: 100%;
+  min-width: 150px;
+}
+button:disabled {
+  background-color: #ccc; 
+  color: #666; 
+  cursor: not-allowed; 
+  opacity: 0.6;
+}
+button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  width: 40px;
+}
+
+button:hover {
+  background-color: #45a049;
+
+}
+
+/*FIN HEADER */
+
+/* Centrar el formulario en la pantalla y darle estilo */
+.container {
+  width: 100%;
+  max-width: 400px; /* Puedes ajustar el ancho */
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  /* border-radius: 5px;  */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="email"] {
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+button#AgregarMedico {
+  width: 20%;
+  padding: 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button#AgregarMedico:hover {
+  background-color: #45a049;
+}

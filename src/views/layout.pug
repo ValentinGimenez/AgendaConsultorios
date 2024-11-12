@@ -1,0 +1,27 @@
+doctype html
+html
+  head
+    title= Sarumed
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css")
+    meta(charset='utf-8')
+    script(src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/index.global.min.js')
+    script(src='https://cdn.jsdelivr.net/npm/@fullcalendar/web-component@6.1.15/index.global.min.js')
+    script(src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.15/index.global.min.js')
+    block scripts
+  
+  body
+    header
+      .business-name Sarumed
+      nav 
+        ul 
+          li 
+            a(href="/") Home
+          li 
+            if user
+              //- p Hola, #{user.nombre}! 
+              a(href="/usuario/logout") Desconectarse
+            else
+              a(href="/usuario/login") Ingresar
+    section
+      block content

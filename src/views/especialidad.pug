@@ -1,0 +1,16 @@
+extends layout 
+
+block scripts 
+    script(src="/javascripts/addEspecialidad.js") 
+
+block content 
+    h1 Registro de especialidad
+    form#formEspecialidad.container
+        div.form-group
+            label(for="especialidad") Seleccionar Especialidad:
+            br
+            select(name="especialidad" id="especialidad" required)
+            label(for="matricula") Ingrese N° Matrícula: 
+            br
+            input(type="text" name="matricula" id="matricula" required)
+        button(type="submit" id="agregarEspecialidad") Confirmar 
