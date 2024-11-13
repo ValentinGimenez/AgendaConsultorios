@@ -1,13 +1,47 @@
 extends ../layout.pug
 
 block content
-    h2 ADMIN
-    //- br
-    //- a(href="/usuario/nuevo") Crear Usuario
-    br
-    a(href="/medico/nuevo") Crear Medico y Persona
-    br
-    a(href="/medico/personas") Asignar Rol Medico a Una Persona
-    br
-    a(href="/medico/lista") Lista Medicos
+  style.
+    .admin-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .admin-title {
+      color: #333;
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .admin-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .admin-link {
+      background-color: #007bff;
+      color: white;
+      padding: 15px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      text-align: center;
+      transition: background-color 0.3s ease;
+    }
+    .admin-link:hover {
+      background-color: #0056b3;
+    }
+    @media (max-width: 600px) {
+      .admin-title {
+        font-size: 2em;
+      }
+      .admin-link {
+        padding: 12px 15px;
+      }
+    }
 
+  .admin-container
+    h2.admin-title ADMIN
+    .admin-menu
+      a.admin-link(href="/medico/nuevo") Crear Médico y Persona
+      a.admin-link(href="/medico/personas") Asignar Rol Médico a Una Persona
+      a.admin-link(href="/medico/lista") Lista Médicos

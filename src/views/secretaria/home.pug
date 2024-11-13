@@ -1,11 +1,46 @@
 extends ../layout.pug
 
 block content
-    h2 SECRETARIA
-    br
-    a(href="/paciente/nuevo") Crear Paciente
-    br
-    a(href="/paciente/lista") Lista Pacientes
+  style.
+    .secretaria-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .secretaria-title {
+      color: #333;
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .secretaria-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .secretaria-link {
+      background-color: #007bff;
+      color: white;
+      padding: 15px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      text-align: center;
+      transition: background-color 0.3s ease;
+    }
+    .secretaria-link:hover {
+      background-color: #0056b3;
+    }
+    @media (max-width: 600px) {
+      .secretaria-title {
+        font-size: 2em;
+      }
+      .secretaria-link {
+        padding: 12px 15px;
+      }
+    }
 
-
-
+  .secretaria-container
+    h2.secretaria-title SECRETARIA
+    .secretaria-menu
+      a.secretaria-link(href="/paciente/nuevo") Crear Paciente
+      a.secretaria-link(href="/paciente/lista") Lista Pacientes
