@@ -30,29 +30,36 @@ const medicoController = {
     res.json(medico);
   },
   async crearMedico(req, res) {
-
+    console.log("body:",req.body);
     try {
-      const { nombre, apellido, dni, mail, telefono } = req.body;
+      const { nombre, apellido, dni, mail, telefono,idPersona } = req.body;
       const medicoExistente = await Medico.findMedicoByDni(dni);
       if (medicoExistente) {
         return res.status(400).json({ message: "Ya existe un médico con ese DNI!" });
       }
-      const personaId = await Persona.create({
-        nombre,
-        apellido,
-        dni,
-        mail,
-        telefono,
-      });
+      const personaExistente = await Persona.findById(idPersona);
+      if (personaExistente) {
+        const medicoId = await Medico.create({
+          idPersona: idPersona,
+          estado: "inactivo",
+        });
+        res.status(201).json({ id: medicoId, message: "Médico registrado exitosamente" });
+      }else{
+        const personaId = await Persona.create({
+          nombre,
+          apellido,
+          dni,
+          mail,
+          telefono,
+        });
 
-      const medicoId = await Medico.create({
-        idPersona: personaId,
-        estado: "inactivo",
-      });
+        const medicoId = await Medico.create({
+          idPersona: personaId,
+          estado: "inactivo",
+        });
 
-      res
-        .status(201)
-        .json({ id: medicoId, message: "Médico registrado exitosamente" });
+        res.status(201).json({ id: medicoId, message: "Médico registrado exitosamente" });
+      }
     } catch (error) {
       console.error("Error al registrar el médico:", error);
       res.status(500).json({ message: "Error al registrar el médico" });
@@ -139,7 +146,15 @@ const medicoController = {
     const medicoEspecialidad = await Medico.obtenerMedicos(req.params.id);
     res.json(medicoEspecialidad);
   },
-
+  async getAvailablePersons(req, res) {
+    try {
+      const personas = await Medico.findAvailablePersons(); 
+      return personas;
+    } catch (error) {
+      console.error("Error al obtener las personas:", error);
+      throw error;
+    }
+  },
 };
 
 module.exports = medicoController;

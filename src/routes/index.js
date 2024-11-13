@@ -26,5 +26,13 @@ router.get("/", (req, res) => {
 
   }
 });
+router.get("/login", async (req, res) => {
+  try {
+    res.render("login");
+  } catch (error) {
+    console.error("Error al renderizar la vista de login:", error);
+    res.status(500).render("error", { error: "Error al renderizar la vista de login" });
+  }
+});
 
 module.exports = router;

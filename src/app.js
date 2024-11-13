@@ -44,10 +44,10 @@ app.set("view engine", "pug");
 app.set("views", path.join(__dirname, "views"));
 
 // Rutas para las vistas (debes revisar si estas rutas son correctas)
-app.get("/turnos", async (req, res) => {
-  const id = req.query.id;
-  res.render("calendar", { id });
-});
+// app.get("/turnos", async (req, res) => {
+//   const id = req.query.id;
+//   res.render("calendar", { id });
+// });
 // Middlewares
 app.use(logger("dev"));
 app.use(express.json());

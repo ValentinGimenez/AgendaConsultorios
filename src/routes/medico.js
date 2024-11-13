@@ -25,7 +25,17 @@ router.get('/lista',userMiddleware,authMiddleware, adminMiddleware, async (req, 
 
   router.get('/nuevo',userMiddleware, authMiddleware, adminMiddleware, async (req, res) => {
     try {
-      res.render('admin/nuevo-medico');
+      const personas = await medicoController.getAvailablePersons(); 
+      res.render('admin/nuevo-medico',{personas});
+    } catch (error) {
+      console.error('Error al obtener la lista de médicos:', error);
+      res.status(500).render('error', { error: 'Error al obtener la lista de médicos' });
+    }
+  });
+  router.get('/personas',userMiddleware, authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+      const personas = await medicoController.getAvailablePersons(); 
+      res.render('admin/listar-personasNoM',{personas});
     } catch (error) {
       console.error('Error al obtener la lista de médicos:', error);
       res.status(500).render('error', { error: 'Error al obtener la lista de médicos' });

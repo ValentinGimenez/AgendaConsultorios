@@ -87,6 +87,19 @@ const Medico = {
             throw error;
         }
     },
+    async findAvailablePersons () {
+        try {
+            const [rows] = await pool.query(`
+                SELECT * 
+                FROM persona
+                WHERE id NOT IN (SELECT idPersona FROM medico)
+            `);
+            return rows;
+        } catch (error) {
+            console.error('Error al obtener personas sin asignación en medico:', error);
+            throw error;
+        }
+    }
 };
 
 module.exports = Medico;
