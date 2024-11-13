@@ -1,27 +1,29 @@
 extends ../layout
 
 block content
-  h1 Lista de Personas
+  .people-list-container
+    h1.page-title Lista de Personas
 
-  table#tablaPersonas.display
-    thead
-      tr
-        th ID
-        th Nombre y Apellido
-        th Correo
-        th DNI
-        th Teléfono
-        th Acciones 
-    tbody
-      each persona in personas
-        tr
-          td= persona.ID
-          td= persona.nombre + ' ' + persona.apellido
-          td= persona.mail
-          td= persona.dni
-          td= persona.telefono
-          td 
-            a(href=`/medico/registrar/${persona.ID}`) Registrar Médico 
+    .table-responsive
+      table#tablaPersonas.display
+        thead
+          tr
+            th ID
+            th Nombre y Apellido
+            th Correo
+            th DNI
+            th Teléfono
+            th Acciones 
+        tbody
+          each persona in personas
+            tr
+              td= persona.ID
+              td= persona.nombre + ' ' + persona.apellido
+              td= persona.mail
+              td= persona.dni
+              td= persona.telefono
+              td 
+                a.btn.btn-primary(href=`/medico/registrar/${persona.ID}`) Registrar Médico 
 
 block scripts
   script(src='https://code.jquery.com/jquery-3.7.1.min.js')
@@ -42,12 +44,13 @@ block scripts
         event.preventDefault();
         
         const idPersona = $(this).attr('href').split('/').pop();
-        const nombreCompleto = $(this).closest('tr').find('td:eq(1)').text().split(' ');
-        const nombre = nombreCompleto[0];
-        const apellido = nombreCompleto.slice(1).join(' ');
-        const dni = $(this).closest('tr').find('td:eq(3)').text();
-        const mail = $(this).closest('tr').find('td:eq(2)').text();
-        const telefono = $(this).closest('tr').find('td:eq(4)').text(); 
+        const row = $(this).closest('tr');
+        const nombre = row.find('td:eq(1)').text().split(' ')[0];
+        const apellido = row.find('td:eq(1)').text().split(' ').slice(1).join(' ');
+        const dni = row.find('td:eq(3)').text();
+        const mail = row.find('td:eq(2)').text();
+        const telefono = row.find('td:eq(4)').text(); 
+
         try {
           const response = await fetch('/medico', {
             method: 'POST',
@@ -66,7 +69,7 @@ block scripts
 
           if (response.ok) {
             alert('Médico registrado exitosamente');
-              location.reload(); 
+            location.reload(); 
           } else {
             const errorData = await response.json();
             alert('Error al registrar el médico: ' + (errorData.message || 'Error desconocido')); 
@@ -77,50 +80,120 @@ block scripts
         }
       });
     });
+
   block styles
     style.
-        #tablaPersonas_wrapper { 
-            border-collapse: collapse;
-            width: 100%;
-            max-width: 800px; 
-            margin: 20px auto; 
-            
+      .people-list-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+
+      .page-title {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 2rem;
+      }
+
+      .table-responsive {
+        overflow-x: auto;
+      }
+
+      #tablaPersonas {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      #tablaPersonas th,
+      #tablaPersonas td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+
+      #tablaPersonas th {
+        background-color: #f2f2f2;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        color: #2c3e50;
+      }
+
+      #tablaPersonas tr:last-child td {
+        border-bottom: none;
+      }
+
+      #tablaPersonas tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+
+      #tablaPersonas tbody tr:hover {
+        background-color: #e9e9e9;
+      }
+
+      .btn-primary {
+        background-color: #3498db;
+        color: white;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        text-decoration: none;
+      }
+
+      .btn-primary:hover {
+        background-color: #2980b9;
+      }
+
+      .table-top,
+      .table-bottom {
+        margin: 1rem 0;
+      }
+
+      .dataTables_filter input {
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-left: 10px;
+      }
+
+      .dataTables_paginate {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      .dataTables_paginate .paginate_button {
+        padding: 5px 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .dataTables_paginate .paginate_button:hover {
+        background-color: #f2f2f2;
+      }
+
+      .dataTables_paginate .paginate_button.current {
+        background-color: #3498db;
+        color: white;
+        border-color: #3498db;
+      }
+
+      @media (max-width: 768px) {
+        #tablaPersonas th,
+        #tablaPersonas td {
+          padding: 8px;
         }
 
-        th, td {
-            border: 1px solid #ddd; 
-            padding: 10px;
-            text-align: left;
+        .btn-primary {
+          padding: 6px 10px;
+          font-size: 0.9rem;
         }
-
-        th {
-            background-color: #f2f2f2; 
-            font-weight: bold;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f9f9f9; 
-        }
-
-        tr:hover{
-            background-color: #e9e9e9; 
-        }
-
-        td a {
-            display: inline-block;
-            padding: 5px 10px;
-            margin-right: 5px;
-            background-color: #007bff; 
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
-
-        td a:hover {
-            background-color: #0056b3; 
-        }
-        #tablaPersonas_wrapper .dt-search {
-            padding-bottom: 20px;
-            width: 100%; 
-            text-align: right; 
-        } 
+      }

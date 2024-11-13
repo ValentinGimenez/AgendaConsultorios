@@ -1,32 +1,31 @@
 extends ../layout
 
 block content
-  h1 Lista de Pacientes
+  .pacientes-container
+    h1.page-title Lista de Pacientes
 
-  table#tablaPacientes.display
-    thead
-      tr
-        th ID
-        th Nombre y Apellido
-        th Correo
-        th DNI
-        th Teléfono
-        th Obra Social
-        th Acciones
-    tbody
-      each paciente in pacientes
+    table#tablaPacientes.display
+      thead
         tr
-          td= paciente.id 
-          td= paciente.nombre + ' ' + paciente.apellido
-          td= paciente.mail
-          td= paciente.dni
-          td= paciente.telefono
-          td= paciente.nombreObraSocial
-          td
-            a(href=`/paciente/${paciente.id}/editar`) Editar
-            a(href=`/paciente/${paciente.id}/agendarTurno`) Agendar Turno
-
-
+          th ID
+          th Nombre y Apellido
+          th Correo
+          th DNI
+          th Teléfono
+          th Obra Social
+          th Acciones
+      tbody
+        each paciente in pacientes
+          tr
+            td= paciente.id 
+            td= paciente.nombre + ' ' + paciente.apellido
+            td= paciente.mail
+            td= paciente.dni
+            td= paciente.telefono
+            td= paciente.nombreObraSocial
+            td.acciones
+              a.btn.btn-editar(href=`/paciente/${paciente.id}/editar`) Editar
+              a.btn.btn-agendar(href=`/paciente/${paciente.id}/agendarTurno`) Agendar Turno 
 block scripts
   script(src='https://code.jquery.com/jquery-3.7.1.min.js')
   script(src='https://cdn.datatables.net/2.1.8/js/dataTables.min.js')
@@ -44,47 +43,93 @@ block scripts
     });
   block styles
     style.
-      #tablaPacientes_wrapper{ 
-        border-collapse: collapse;
+      .pacientes-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .page-title {
+        font-size: 2em;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      #tablaPacientes { /* Cambia el ID de la tabla */
         width: 100%;
-        max-width: 800px; 
-        margin: 20px auto; 
+        border-collapse: separate;
+        border-spacing: 0;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
       }
-
-      th, td {
-        border: 1px solid #ddd; 
-        padding: 10px;
+      #tablaPacientes th, #tablaPacientes td { /* Cambia el ID de la tabla */
+        padding: 12px 15px;
         text-align: left;
+        border-bottom: 1px solid #ddd;
       }
-
-      th {
-        background-color: #f2f2f2; 
+      #tablaPacientes th { /* Cambia el ID de la tabla */
+        background-color: #f8f9fa;
         font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.9em;
       }
-
-      tr:nth-child(even) {
-        background-color: #f9f9f9; 
+      #tablaPacientes tr:last-child td { /* Cambia el ID de la tabla */
+        border-bottom: none;
       }
-
-      tr:hover {
-        background-color: #e9e9e9; 
+      #tablaPacientes tr:nth-child(even) { /* Cambia el ID de la tabla */
+        background-color: #f9f9f9;
       }
-
-      td a {
+      #tablaPacientes tr:hover { /* Cambia el ID de la tabla */
+        background-color: #f0f0f0;
+      }
+      .acciones {
+        white-space: nowrap;
+      }
+      .btn {
         display: inline-block;
-        padding: 5px 10px;
-        margin-right: 5px;
-        background-color: #007bff; 
-        color: white;
+        padding: 6px 12px;
+        margin: 2px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
         text-decoration: none;
+        transition: background-color 0.3s;
+      }
+      .btn-editar {
+        background-color: #007bff;
+        color: white;
+      }
+      .btn-agendar { /* Cambia el nombre de la clase */
+        background-color: #28a745; /* Color verde para "Agendar Turno" */
+        color: white;
+      }
+      .btn:hover {
+        opacity: 0.8;
+      }
+      .table-top {
+        margin-bottom: 20px;
+      }
+      .table-bottom {
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .dataTables_filter input {
+        padding: 6px 10px;
+        border: 1px solid #ddd;
         border-radius: 4px;
       }
-
-      td a:hover {
-        background-color: #0056b3; 
+      .dataTables_paginate .paginate_button {
+        padding: 6px 12px;
+        margin: 0 2px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
       }
-      #tablaPacientes_wrapper .dt-search {
-        padding-bottom: 20px;
-        width: 100%; 
-        text-align: right; 
+      .dataTables_paginate .paginate_button.current {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
       }
