@@ -45,6 +45,10 @@ const medicoController = {
         });
         res.status(201).json({ id: medicoId, message: "Médico registrado exitosamente" });
       }else{
+        const dniExistente = await Persona.findByDni(dni);
+        if (dniExistente) {
+          return res.status(400).json({ message: "Ya existe una persona con ese DNI!" });
+        }
         const personaId = await Persona.create({
           nombre,
           apellido,
