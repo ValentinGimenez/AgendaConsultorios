@@ -3,13 +3,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectEspecialidad = document.getElementById('especialidad');
     const selectMedico = document.getElementById('medico');
     const limpiarbtn = document.getElementById('limpiarbtn');
-    const buscar = document.getElementById('buscar');
     let calendar;
     document.getElementById('agenda').style.display = 'none';
     document.getElementById('texto').style.display = 'none';
     document.getElementById('date-title').style.display = 'none';
-    // $(selectEspecialidad).select2({});
-    // $(selectMedico).select2({});
     limpiarbtn.addEventListener('click', () => {
       cargarSelectMedicos2();
       cargarSelectEspecialidades1();
@@ -22,7 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
         valorEspecialidadSeleccionada = selectEspecialidad.value;
         const idEspecialidad = selectEspecialidad.value;
             await cargarSelectMedicos1(idEspecialidad);
-        selectMedico.value = valorMedicoSeleccionado;        
+        selectMedico.value = valorMedicoSeleccionado; 
+        cargarDatosCalendario();       
       }else{
         await cargarSelectMedicos2();
         selectMedico.value = valorMedicoSeleccionado;
@@ -36,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const idMedico = selectMedico.value;
         await cargarSelectEspecialidades2(idMedico);
         selectEspecialidad.value = valorEspecialidadSeleccionada;
+        cargarDatosCalendario();
       }else{
         await cargarSelectEspecialidades1();
         selectEspecialidad.value = valorEspecialidadSeleccionada;
@@ -101,9 +100,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   let medico_especialidad;
 
-    buscar.addEventListener('click', async () => {
-      cargarDatosCalendario();
-    })
+    // buscar.addEventListener('click', async () => {
+    //   cargarDatosCalendario();
+    // })
     
    async function cargarDatosCalendario(){
       if(selectEspecialidad.value != -1 && selectMedico.value != -1){
@@ -434,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     horarioinput.textContent= turno.hora_inicio;
                     fechainput.textContent= selectedDate;
                     const idTurno= timeBtn.id;
-                  abrirModal(turno.hora_inicio, idTurno, selectedDate );
+                  abrirModal( idTurno  );
                 });
                 
                 availableTimesEl.appendChild(timeBtn);
@@ -458,85 +457,25 @@ document.addEventListener('DOMContentLoaded', function() {
  }
  
   //abrir modal
-  document.getElementById('confirmar').disabled=true;
 
-   function abrirModal(hora_inicio, id_turno, fecha) {
+  async function abrirModal( id_turno ) {
+    const url = window.location.href;
+    const match = url.match(/\/(\d+)\/agendarTurno/);
+    const idPaciente = match ? match[1] : null;
+    
+    console.log(idPaciente);
+   
   document.getElementById('turnoModal').style.display = 'flex';
-
-    //Importante mostrar los datos dde la sucursal 
-    document.getElementById('buscarDni').addEventListener('click', async () => {
-      //validar que el campo no esté vacio
-      const dni = document.getElementById('dni').value;
-      let paciente;
-      if(!dni){
-        alert('El campo DNI no puede estar vacio');
-        return;
-      }
-      if (!/^\d{8}$/.test(dni)) {
-        alert('El DNI debe contener 8 dígitos.');
-        document.getElementById('confirmar').disabled=true;
-
-        return;
-      }else{
-         paciente = await buscarDni(dni);
-         //paciente tiene personaID y pacienteID
-        document.getElementById('confirmar').disabled=false;
-      }
-
-
-      document.getElementById('confirmar').addEventListener('click', async () => {
-        let idPaciente;
-        //validar formulario 
-        const nombre= document.getElementById('nombre').value;
-        const apellido=document.getElementById('apellido').value;
-        const mail= document.getElementById('mail').value;
-        const telefono=document.getElementById('telefono').value; 
-        if(!nombre || !apellido || !mail || !telefono){
-          alert('Todos los campos son obligatorios');
-          return;
-        }else{
-          const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailPattern.test(mail)) {
-              alert('Por favor ingresa un email válido.');
-              return;
-          }else{
-                //insertar o actualizar al paciente, obtener el id para poder actualizar el turno seleccionado 
-            if(paciente!= null){
-              //si hay paciente solo se tiene que actualizar los datos de persona y darle el turno al paciente
-                actualizarPaciente(paciente,dni);
-                idPaciente= paciente.pacienteID;
-            }else{
-              //si no hay paciente se tiene que insertar el paciente y darle el turno al paciente
-              idPaciente =  await crearPaciente(dni);
-            }
-            if(idPaciente!=null){
-              asignarTurno(idPaciente, id_turno);
-              alert("Turno confirmado");
-              //remover el div del horario correspondiente
-              // const div = document.getElementById(id_turno);
-              // div.remove();
-              //esconder los div de la clase hora-disponible
-              const divs = document.querySelectorAll('.hora-disponible');
-              divs.forEach(div => {
-                div.style.display = 'none';  // Esto los oculta
-              });
-              cargarDatosCalendario();
-              cerrarModal();
-              document.getElementById('nombre').value = "";
-              document.getElementById('apellido').value = "";
-              document.getElementById('mail').value = "";
-              document.getElementById('telefono').value = "";
-              document.getElementById('dni').value = "";
-              document.getElementById('nombre').disabled = true;
-              document.getElementById('apellido').disabled = true;
-              document.getElementById('mail').disabled = true;
-              document.getElementById('telefono').disabled = true;
-              document.getElementById('confirmar').disabled = true;
-            }
-          }
-        }
-      })
-    });
+    document.getElementById('confirmar').addEventListener('click', async () => {
+      asignarTurno(idPaciente, id_turno);
+            alert("Turno confirmado");
+            const divs = document.querySelectorAll('.hora-disponible');
+            divs.forEach(div => {
+              div.style.display = 'none'; 
+            });
+            cargarDatosCalendario();
+            cerrarModal();
+    })
     document.getElementById('cerrarModal').addEventListener('click', () => {
       cerrarModal();
     })
@@ -547,142 +486,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
  
   
- 
-  //buscar dni
-  async function buscarDni(dni) {
-    let persona;
-    let paciente;
-    //buscar en la base de datos los datos de la persona 
-    try {
-        const response = await fetch(`/persona/obtenerPersonaDni/${dni}`);
-      if (!response.ok) {
-          throw new Error('Error al obtener persona');
-      }
-       persona = await response.json();
-    } catch (error) {
-        console.error('Error al obtener persona:', error);
-    };  
-    //
-    if(persona != null){
-      //se encontro a la persona
-      //buscar el paciente asociado a los datos de la persona
-      try {
-        const response = await fetch(`/paciente/obtenerPacienteidPersona/${persona.ID}`);
-      if (!response.ok) {
-          throw new Error('Error al obtener paciente');
-      }
-         paciente = await response.json();
-         //paciente tiene personaID y pacienteID
-      } catch (error) {
-          console.error('Error al obtener paciente:', error);
-      }  
-      //LLENAR EL formulario
-      document.getElementById('nombre').value = `${persona.nombre}`;
-      document.getElementById('apellido').value = `${persona.apellido}`;
-      document.getElementById('mail').value = `${persona.mail}`;
-      document.getElementById('telefono').value = `${persona.telefono}`;
-      document.getElementById('nombre').disabled = false;
-      document.getElementById('apellido').disabled = false;
-      document.getElementById('mail').disabled = false;
-      document.getElementById('telefono').disabled = false;
-    }else{
-      //no se encontro a la persona
-      document.getElementById('nombre').disabled = false;
-      document.getElementById('apellido').disabled = false;
-      document.getElementById('mail').disabled = false;
-      document.getElementById('telefono').disabled = false;
-      document.getElementById('nombre').value = "";
-      document.getElementById('apellido').value = "";
-      document.getElementById('mail').value = "";
-      document.getElementById('telefono').value = "";
-    }
-    return paciente;
-  }
-
-  async function actualizarPaciente(paciente,dni) {
-    const nombre = document.getElementById('nombre').value;
-    const apellido = document.getElementById('apellido').value;
-    const mail = document.getElementById('mail').value;
-    const telefono = document.getElementById('telefono').value;
-    const idPersona = paciente.personaID;
-    console.log("HELLO idPersona", paciente);
-    try {
-      const response = await fetch(`/persona/updatePersona/${idPersona}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            nombre,
-            apellido,
-            mail,
-            telefono,
-            dni
-        }),
-      });
-      if(response.ok){
-        const data = await response.json(); 
-        console.log(data);
-      }
-    } catch (error) {
-      console.log("no se pudo actualizar persona");
-    }
-  }
-  async function crearPaciente(dni){
-    const nombre = document.getElementById('nombre').value;
-    const apellido = document.getElementById('apellido').value;
-    const mail = document.getElementById('mail').value;
-    const telefono = document.getElementById('telefono').value;
-    let idPersona;
-    const obraSocial = 0;
-    let idPaciente;
-    try {
-      const response = await fetch(`/persona/crearPersona`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            nombre,
-            apellido,
-            mail,
-            telefono,
-            dni
-        }),
-      });
-      if(response.ok){
-         data = await response.json(); 
-        console.log(data);
-        idPersona = data.id;
-        console.log("PROBANDO idPersona", idPersona);
-            // //crear el paciente
-        try {
-          const response = await fetch(`/paciente/crearPaciente`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                idPersona,
-                obraSocial
-            }),
-          });
-          if(response.ok){
-            const data = await response.json(); 
-            idPaciente=data.id;
-            console.log("paciente creado",data);
-            return idPaciente;
-          }
-        } catch (error) {
-          console.log("no se pudo crear el paciente");
-        }
-      }
-    } catch (error) {
-      console.log("no se pudo crear persona");
-    }
-   return null;
-   
-  }
   async function asignarTurno(idPaciente, id_turno) {
     try {
       console.log("idPaciente", idPaciente);

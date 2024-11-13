@@ -50,15 +50,21 @@ const pacienteController = {
         res.json(paciente);
     },
     async obtenerPaciente(pacienteId) {
+
       try {
         const paciente = await Paciente.findById(pacienteId);
         if (!paciente) {
           return null; 
         }
-    
+        
         const persona = await Persona.findById(paciente.idPersona);
         if (!persona) {
           console.error(`No se encontró la persona con ID ${paciente.idPersona} para el paciente con ID ${pacienteId}`);
+          return null;
+        }
+        const obrasocial = await ObraSocial.findById(paciente.idObraSocial);
+        if(!obrasocial){
+          console.error(`No se encontró la obra social con ID ${paciente.idObraSocial} para el paciente con ID ${pacienteId}`);
           return null;
         }
     
@@ -67,10 +73,11 @@ const pacienteController = {
         paciente.mail = persona.mail;
         paciente.dni = persona.dni;
         paciente.telefono = persona.telefono;
+        paciente.obrasocialNombre = obrasocial.nombre;
   
         return paciente; 
       } catch (error) {
-        console.error('Error al obtener el médico:', error);
+        console.error('Error al obtener el Paciente:', error);
         throw error; 
       }
     },

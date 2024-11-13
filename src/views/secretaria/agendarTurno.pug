@@ -8,8 +8,6 @@ block content
         select(name="medico" id="medico")
       .boton 
         button(type="button" id="limpiarbtn") Limpiar filtro 
-      .boton
-        button(type="button" id="buscar") Ver turnos 
     .calendar-container
       #texto
        #agenda
@@ -22,29 +20,29 @@ block content
       #modal-header Confirmación de turno 
       form(id="confirmarTurnoForm" method="POST") 
         #form-field 
-          label(for="dni") DNI:
-          span(style="color: red;") * 
-          input(type="text" id="dni" required)
-          button(type="button" id="buscarDni") Buscar 
-        #form-field 
-          label(for="nombre") Nombre: 
-          span(style="color: red;") *
-          input(type="text" id="nombre" disabled)
-        #form-field 
-          label(for="apellido") Apellido: 
-          span(style="color: red;") *
-          input(type="text" id="apellido" disabled)
-        #form-field 
-          label(for="mail") Email: 
-          span(style="color: red;") *
-          input(type="email" id="mail" disabled)
-        #form-field 
-          label(for="telefono") Telefono:
-          span(style="color: red;") * 
-          input(type="text" id="telefono" disabled)
-        #form-field 
           p
-            strong Doctor: 
+            span#titulo Datos del paciente:
+          p
+            strong DNI:
+            span=paciente.dni 
+            span#dni 
+          p
+            strong Nombre:
+            span=paciente.nombre 
+            span#nombrePaciente 
+          p 
+            strong Apellido: 
+            span=paciente.apellido 
+            span#apellidoPaciente
+          p
+            strong Obra Social: 
+            span=paciente.obrasocialNombre
+            span#obraSocial 
+          p
+            hr
+            span#titulo Datos del Profesinal:
+          p
+            strong Nombre completo: 
             span#doctor 
           p 
             strong Especialidad: 
@@ -71,6 +69,5 @@ block content
     script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.15/index.global.min.js") 
     script(src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js") 
     script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous") 
-    script(src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js") 
     script(src="/stylesheets/js/agendarTurnoSecretaria.js") 
   
