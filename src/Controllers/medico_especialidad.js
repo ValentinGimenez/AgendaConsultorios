@@ -52,6 +52,17 @@ const medicoEspecialidadController = {
           res.status(500).json({ error: 'Error al obtener las especialidades del médico' });
         }
       },
+      async obtenerMedicosActivos(req, res) {
+        try {
+            const idEspecialidad = req.params.id;
+            const medicos = await MedicoEspecialidad.obtenerMedicos(idEspecialidad);
+            const medicosActivos = Array.isArray(medicos) ? medicos.filter(medico => medico.estado === 'activo') : [];
+            res.json(medicosActivos);
+        } catch (error) {
+          console.error("Error al filtrar medicos activos", error);
+          res.status(500).json({ error: "Error al filtrar medicos activos" });
+        }
+    },
       async agregarEspecialidad(req, res) {
         try {
           const { matricula } = req.body;

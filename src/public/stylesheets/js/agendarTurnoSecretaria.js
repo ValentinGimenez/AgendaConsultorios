@@ -10,6 +10,16 @@ document.addEventListener('DOMContentLoaded', function() {
     limpiarbtn.addEventListener('click', () => {
       cargarSelectMedicos2();
       cargarSelectEspecialidades1();
+      document.getElementById('agenda').style.display = 'none';
+      document.getElementById('texto').style.display = 'none'; 
+      const divs = document.querySelectorAll('.hora-disponible');
+            divs.forEach(div => {
+              div.style.display = 'none'; 
+            });
+      if(calendar){
+        calendar.destroy();
+        
+      }
     })
     let valorMedicoSeleccionado = -1; 
     let valorEspecialidadSeleccionada = -1;
@@ -236,6 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
         selectEspecialidad.appendChild(option);
     
         especialidades.forEach(especialidad => {
+          
             const option = document.createElement('option'); 
             option.value = especialidad.especialidad_id;
             option.textContent = especialidad.nombre; 
@@ -277,12 +288,13 @@ document.addEventListener('DOMContentLoaded', function() {
       //medicos
       async function obtenerTodosLosMedicos(idEspecialidad) {
         try {
-            const response = await fetch(`/medico_especialidad/obtenerMedicos/${idEspecialidad}`);
+            const response = await fetch(`/medico_especialidad/obtenerMedicosActivos/${idEspecialidad}`);
             if (!response.ok) {
                 throw new Error('Error al obtener los medicos');
             }
             const datos = await response.json();
             console.log("id especialidad:",idEspecialidad);
+            console.log("datos:",datos);
             return datos;
         } catch (error) {
             console.error('Error al obtener los medicos:', error);

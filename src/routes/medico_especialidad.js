@@ -12,4 +12,5 @@ router.get('/obtenerMedicos/:id',medicoEspecialidadController.obtenerMedicos);
 router.get('/obtenerEspecialidad/:id',medicoEspecialidadController.obtenerEspecialidad);
 router.get('/obtenerTodosMedicos',medicoEspecialidadController.obtenerTodosMedicos);
 router.get('/obtenerTodasEspecialidades',medicoEspecialidadController.obtenerTodasEspecialidades);
+router.get("/obtenerMedicosActivos/:id", medicoEspecialidadController.obtenerMedicosActivos);
 module.exports = router;
