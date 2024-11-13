@@ -3,45 +3,69 @@ extends ../layout.pug
 block content
   style.
     .admin-container {
-      max-width: 800px;
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 40px 20px;
     }
     .admin-title {
       color: #333;
       font-size: 2.5em;
-      margin-bottom: 20px;
+      margin-bottom: 40px;
       text-align: center;
     }
     .admin-menu {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .admin-card {
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .admin-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
     .admin-link {
-      background-color: #007bff;
-      color: white;
-      padding: 15px 20px;
+      display: block;
+      padding: 30px 20px;
       text-decoration: none;
-      border-radius: 5px;
+      color: #333;
       text-align: center;
-      transition: background-color 0.3s ease;
     }
-    .admin-link:hover {
-      background-color: #0056b3;
+    .admin-link-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .admin-link-description {
+      font-size: 0.9em;
+      color: #666;
     }
     @media (max-width: 600px) {
       .admin-title {
         font-size: 2em;
       }
-      .admin-link {
-        padding: 12px 15px;
+      .admin-menu {
+        grid-template-columns: 1fr;
       }
     }
 
   .admin-container
-    h2.admin-title ADMIN
+    h2.admin-title Panel de Administración
     .admin-menu
-      a.admin-link(href="/medico/nuevo") Crear Médico y Persona
-      a.admin-link(href="/medico/personas") Asignar Rol Médico a Una Persona
-      a.admin-link(href="/medico/lista") Lista Médicos
+      .admin-card
+        a.admin-link(href="/medico/nuevo")
+          .admin-link-title Crear Médico y Persona
+          .admin-link-description Registra un nuevo médico y su información personal
+      .admin-card
+        a.admin-link(href="/medico/personas")
+          .admin-link-title Asignar Rol Médico
+          .admin-link-description Asigna el rol de médico a una persona existente
+      .admin-card
+        a.admin-link(href="/medico/lista")
+          .admin-link-title Lista de Médicos
+          .admin-link-description Ver y gestionar la lista de médicos registrados

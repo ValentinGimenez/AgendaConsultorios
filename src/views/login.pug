@@ -1,34 +1,91 @@
 extends layout
 
 block content
-  h1 Iniciar Sesión
+  style.
+    .login-container {
+      max-width: 400px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .login-title {
+      color: #3498db;
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #333;
+      font-weight: bold;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+    .submit-button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .submit-button:hover {
+      background-color: #2980b9;
+    }
+    .error-message {
+      color: #e74c3c;
+      text-align: center;
+      margin-top: 1rem;
+    }
 
-  form#loginForm.container(method="POST" action="/usuario/login")
-    div.form-group
-      label(for="nombre") Usuario:
-      input(type="text" name="nombre" id="nombre" required)
-    div.form-group
-      label(for="password") Contraseña:
-      input(type="password" name="password" id="password" required)
+  .login-container
+    h1.login-title Iniciar Sesión
 
-    button(type="submit") Iniciar Sesión   
+    form#loginForm(method="POST" action="/usuario/login")
+      .form-group
+        label(for="nombre") Usuario:
+        input(type="text" name="nombre" id="nombre" required)
+      .form-group
+        label(for="password") Contraseña:
+        input(type="password" name="password" id="password" required)
 
+      button.submit-button(type="submit") Iniciar Sesión   
 
-  //- a(href="/usuario/nuevo") ¿No tienes una cuenta? Regístrate
+    #errorMessage.error-message
 
 block scripts
   script.
     document.addEventListener('DOMContentLoaded', () => {
       const loginForm = document.getElementById('loginForm');
+      const errorMessage = document.getElementById('errorMessage');
 
-      loginForm.addEventListener('submit', async(event)=> {
+      loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         const nombre = document.getElementById('nombre').value.trim();
         const password = document.getElementById('password').value;
 
         if (!nombre || !password) {
-          alert('Por favor, completa todos los campos.');
+          errorMessage.textContent = 'Por favor, completa todos los campos.';
           return;
         }
 
@@ -45,11 +102,48 @@ block scripts
             window.location.href = '/'; 
           } else {
             const errorData = await response.json();
-            alert('Error al iniciar sesión: ' + (errorData.message || 'Error desconocido'));
+            errorMessage.textContent = 'Error al iniciar sesión: ' + (errorData.message || 'Error desconocido');
           }
         } catch (error) {
           console.error('Error al enviar el formulario:', error);
-          alert('Error al enviar el formulario.');
+          errorMessage.textContent = 'Error al enviar el formulario.';
         }
       });
     });
+//- block scripts
+//-   script.
+//-     document.addEventListener('DOMContentLoaded', () => {
+//-       const loginForm = document.getElementById('loginForm');
+
+//-       loginForm.addEventListener('submit', async(event)=> {
+//-         event.preventDefault();
+
+//-         const nombre = document.getElementById('nombre').value.trim();
+//-         const password = document.getElementById('password').value;
+
+//-         if (!nombre || !password) {
+//-           alert('Por favor, completa todos los campos.');
+//-           return;
+//-         }
+
+//-         try {
+//-           const response = await fetch('/usuario/login', {
+//-             method: 'POST',
+//-             headers: {
+//-               'Content-Type': 'application/json',
+//-             },
+//-             body: JSON.stringify({ nombre, password }),
+//-           });
+
+//-           if (response.ok) {
+//-             window.location.href = '/'; 
+//-           } else {
+//-             const errorData = await response.json();
+//-             alert('Error al iniciar sesión: ' + (errorData.message || 'Error desconocido'));
+//-           }
+//-         } catch (error) {
+//-           console.error('Error al enviar el formulario:', error);
+//-           alert('Error al enviar el formulario.');
+//-         }
+//-       });
+//-     });

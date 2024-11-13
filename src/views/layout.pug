@@ -1,25 +1,122 @@
 doctype html
-html
+html(lang="es")
   head
-    title= Sarumed
-    link(rel='stylesheet', href='/stylesheets/style.css')
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Sarumed
     link(rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css")
-    meta(charset='utf-8')
-    script(src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/index.global.min.js')
-    script(src='https://cdn.jsdelivr.net/npm/@fullcalendar/web-component@6.1.15/index.global.min.js')
-    script(src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.15/index.global.min.js')
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/index.global.min.js")
+    script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/web-component@6.1.15/index.global.min.js")
+    script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.15/index.global.min.js")
     block scripts
-  
+    style.
+      :root {
+        --primary-color: #3498db;
+        --secondary-color: #2ecc71;
+        --text-color: #333;
+        --background-color: #f9f9f9;
+        --card-background: #ffffff;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background-color: var(--background-color);
+      }
+      header {
+        background-color: var(--card-background);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem;
+      }
+      .business-name {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--primary-color);
+      }
+      nav ul {
+        list-style-type: none;
+        display: flex;
+      }
+      nav ul li {
+        margin-left: 1.5rem;
+      }
+      nav ul li a {
+        color: var(--text-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+        position: relative;
+      }
+      nav ul li a::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -5px;
+        left: 0;
+        background-color: var(--secondary-color);
+        transition: width 0.3s ease;
+      }
+      nav ul li a:hover::after {
+        width: 100%;
+      }
+      main {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      .content-container {
+        background-color: var(--card-background);
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 2rem;
+        transition: box-shadow 0.3s ease;
+      }
+      .content-container:hover {
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      }
+      @media (max-width: 768px) {
+        .header-content {
+          flex-direction: column;
+        }
+        nav ul {
+          margin-top: 1rem;
+        }
+        nav ul li {
+          margin: 0 0.75rem;
+        }
+      }
+
   body
     header
-      .business-name Sarumed
-      nav 
-        ul
-          if user
-            li 
-              a(href="/") Home
-            li 
-              //- p Hola, #{user.nombre}! 
-              a(href="/usuario/logout") Desconectarse
-    section
-      block content
+      .header-content
+        .business-name Sarumed
+        nav 
+          ul
+            if user
+              li 
+                a(href="/") Inicio
+              li 
+                a(href="/usuario/logout") Desconectarse
+            //- else
+            //-   li
+            //-     a(href="/usuario/login") Iniciar sesión
+    main
+      .content-container
+        block content

@@ -1,41 +1,42 @@
 extends ../layout
 
 block content
-  h1 Lista de Médicos
+  .medicos-container
+    h1.page-title Lista de Médicos
 
-  table#tablaMedicos.display
-    thead
-      tr
-        th ID
-        th Nombre y Apellido
-        th Correo
-        th DNI
-        th Teléfono
-        th Estado
-        th Acciones
-    tbody
-      each medico in medicos
+    table#tablaMedicos.display
+      thead
         tr
-          td= medico.id 
-          td= medico.nombre + ' ' + medico.apellido
-          td= medico.mail
-          td= medico.dni
-          td= medico.telefono
-          td= medico.estado
-          td
-            a(href=`/medico/${medico.id}/editar`) Editar
-            if medico.estado === 'activo'
-              a(href=`/medico/${medico.id}/desactivar`, data-medico-id=medico.id, class="activar-btn") Desactivar
-            else
-              a(href=`/medico/${medico.id}/activar`, data-medico-id=medico.id, class="activar-btn") Activar
-            a(href=`/medico/${medico.id}/horario`) Horario
+          th ID
+          th Nombre y Apellido
+          th Correo
+          th DNI
+          th Teléfono
+          th Estado
+          th Acciones
+      tbody
+        each medico in medicos
+          tr
+            td= medico.id 
+            td= medico.nombre + ' ' + medico.apellido
+            td= medico.mail
+            td= medico.dni
+            td= medico.telefono
+            td(class=medico.estado === 'activo' ? 'estado-activo' : 'estado-inactivo')= medico.estado
+            td.acciones
+              a.btn.btn-editar(href=`/medico/${medico.id}/editar`) Editar
+              if medico.estado === 'activo'
+                a.btn.btn-desactivar(href=`/medico/${medico.id}/desactivar`, data-medico-id=medico.id) Desactivar
+              else
+                a.btn.btn-activar(href=`/medico/${medico.id}/activar`, data-medico-id=medico.id) Activar
+              a.btn.btn-horario(href=`/medico/${medico.id}/horario`) Horario
 
 block scripts
   script(src='https://code.jquery.com/jquery-3.7.1.min.js')
   script(src='https://cdn.datatables.net/2.1.8/js/dataTables.min.js')
   script.
     $(document).ready(function () {
-       $('#tablaMedicos').DataTable({
+      $('#tablaMedicos').DataTable({
         dom: 'frtip', 
         order: [[5, 'asc']] ,
         paging: false,
@@ -45,75 +46,131 @@ block scripts
         }
       });
       
-      const activarBtns = document.querySelectorAll('.activar-btn');
-
-      activarBtns.forEach(btn => {
-        btn.addEventListener('click', async (event) => {
-          event.preventDefault();
-          const medicoId = btn.dataset.medicoId;
-          const url = btn.href; 
-
-          try {
-            const response = await fetch(url, { method: 'POST' }); 
-            if (response.ok) {
-              alert('Estado del médico actualizado');
-              location.reload(); 
-            } else {
-              const errorData = await response.json();
-              const errorMessage = errorData.message || 'Error al actualizar el estado del médico';
-              console.error(errorMessage, response.status);
-              alert(errorMessage);
-            }
-          } catch (error) {
-            console.error('Error al actualizar el estado del médico:', error);
-            alert('Error al actualizar el estado del médico');
+      $('.btn-activar, .btn-desactivar').on('click', async function(event) {
+        event.preventDefault();
+        const url = $(this).attr('href');
+        const medicoId = $(this).data('medico-id');
+        
+        try {
+          const response = await fetch(url, { method: 'POST' });
+          if (response.ok) {
+            alert('Estado del médico actualizado');
+            location.reload();
+          } else {
+            const errorData = await response.json();
+            alert(errorData.message || 'Error al actualizar el estado del médico');
           }
-        });
+        } catch (error) {
+          console.error('Error al actualizar el estado del médico:', error);
+          alert('Error al actualizar el estado del médico');
+        }
       });
     });
   block styles
     style.
-      #tablaMedicos_wrapper{ 
-        border-collapse: collapse;
+      .medicos-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .page-title {
+        font-size: 2em;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      #tablaMedicos {
         width: 100%;
-        max-width: 800px; /* Ajusta el ancho máximo de la tabla si es necesario */
-        margin: 20px auto; /* Centra la tabla horizontalmente */
+        border-collapse: separate;
+        border-spacing: 0;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
       }
-
-      th, td {
-        border: 1px solid #ddd; 
-        padding: 10px;
+      #tablaMedicos th, #tablaMedicos td {
+        padding: 12px 15px;
         text-align: left;
+        border-bottom: 1px solid #ddd;
       }
-
-      th {
-        background-color: #f2f2f2; 
+      #tablaMedicos th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.9em;
+      }
+      #tablaMedicos tr:last-child td {
+        border-bottom: none;
+      }
+      #tablaMedicos tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      #tablaMedicos tr:hover {
+        background-color: #f0f0f0;
+      }
+      .estado-activo {
+        color: #28a745;
         font-weight: bold;
       }
-
-      tr:nth-child(even) {
-        background-color: #f9f9f9; 
+      .estado-inactivo {
+        color: #dc3545;
+        font-weight: bold;
       }
-
-      tr:hover {
-        background-color: #e9e9e9; 
+      .acciones {
+        white-space: nowrap;
       }
-
-      td a {
+      .btn {
         display: inline-block;
-        padding: 5px 10px;
-        margin-right: 5px;
-        background-color: #007bff; /* Color azul para los enlaces */
-        color: white;
+        padding: 6px 12px;
+        margin: 2px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
         text-decoration: none;
+        transition: background-color 0.3s;
+      }
+      .btn-editar {
+        background-color: #007bff;
+        color: white;
+      }
+      .btn-activar {
+        background-color: #28a745;
+        color: white;
+      }
+      .btn-desactivar {
+        background-color: #dc3545;
+        color: white;
+      }
+      .btn-horario {
+        background-color: #ffc107;
+        color: black;
+      }
+      .btn:hover {
+        opacity: 0.8;
+      }
+      .table-top {
+        margin-bottom: 20px;
+      }
+      .table-bottom {
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .dataTables_filter input {
+        padding: 6px 10px;
+        border: 1px solid #ddd;
         border-radius: 4px;
       }
-
-      td a:hover {
-        background-color: #0056b3; 
+      .dataTables_paginate .paginate_button {
+        padding: 6px 12px;
+        margin: 0 2px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
       }
-      #tablaMedicos_wrapper .dt-search {
-        padding-bottom: 20px;
-        width: 100%; 
-        text-align: right; 
+      .dataTables_paginate .paginate_button.current {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
       }
