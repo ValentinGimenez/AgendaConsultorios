@@ -16,5 +16,4 @@ router.get('/register', async (req, res) => {
     const id = req.query.id; 
     res.render('persona', { id }); 
 });
-
 module.exports = router;

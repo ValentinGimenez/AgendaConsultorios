@@ -32,4 +32,20 @@ router.get('/nuevo',userMiddleware, authMiddleware, secretariaMiddleware, async 
       res.status(500).render('error', { error: 'Error al obtener la lista de médicos' });
     }
   });
+
+  router.get('/:id/agendarTurno/', userMiddleware, authMiddleware, secretariaMiddleware, async (req, res) => {
+      try {
+        const pacienteId = req.params.id;
+        const paciente = await pacienteController.obtenerPaciente(pacienteId); 
+    
+        if (!paciente) {
+          return res.status(404).render('error', { error: 'Paciente no encontrado' });
+        }
+        res.render('secretaria/agendarTurno', { paciente }); // Renderizar la vista en la ruta
+      } catch (error) {
+        console.error('Error al obtener los datos del médico:', error);
+        res.status(500).render('error', { error: 'Error al obtener los datos del médico' });
+      }
+    });
+
 module.exports = router;

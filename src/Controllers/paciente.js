@@ -49,6 +49,31 @@ const pacienteController = {
         const paciente = await Paciente.obtenerPacienteidPersona(req.params.id);
         res.json(paciente);
     },
+    async obtenerPaciente(pacienteId) {
+      try {
+        const paciente = await Paciente.findById(pacienteId);
+        if (!paciente) {
+          return null; 
+        }
+    
+        const persona = await Persona.findById(paciente.idPersona);
+        if (!persona) {
+          console.error(`No se encontró la persona con ID ${paciente.idPersona} para el paciente con ID ${pacienteId}`);
+          return null;
+        }
+    
+        paciente.nombre = persona.nombre;
+        paciente.apellido = persona.apellido;
+        paciente.mail = persona.mail;
+        paciente.dni = persona.dni;
+        paciente.telefono = persona.telefono;
+  
+        return paciente; 
+      } catch (error) {
+        console.error('Error al obtener el médico:', error);
+        throw error; 
+      }
+    },
     async crearPaciente(req, res) {
         console.log("Datos recibidos en el servidor:", req.body);
         try {
