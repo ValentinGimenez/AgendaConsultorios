@@ -14,14 +14,12 @@ html
     header
       .business-name Sarumed
       nav 
-        ul 
-          li 
-            a(href="/") Home
-          li 
-            if user
+        ul
+          if user
+            li 
+              a(href="/") Home
+            li 
               //- p Hola, #{user.nombre}! 
               a(href="/usuario/logout") Desconectarse
-            else
-              a(href="/usuario/login") Ingresar
     section
       block content

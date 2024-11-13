@@ -21,7 +21,7 @@ router.get("/", (req, res) => {
         break;
     }
   } else {
-    res.render("index", { user: null }); 
+    res.render("login", { user: null }); 
     console.log("Usuario en la sesión:",user); 
 
   }

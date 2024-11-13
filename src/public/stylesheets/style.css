@@ -13,16 +13,19 @@ header {
   display: flex;
   align-items: center; /* Centra verticalmente los elementos */
   justify-content: space-between; /* Espacia el contenido entre los extremos */
-  padding: 20px;
+  padding: 40px;
   background-color: #333; /* Fondo del header */
   color: white;
+  font-weight: bold; /* Negrita */
+  text-transform: uppercase; /* Mayúsculas */
+  letter-spacing: 2px;
 }
 
 /* Estilo para el nombre del negocio */
 .business-name {
-  font-size: 24px;
-  font-weight: bold;
-  color: rgb(116, 6, 116);
+  font-size: 40px; /* Tamaño de fuente */
+  
+  margin-left: 30px;
 }
 
 /* Estilo para la barra de navegación */
@@ -39,12 +42,12 @@ nav ul li a {
   color: white;
   text-decoration: none;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 22px;
 }
 
 /* Cambio de color en hover */
 nav ul li a:hover {
-  color: purple;
+  color: gray;
 }
 
 @import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");

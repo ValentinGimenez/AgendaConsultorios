@@ -19,9 +19,13 @@ const Paciente = {
         const result = await pool.query('INSERT INTO paciente (idPersona, idObraSocial,fotoDni) VALUES (?, ?, ?)', [idPersona, idObraSocial,fotoDni]); 
         return result[0].insertId;
     },
-    async update(id, data) {
-        const { idPersona, idObraSocial } = data;
-        await pool.query('UPDATE paciente SET idPersona = ?, idObraSocial = ? WHERE id = ?', [idPersona, idObraSocial, id]); 
+    async update(id, idObraSocial) {
+        try {
+            await pool.query('UPDATE paciente SET idObraSocial = ? WHERE id = ?', [idObraSocial, id]); 
+        }catch (error) {
+            console.error('Error al actualizar el paciente:', error);
+            throw error;
+        }
     },
     async delete(id) {
         await pool.query('DELETE FROM paciente WHERE id = ?', [id]); 
@@ -39,6 +43,16 @@ const Paciente = {
             throw error;
         }
     },
+    // async updatePacienteObraSocial(id,idObraSocial) {
+    //     try {
+    //       console.log("idObraSocial en el model:",idObraSocial);
+
+    //         await pool.query('UPDATE paciente SET idObraSocial = ? WHERE ID = ?', [id, idObraSocial]); 
+    //     } catch (error) {
+    //         console.error('Error al actualizar la obra social del paciente:', error);
+    //         throw error;
+    //     }
+    //     },
 };
 
 module.exports = Paciente;

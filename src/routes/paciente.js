@@ -28,8 +28,8 @@ router.get('/nuevo',userMiddleware, authMiddleware, secretariaMiddleware, async 
       const pacientes = await pacienteController.getAll(); 
       res.render('secretaria/listar-paciente', { pacientes});
     } catch (error) {
-      console.error('Error al obtener la lista de médicos:', error);
-      res.status(500).render('error', { error: 'Error al obtener la lista de médicos' });
+      console.error('Error al obtener la lista de pacientes:', error);
+      res.status(500).render('error', { error: 'Error al obtener la lista de pacientes' });
     }
   });
 
@@ -41,11 +41,28 @@ router.get('/nuevo',userMiddleware, authMiddleware, secretariaMiddleware, async 
         if (!paciente) {
           return res.status(404).render('error', { error: 'Paciente no encontrado' });
         }
-        res.render('secretaria/agendarTurno', { paciente }); // Renderizar la vista en la ruta
+        res.render('secretaria/agendarTurno', { paciente });
       } catch (error) {
-        console.error('Error al obtener los datos del médico:', error);
-        res.status(500).render('error', { error: 'Error al obtener los datos del médico' });
+        console.error('Error al obtener los datos del paciente:', error);
+        res.status(500).render('error', { error: 'Error al obtener los datos del paciente' });
       }
     });
+  
+    router.get('/:id/editar/', userMiddleware, authMiddleware, secretariaMiddleware, async (req, res) => {
+      try {
+        const pacienteId = req.params.id;
+        const paciente = await pacienteController.obtenerPaciente(pacienteId); 
+    
+        if (!paciente) {
+          return res.status(404).render('error', { error: 'Paciente no encontrado' });
+        }
+        const obrasSociales = await obraSocial.findAll();
+        res.render('secretaria/editar-paciente', { paciente, obrasSociales }); 
+      } catch (error) {
+        console.error('Error al obtener los datos del paciente:', error);
+        res.status(500).render('error', { error: 'Error al obtener los datos del paciente' });
+      }
+    });
+  router.post("/:id/actualizar/",userMiddleware, authMiddleware, secretariaMiddleware, pacienteController.update);
 
 module.exports = router;

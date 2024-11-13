@@ -34,12 +34,11 @@ const Persona = {
       throw error;
     }
   },
-  async update(id, data) {
+  async update(id, mail,telefono) {
     try {
-      const { nombre, apellido, dni, mail, telefono } = data;
       await pool.query(
-        "UPDATE persona SET nombre = ?, apellido = ?, dni = ?, mail = ?, telefono = ? WHERE id = ?",
-        [nombre, apellido, dni, mail, telefono, id]
+        "UPDATE persona SET mail = ?, telefono = ? WHERE id = ?",
+        [mail, telefono, id]
       );
     } catch (error) {
       console.error("Error al actualizar la persona:", error);
@@ -67,7 +66,15 @@ const Persona = {
       console.error("Error al buscar la persona por DNI:", error);
       throw error;
     }
-  }
+  },
+  async updatePersona(id, mail,telefono) {
+    try {
+        await pool.query('UPDATE persona SET mail = ?, telefono = ? WHERE id = ?', [mail, telefono, id]);
+    } catch (error) {
+        console.error('Error al actualizar la persona:', error);
+        throw error;
+    }
+    },
 };
 
 module.exports = Persona;

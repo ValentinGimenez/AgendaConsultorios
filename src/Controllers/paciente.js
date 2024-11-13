@@ -20,7 +20,6 @@ const pacienteController = {
               telefono: persona.telefono,
               idObraSocial: paciente.idObraSocial,
               nombreObraSocial: obrasocial.nombre,
-              fotoDni:paciente.fotoDni
             });
           }
           return pacienteConDatosPersona;
@@ -38,8 +37,19 @@ const pacienteController = {
         res.json({ id });
     },
     async update(req, res) {
-        await Paciente.update(req.params.id, req.body);
-        res.json({ message: 'Paciente actualizado' });
+        try {
+          const paciente = await Paciente.findById(req.params.id);
+          if (!paciente) {
+            return res.status(404).json({ error: 'Paciente no encontrado' });
+          }
+          const { mail, telefono, idObraSocial} = req.body;
+          await Paciente.update(paciente.ID,idObraSocial);
+          await Persona.update(paciente.idPersona,mail,telefono);
+          res.json({ message: "Paciente actualizado" });
+        } catch (error) {
+          console.error("Error al actualizar al paciente:", error);
+          res.status(500).json({ error: "Error al actualizar al paciente" });
+        }
     },
     async delete(req, res) {
         await Paciente.delete(req.params.id);
