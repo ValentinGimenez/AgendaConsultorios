@@ -40,7 +40,7 @@ const Turno = {
     },
     async delete(id) {
         try {
-            await pool.query('DELETE FROM turno WHERE id = ?', [id]); // "turno" en minúsculas
+            await pool.query('DELETE FROM turno WHERE id = ?', [id]); 
         } catch (error) {
             console.error('Error al eliminar el turno:', error);
             throw error;
