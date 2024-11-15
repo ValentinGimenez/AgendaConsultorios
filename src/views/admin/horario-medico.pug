@@ -7,19 +7,19 @@ block content
     h1 Registro de horarios
     form#formHorario.container
         div.form-group
-            label(for="especialidad") Seleccione Especialidad:
+            label(for="especialidad") Seleccione la especialidad:
             br
             select(name="especialidad" id="especialidad" required)
         div.form-group
-            label(for="sucursal") Seleccione Sucursal:
+            label(for="sucursal") Seleccione una sucursal:
             br
             select(name="sucursal" id="sucursal" required)
         div.form-group
-            label(for="duracionTurno") Duración de turno en minutos:  
+            label(for="duracionTurno") Seleccione la duración de los turnos en minutos:  
             br
             input(type="number" name="duracionTurno" id="duracionTurno" min="10" max="60" step="10" required)
         div.form-group
-            label(for="semana") Dia de la semana:  
+            label(for="semana") Seleccione día/s de la semana en que trabaja:  
             br
             input(type="checkbox" id="lunes" name="dia" value="Lunes")
             label(for="lunes") LUNES
@@ -40,19 +40,19 @@ block content
             label(for="sabado") SABADO
             br
         div.form-group
-            label(for="hora_inicio") Hora inicio:  
+            label(for="hora_inicio") Hora de inicio de la jornada:  
             br
             input(type="time" id="hora_inicio" name="hora_inicio" required)
         div.form-group
-            label(for="hora_fin") Hora fin:      
+            label(for="hora_fin") Hora de finalización de la jornada:      
             br
             input(type="time" id="hora_fin" name="horafin" required)
         div.form-group
-            label(for="fecha_inicio") fecha de inicio:      
+            label(for="fecha_inicio") Fecha de inicio:      
             br
             input(type="date" id="fecha_inicio" name="fecha" required)
         div.form-group
-            label(for="fecha_fin") fecha de final:      
+            label(for="fecha_fin") Fecha final:      
             br
             input(type="date" id="fecha_fin" name="fecha" required)
 
