@@ -62,9 +62,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const hora_inicio = document.getElementById('hora_inicio').value;
         const hora_fin = document.getElementById('hora_fin').value;
 
-        const hoy = new Date(); // Obtén la fecha actual
+        const hoy = new Date(); 
 
-        // 1. Validaciones de campos requeridos y formato
         if (!idMedico_especialidad || idMedico_especialidad === '-1') {
             alert('Seleccione una especialidad.');
             return;
@@ -85,7 +84,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // 2. Validación de fechas
         if (!fecha_init || !fecha_fin) {
             alert('Seleccione una fecha.');
             return;
@@ -112,13 +110,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // 3. Validación de horarios
         if (!hora_inicio || !hora_fin) {
             alert('Selecciona un horario.');
             return;
         }
-
-        // Verificar que las horas sean múltiplos de 10 minutos
         const validarHora = (hora) => {
             const [horas, minutos] = hora.split(':').map(Number);
             return minutos % 10 === 0;
@@ -134,7 +129,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // Convertir las horas y fechas para comparar correctamente
         const horaInicioArray = hora_inicio.split(':');
         const horaFinArray = hora_fin.split(':');
         const horaInicioDate = new Date(fecha_init);
@@ -143,25 +137,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         horaInicioDate.setHours(horaInicioArray[0], horaInicioArray[1], 0);
         horaFinDate.setHours(horaFinArray[0], horaFinArray[1], 0);
 
-        // Ajustar la fecha de fin si es menor o igual que la de inicio (en caso de cruzar medianoche)
         if (horaFinDate <= horaInicioDate) {
-            horaFinDate.setDate(horaFinDate.getDate() + 1); // Añadir un día
+            horaFinDate.setDate(horaFinDate.getDate() + 1); 
         }
 
-        // Calcular la duración en minutos
         const diferenciaEnMilisegundosHoras = horaFinDate - horaInicioDate;
-        const diferenciaEnMinutos = diferenciaEnMilisegundosHoras / (1000 * 60); // Convertir de milisegundos a minutos
+        const diferenciaEnMinutos = diferenciaEnMilisegundosHoras / (1000 * 60); 
 
         if (diferenciaEnMinutos < duracionTurno) {
             alert(`La duración entre la hora de inicio y la hora de fin debe ser al menos ${duracionTurno} minutos.`);
             return;
         }
-        if (diferenciaEnMinutos > 480) { // 480 minutos = 8 horas
+        if (diferenciaEnMinutos > 480) { 
             alert('La duración entre la hora de inicio y la hora de fin no puede exceder las 8 horas laborales.');
             return;
         }
 
-        // 4. Si todo es correcto, mostrar mensaje de validación exitosa
         alert("Validación exitosa. Los datos son correctos.");
 
 
