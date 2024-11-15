@@ -92,13 +92,22 @@ const pacienteController = {
       }
     },
     async crearPaciente(req, res) {
-        console.log("Datos recibidos en el servidor:", req.body);
-        try {
-          const { nombre, apellido, dni, mail, telefono,fotoDni,idObraSocial } = req.body;
-          const pacienteExistente = await Paciente.findPacienteByDni(dni);
-          if (pacienteExistente) {
-            return res.status(400).json({ message: "Ya existe un paciente con ese DNI!" });
-          }
+      console.log("Datos recibidos en el servidor:", req.body);
+      try {
+        const { nombre, apellido, dni, mail, telefono, fotoDni, idObraSocial, idPersona } = req.body;
+        const pacienteExistente = await Paciente.findPacienteByDni(dni);
+        if (pacienteExistente) {
+          return res.status(400).json({ message: "Ya existe un paciente con ese DNI!" });
+        }
+        const personaExistente = await Persona.findById(idPersona);
+        if (personaExistente) {
+          const pacienteId = await Paciente.create({
+            idPersona: idPersona,
+            fotoDni,
+            idObraSocial: "10" 
+          });
+          res.status(201).json({ id: pacienteId, message: "Paciente registrado exitosamente" });
+        } else {
           const dniExistente = await Persona.findByDni(dni);
           if (dniExistente) {
             return res.status(400).json({ message: "Ya existe una persona con ese DNI!" });
@@ -110,19 +119,26 @@ const pacienteController = {
             mail,
             telefono,
           });
-    
           const pacienteId = await Paciente.create({
             idPersona: personaId,
             fotoDni,
             idObraSocial
           });
-          console.log("Paciente a guardar en la base de datos:", pacienteId);
-          res
-            .status(201)
-            .json({ id: pacienteId, message: "Paciente registrado exitosamente" });
+  
+          res.status(201).json({ id: pacienteId, message: "Paciente registrado exitosamente" });
+        }
+      } catch (error) {
+        console.error("Error al registrar el Paciente:", error);
+        res.status(500).json({ message: "Error al registrar el Paciente" });
+      }
+    },
+      async getAvailablePersons(req, res) {
+        try {
+          const personas = await Paciente.findAvailablePersons(); 
+          return personas;
         } catch (error) {
-          console.error("Error al registrar el Paciente:", error);
-          res.status(500).json({ message: "Error al registrar el Paciente" });
+          console.error("Error al obtener las personas:", error);
+          throw error;
         }
       },
 };

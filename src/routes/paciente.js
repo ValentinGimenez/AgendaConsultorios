@@ -64,5 +64,13 @@ router.get('/nuevo',userMiddleware, authMiddleware, secretariaMiddleware, async 
       }
     });
   router.post("/:id/actualizar/",userMiddleware, authMiddleware, secretariaMiddleware, pacienteController.update);
-
+  router.get('/personas',userMiddleware, authMiddleware, secretariaMiddleware, async (req, res) => {
+    try {
+      const personas = await pacienteController.getAvailablePersons(); 
+      res.render('secretaria/listar-personasNoP',{personas});
+    } catch (error) {
+      console.error('Error al obtener la lista de personas:', error);
+      res.status(500).render('error', { error: 'Error al obtener la lista de personas' });
+    }
+  });
 module.exports = router;
