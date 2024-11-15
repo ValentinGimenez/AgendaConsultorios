@@ -53,6 +53,19 @@ const Paciente = {
     //         throw error;
     //     }
     //     },
+    async findAvailablePersons () {
+        try {
+            const [rows] = await pool.query(`
+                SELECT * 
+                FROM persona
+                WHERE id NOT IN (SELECT idPersona FROM paciente)
+            `);
+            return rows;
+        } catch (error) {
+            console.error('Error al obtener personas sin asignación en paciente:', error);
+            throw error;
+        }
+    }
 };
 
 module.exports = Paciente;
