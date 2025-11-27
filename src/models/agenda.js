@@ -22,7 +22,7 @@ const Agenda = {
         await pool.query('DELETE FROM agenda WHERE id = ?', [id]);
     },
     async obtenerAgendas(idMedicoEspecialidad) {
-        const [rows] = await pool.query('SELECT * FROM agenda WHERE idEspecialidadMedico = ?', [idMedicoEspecialidad]);
+        const [rows] = await pool.query(' SELECT a.*,s.nombre AS sucursalNombre,s.direccion   AS sucursalDireccion FROM agenda a JOIN sucursal s ON s.ID = a.idSucursal WHERE a.idEspecialidadMedico = ?', [idMedicoEspecialidad]);
         return rows;
     }
 };

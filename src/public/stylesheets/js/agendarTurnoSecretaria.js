@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // buscar.addEventListener('click', async () => {
     //   cargarDatosCalendario();
     // })
-    
+    let sucursalesPorAgenda = {}; 
    async function cargarDatosCalendario(){
       if(selectEspecialidad.value != -1 && selectMedico.value != -1){
              
@@ -129,9 +129,15 @@ document.addEventListener('DOMContentLoaded', function() {
           const idMedicoEspecialidad = medico_especialidad.id;
           //obtener la agenda
           const responseAgenda = await fetch(`/agenda/obtenerAgendas/${idMedicoEspecialidad}`);
-          if (responseAgenda.ok) {
-            
+             if (responseAgenda.ok) {
             const dataAgenda = await responseAgenda.json();
+            sucursalesPorAgenda = {};
+            dataAgenda.forEach(a => {
+              sucursalesPorAgenda[a.ID] = {
+                nombre: a.sucursalNombre,
+                direccion: a.sucursalDireccion
+              };
+            });
             console.log("dataAgenda",dataAgenda);
               if(dataAgenda.length > 0){
                 
@@ -437,10 +443,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     doctorinput.textContent= medico.textContent;
                     //obtener la sucursal
                     const idAgenda= turno.idAgenda;
+                    const sucursalData = sucursalesPorAgenda[idAgenda];
                     console.log("turno:", turno); 
-                    const response = await fetch(`/sucursal/obtenerSucursal/${idAgenda}`);
-                    const sucu = await response.json();
-                    sucursalinput.textContent= sucu.nombre;
+                    //const idSucursal=turno.idSucursal
+                   // const response = await fetch(`/sucursal/obtenerSucursal/${idAgenda}`);
+                    //const sucu = await response.json();
+                    sucursalinput.textContent= sucursalData.nombre;
                     especialidadinput.textContent= especialidad.textContent;
                     horarioinput.textContent= turno.hora_inicio;
                     fechainput.textContent= selectedDate;
