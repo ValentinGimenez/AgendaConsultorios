@@ -238,7 +238,7 @@ header .calendar-current-date {
 #modal-content {
   background-color: #fff;
   padding: 20px;
-  width: 400px;
+  width: 600px;
   border-radius: 8px;
 }
 #modal-header {
@@ -258,4 +258,16 @@ header .calendar-current-date {
 }
 input[disabled] {
   background-color: #f0f0f0;
+}
+textarea#motivoConsulta, input#motivoConsulta {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  font-size: 14px;
+}
+textarea#motivoConsulta:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 3px rgba(33,150,243,0.5);
 }

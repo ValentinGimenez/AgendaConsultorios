@@ -47,13 +47,13 @@ const Turno = {
         }
     },
     async turnosLibres(id){
-        const [rows] = await pool.query('SELECT * FROM turno WHERE idAgenda = ? AND idEstadoTurno = 1', [id]);
+        const [rows] = await pool.query('SELECT * FROM turno WHERE idAgenda = ? AND idEstadoTurno = 1 AND fecha >= CURDATE()', [id]);
         return rows;
     },
     async agendarTurno(id,data){
         try {
-            const { idPaciente } = data;
-            await pool.query('UPDATE turno SET idPaciente = ?, idEstadoTurno = 2, tipo="normal" WHERE ID = ?', [idPaciente,id]);
+            const { idPaciente, motivoConsulta } = data;
+            await pool.query('UPDATE turno SET idPaciente = ?, idEstadoTurno = 2, tipo= "normal", motivo_consulta = ? WHERE ID = ?', [idPaciente,motivoConsulta,id]);
         } catch (error) {
             console.error('Error al asignar el turno:', error);
             throw error;

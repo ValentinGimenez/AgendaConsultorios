@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('agenda').style.display = 'none';
     document.getElementById('texto').style.display = 'none';
     document.getElementById('date-title').style.display = 'none';
+    //limpiar Filtros
     limpiarbtn.addEventListener('click', () => {
       cargarSelectMedicos2();
       cargarSelectEspecialidades1();
@@ -404,6 +405,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
         // Configura el evento de click para las celdas habilitadas
         info.el.addEventListener('click', function() {
+          if(horariosDisponibles.length<=0){
+             alert(`No hay turnos disponibles para el médico seleccionado.`);
+             
+          }
           if (horariosDisponibles.length > 0) {
             // Remueve la clase del día previamente seleccionado
             if (selectedDayEl) {
@@ -432,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 timeBtn.addEventListener('click', async function() {
                  // alert(`Has seleccionado la hora: ${turno.hora_inicio} para el día ${selectedDate}`);
-                    //importante agregar los datos de sucursal
+                    //elementos del modal
                     const medico = selectMedico.options[selectMedico.selectedIndex];
                     const especialidad = selectEspecialidad.options[selectEspecialidad.selectedIndex];
                     const doctorinput = document.getElementById('doctor');
@@ -440,18 +445,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     const especialidadinput = document.getElementById('especialidadDoctor');
                     const horarioinput = document.getElementById('horario');
                     const fechainput = document.getElementById('fecha');
+                    const motivoConsulta = document.getElementById('motivoConsulta');
                     doctorinput.textContent= medico.textContent;
                     //obtener la sucursal
                     const idAgenda= turno.idAgenda;
                     const sucursalData = sucursalesPorAgenda[idAgenda];
                     console.log("turno:", turno); 
-                    //const idSucursal=turno.idSucursal
-                   // const response = await fetch(`/sucursal/obtenerSucursal/${idAgenda}`);
-                    //const sucu = await response.json();
+
+                    //llenar campos del modal
                     sucursalinput.textContent= sucursalData.nombre;
                     especialidadinput.textContent= especialidad.textContent;
                     horarioinput.textContent= turno.hora_inicio;
                     fechainput.textContent= selectedDate;
+                    //limpiar campo motivo consulta
+                    if (motivoConsulta) motivoConsulta.value = '';
+
                     const idTurno= timeBtn.id;
                   abrirModal( idTurno  );
                 });
@@ -484,15 +492,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const idPaciente = match ? match[1] : null;
     
     console.log(idPaciente);
+
+    const motivoConsulta = document.getElementById('motivoConsulta');
    
   document.getElementById('turnoModal').style.display = 'flex';
     document.getElementById('confirmar').addEventListener('click', async () => {
-      asignarTurno(idPaciente, id_turno);
+        
+            
+      await asignarTurno(idPaciente, id_turno, motivoConsulta.value.trim());
+
             alert("Turno confirmado");
+
             const divs = document.querySelectorAll('.hora-disponible');
             divs.forEach(div => {
               div.style.display = 'none'; 
             });
+
             cargarDatosCalendario();
             cerrarModal();
     })
@@ -506,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
  
   
-  async function asignarTurno(idPaciente, id_turno) {
+  async function asignarTurno(idPaciente, id_turno, motivoConsulta ) {
     try {
       console.log("idPaciente", idPaciente);
       console.log("id_turno", id_turno);
@@ -516,7 +531,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            idPaciente
+            idPaciente, motivoConsulta
         }),
       });
       if(response.ok){
