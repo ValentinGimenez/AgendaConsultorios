@@ -148,12 +148,12 @@ header .calendar-current-date {
   /**/
   .dia-disponible {
     cursor: pointer;
-    background-color: #E0F7FA; /* Color de fondo para los días disponibles */
+    background-color: #E0F7FA;
 }
 .selected-day {
-  background-color: #ff723b !important; /* Color de fondo llamativo */
-  border: 2px solid #ff003c; /* Borde para resaltar */
-  color: #000; /* Color de texto */
+  background-color: #ff723b !important; 
+  border: 2px solid #ff003c; 
+  color: #000; 
 }
 .hora-disponible {
   padding: 5px;
@@ -223,9 +223,9 @@ header .calendar-current-date {
       font-size: 1.5em;
     }
   
-/*turno*/
+
 .modal {
-  display: none; /* Oculto por defecto */
+  display: none; 
   position: fixed;
   top: 0;
   left: 0;
@@ -270,4 +270,32 @@ textarea#motivoConsulta:focus {
   outline: none;
   border-color: #2196F3;
   box-shadow: 0 0 3px rgba(33,150,243,0.5);
+}
+.turno-reservado{
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  background: #ffae52;
+  color: black;
+  font-size: 14px;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.hora-reservada {
+  padding: 8px 12px;
+  margin: 4px;
+  background: #ff7043;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+#texto{
+  display: flex;
+  justify-content: center;
+}
+#agenda{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 30px;
 }
