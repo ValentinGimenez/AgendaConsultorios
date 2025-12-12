@@ -1,0 +1,358 @@
+extends ../layout.pug
+
+block content
+  .dias-container
+    .dias-card
+      h1.dias-title Días No Laborables
+
+      .dias-grid
+        .dias-form-section
+          h2.dias-section-title(id="formTitle") Nuevo Día No Laboral
+
+          form#diaForm.dias-form
+            input(type="hidden" id="diaId")
+
+            .form-group
+              label(for="fecha") Fecha
+              input.dias-input(type="date" id="fecha" name="fecha" required)
+
+            .form-group
+              label(for="descripcion") Descripción
+              input.dias-input(type="text" id="descripcion" name="descripcion" placeholder="Ej: Feriado nacional" required)
+
+            .form-actions
+              button#btnGuardar(type="submit" class="btn-primary") Guardar
+              button#btnCancelar(type="button" class="btn-secondary" style="display:none") Cancelar edición
+
+        .dias-list-section
+          h2.dias-section-title Listado
+
+          if dias && dias.length
+            table.dias-table
+              thead
+                tr
+                  th ID
+                  th Fecha
+                  th Descripción
+                  th Acciones
+              tbody
+                each dia in dias
+                  tr(
+                    data-id=dia.ID
+                    data-fecha=dia.fecha
+                    data-descripcion=dia.descripcion
+                  )
+                    td= dia.ID
+                    td= dia.fecha
+                    td= dia.descripcion
+                    td.dias-actions
+                      button.dias-link(type="button" data-action="edit") Editar
+                      button.dias-btn-danger(type="button" data-action="delete") Eliminar
+          else
+            p.dias-empty No hay días no laborables cargados.
+
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('diaForm');
+      const inputId = document.getElementById('diaId');
+      const inputFecha = document.getElementById('fecha');
+      const inputDescripcion = document.getElementById('descripcion');
+      const formTitle = document.getElementById('formTitle');
+      const btnGuardar = document.getElementById('btnGuardar');
+      const btnCancelar = document.getElementById('btnCancelar');
+
+      let editingId = null;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const fecha = inputFecha.value;
+        const descripcion = inputDescripcion.value.trim();
+
+        if (!fecha || !descripcion) {
+          showAlert('Todos los campos son obligatorios.', 'error');
+          return;
+        }
+
+        try {
+          const isEditing = !!editingId;
+          const url = isEditing
+            ? `/dia_no_laborales/actualizarDiaNoLaboral/${editingId}`
+            : '/dia_no_laborales/crearDiaNoLaboral';
+
+          const method = isEditing ? 'PUT' : 'POST';
+
+          const response = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fecha, descripcion })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            showAlert(data.message || 'Error al guardar el día no laboral.', 'error');
+            return;
+          }
+
+          showAlert(data.message || (isEditing ? 'Día actualizado.' : 'Día creado.'), 'success');
+          setTimeout(() => window.location.reload(), 800);
+
+        } catch (error) {
+          console.error(error);
+          showAlert('Error al procesar la solicitud.', 'error');
+        }
+      });
+
+      // Cancelar edición
+      btnCancelar.addEventListener('click', () => {
+        editingId = null;
+        inputId.value = '';
+        inputFecha.value = '';
+        inputDescripcion.value = '';
+        formTitle.textContent = 'Nuevo Día No Laboral';
+        btnGuardar.textContent = 'Guardar';
+        btnCancelar.style.display = 'none';
+      });
+
+      // Editar / Eliminar
+      document.querySelectorAll('tbody tr').forEach(row => {
+        const id = row.dataset.id;
+        const fecha = row.dataset.fecha;
+        const descripcion = row.dataset.descripcion;
+
+        row.querySelectorAll('button').forEach(btn => {
+          const action = btn.dataset.action;
+
+          if (action === 'edit') {
+            btn.addEventListener('click', () => {
+              editingId = id;
+              inputId.value = id;
+              inputFecha.value = fecha;
+              inputDescripcion.value = descripcion;
+              formTitle.textContent = 'Editar Día No Laboral';
+              btnGuardar.textContent = 'Guardar cambios';
+              btnCancelar.style.display = 'inline-block';
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+          }
+
+          if (action === 'delete') {
+            btn.addEventListener('click', async () => {
+              if (!confirm('¿Seguro que deseas eliminar este día no laboral?')) return;
+
+              try {
+                const response = await fetch(`/dia_no_laborales/eliminarDiaNoLaboral/${id}`, {
+                  method: 'DELETE'
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                  showAlert(data.message || 'Error al eliminar el día no laboral.', 'error');
+                  return;
+                }
+
+                showAlert(data.message || 'Día eliminado.', 'success');
+                row.remove();
+                if (!document.querySelector('tbody tr')) {
+                  const listSection = document.querySelector('.dias-list-section');
+                  const emptyMsg = document.createElement('p');
+                  emptyMsg.className = 'dias-empty';
+                  emptyMsg.textContent = 'No hay días no laborables cargados.';
+                  listSection.appendChild(emptyMsg);
+                }
+
+              } catch (error) {
+                console.error(error);
+                showAlert('Error al eliminar el día no laboral.', 'error');
+              }
+            });
+          }
+        });
+      });
+
+      function showAlert(message, type) {
+        let existing = document.querySelector('.dias-alert');
+        if (existing) existing.remove();
+
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `dias-alert dias-alert-${type}`;
+        alertDiv.textContent = message;
+
+        document.querySelector('.dias-card').prepend(alertDiv);
+        setTimeout(() => alertDiv.remove(), 4000);
+      }
+    });
+
+  style.
+    .dias-container {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 0 15px;
+    }
+    .dias-card {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      padding: 30px 25px 35px;
+    }
+    .dias-title {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 25px;
+      color: #2c3e50;
+      letter-spacing: 0.03em;
+    }
+    .dias-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      gap: 30px;
+      align-items: flex-start;
+    }
+    .dias-section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #34495e;
+    }
+    .dias-form-section, .dias-list-section {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 18px 18px 20px;
+      border: 1px solid #e3e8ef;
+    }
+    .dias-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-size: 0.9rem;
+      color: #475569;
+      font-weight: 500;
+    }
+    .dias-input {
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .dias-input:focus {
+      border-color: #3498db;
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+    .form-actions {
+      margin-top: 5px;
+      display: flex;
+      gap: 10px;
+    }
+    .btn-primary, .btn-secondary {
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .btn-primary {
+      background: #3498db;
+      color: #fff;
+      box-shadow: 0 3px 6px rgba(52, 152, 219, 0.35);
+    }
+    .btn-primary:hover {
+      background: #2980b9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(52, 152, 219, 0.45);
+    }
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #475569;
+    }
+    .btn-secondary:hover {
+      background: #cbd5e1;
+    }
+    .dias-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .dias-table th,
+    .dias-table td {
+      padding: 8px 10px;
+      text-align: left;
+    }
+    .dias-table thead {
+      background: #e2e8f0;
+    }
+    .dias-table th {
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .dias-table tbody tr:nth-child(even) {
+      background: #f8fafc;
+    }
+    .dias-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .dias-link {
+      background: none;
+      border: none;
+      color: #2563eb;
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0;
+      text-decoration: underline;
+    }
+    .dias-btn-danger {
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      background: #ef4444;
+      color: #fff;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+    .dias-btn-danger:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+    }
+    .dias-empty {
+      font-size: 0.9rem;
+      color: #64748b;
+    }
+    .dias-alert {
+      margin-bottom: 15px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .dias-alert-success {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+    .dias-alert-error {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+    @media (max-width: 768px) {
+      .dias-grid {
+        grid-template-columns: 1fr;
+      }
+      .dias-card {
+        padding: 20px 15px 25px;
+      }
+    }
