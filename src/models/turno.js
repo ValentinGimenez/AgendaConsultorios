@@ -119,8 +119,72 @@ const Turno = {
         const [rows] = await pool.query(
             `SELECT * FROM turno t WHERE t.idAgenda = ? AND t.tipo = 'sobreturno'`, [idAgenda]);
         return rows;
-    }
+    },
+    async obtenerTurnosSecretaria({ fecha, idMedico = null, idEspecialidad = null, idEstadoTurno = null }) {
+        try {
+            const sql = `
+                SELECT
+                    t.ID,
+                    t.fecha,
+                    t.hora_inicio,
+                    t.hora_fin,
+                    t.idEstadoTurno,
+                    et.descripcion AS estado,
+                    CONCAT(pm.apellido,' ',pm.nombre) AS medico,
+                    e.nombre AS especialidad,
+                    CASE
+                        WHEN t.idPaciente IS NULL THEN '-'
+                        ELSE CONCAT(pp.apellido,' ',pp.nombre)
+                    END AS paciente,
+                    t.tipo
+                FROM turno t
+                JOIN agenda a ON a.ID = t.idAgenda
+                JOIN medico_especialidad me ON me.ID = a.idEspecialidadMedico
+                JOIN medico m ON m.ID = me.idMedico
+                JOIN persona pm ON pm.ID = m.idPersona
+                JOIN especialidad e ON e.ID = me.idEspecialidad
+                JOIN estadoturno et ON et.ID = t.idEstadoTurno
+                LEFT JOIN paciente pa ON pa.ID = t.idPaciente
+                LEFT JOIN persona pp ON pp.ID = pa.idPersona
+                WHERE t.fecha = ?
+                  AND t.idEstadoTurno != 1
+                  AND (? IS NULL OR me.idMedico = ?)
+                  AND (? IS NULL OR me.idEspecialidad = ?)
+                  AND (? IS NULL OR t.idEstadoTurno = ?)
+                ORDER BY t.hora_inicio;
+            `;
+            const params = [fecha, idMedico, idMedico, idEspecialidad, idEspecialidad, idEstadoTurno, idEstadoTurno];
+            const [rows] = await pool.query(sql, params);
+            return rows;
+        } catch (error) { console.error(error); throw error; }
+    },
 
+    async cambiarEstado(idTurno, idEstadoTurno) {
+        try {
+            if (Number(idEstadoTurno) === 1) {
+                const [r] = await pool.query(
+                    'UPDATE turno SET idEstadoTurno = ?, idPaciente = NULL, motivo_consulta = NULL, tipo = "normal" WHERE ID = ?',
+                    [idEstadoTurno, idTurno]
+                );
+                return r.affectedRows;
+            } else {
+                const [r] = await pool.query(
+                    'UPDATE turno SET idEstadoTurno = ? WHERE ID = ?',
+                    [idEstadoTurno, idTurno]
+                );
+                return r.affectedRows;
+            }
+        } catch (error) {
+            console.error('Error al cambiar estado del turno:', error);
+            throw error;
+        }
+    },
+    
+    // Auxiliar para filtros
+    async findAllEstados() {
+        const [rows] = await pool.query('SELECT ID AS id, descripcion FROM estadoturno WHERE ID != 1 ORDER BY ID');
+        return rows;
+    }
 };
 
 module.exports = Turno;
