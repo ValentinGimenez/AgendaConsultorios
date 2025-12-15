@@ -136,7 +136,8 @@ const Turno = {
                         WHEN t.idPaciente IS NULL THEN '-'
                         ELSE CONCAT(pp.apellido,' ',pp.nombre)
                     END AS paciente,
-                    t.tipo
+                    t.tipo,
+                    t.motivo_consulta 
                 FROM turno t
                 JOIN agenda a ON a.ID = t.idAgenda
                 JOIN medico_especialidad me ON me.ID = a.idEspecialidadMedico
@@ -162,6 +163,7 @@ const Turno = {
     async cambiarEstado(idTurno, idEstadoTurno) {
         try {
             if (Number(idEstadoTurno) === 1) {
+                // Al liberar: estado = 1, paciente = NULL, motivo = NULL
                 const [r] = await pool.query(
                     'UPDATE turno SET idEstadoTurno = ?, idPaciente = NULL, motivo_consulta = NULL, tipo = "normal" WHERE ID = ?',
                     [idEstadoTurno, idTurno]
@@ -180,8 +182,8 @@ const Turno = {
         }
     },
     
-    // Auxiliar para filtros
     async findAllEstados() {
+        // Traer todos menos el 1 (Libre) para el filtro
         const [rows] = await pool.query('SELECT ID AS id, descripcion FROM estadoturno WHERE ID != 1 ORDER BY ID');
         return rows;
     }
