@@ -629,6 +629,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   //abrir modal para agendar turno
+    let confirmado = false;
+
 
   async function abrirModal(id_turno, esSobreturno) {
     const url = window.location.href;
@@ -640,12 +642,25 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnCerrar = document.getElementById('cerrarModal');
 
     modal.style.display = 'flex';
+    confirmado = false;
+    btnConfirmar.disabled=false;
+      btnConfirmar.textContent = 'Confirmar';
+
+    
 
     btnCerrar.onclick = null;
     btnConfirmar.onclick = null;
 
     btnConfirmar.onclick = async () => {
+      
+      if(confirmado)return;
+
+      confirmado = true;
+      btnConfirmar.disabled=true;
+      btnConfirmar.textContent = 'Confirmando...';
+
       const motivo = document.getElementById('motivoConsulta').value.trim();
+      
 
       if (esSobreturno) {
         await asignarSobreturno(idPaciente, id_turno, motivo);
@@ -672,6 +687,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function cerrarModal() {
     document.getElementById('turnoModal').style.display = 'none';
+    confirmado = false;
+    btnConfirmar.disabled= false;
+    btnConfirmar.textContent = 'Confirmar';
+
   }
   const doctorInput = document.getElementById('doctor');
   const sucursalInput = document.getElementById('sucursal');
