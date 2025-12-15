@@ -3,10 +3,11 @@ html(lang="es")
   head
     meta(charset="utf-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    meta(name="description" content="Sarumed - Sistema integral de gestión médica")
     title Sarumed - Sistema de Gestión Médica
 
     link(rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css")
-    link(rel='stylesheet', href='/stylesheets/style.css')
+    //- link(rel='stylesheet', href='/stylesheets/style.css')
 
     script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/index.global.min.js")
     script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/web-component@6.1.15/index.global.min.js")
@@ -15,147 +16,295 @@ html(lang="es")
     block scripts
 
     style.
-      * {
+      /* ===== CSS VARIABLES ===== */
+      :root {
+        --color-primary: #6366f1;
+        --color-primary-dark: #4f46e5;
+        --color-accent: #10b981;
+        --color-background: #f8fafc;
+        --color-surface: #ffffff;
+        --color-text-primary: #0f172a;
+        --color-text-secondary: #64748b;
+        --color-border: #e2e8f0;
+        --color-danger: #ef4444;
+        --color-danger-dark: #dc2626;
+        
+        --nav-height: 70px;
+        --sidebar-width: 280px;
+        
+        --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.06);
+        --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.12);
+        
+        --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* ===== RESET ===== */
+      *, *::before, *::after {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
 
       body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        background: #f5f7fa;
-        color: #1a202c;
+        font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+        background: var(--color-background);
+        color: var(--color-text-primary);
+        line-height: 1.6;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
       }
 
-      header.main-header{
+      /* ===== HEADER ===== */
+      header.main-header {
+        background: var(--color-surface);
+        border-bottom: 1px solid var(--color-border);
+        box-shadow: var(--shadow-soft);
+        height: var(--nav-height);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2rem;
         position: sticky;
         top: 0;
-        z-index: 20;
-        background: white;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 0.85rem 1.5rem;
-
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        align-items: center;
-        gap: 1rem;
+        z-index: 100;
       }
 
+      /* ===== LOGO ===== */
       .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
         font-size: 1.5rem;
-        font-weight: 800;
-        color: #2d3748;
-        white-space: nowrap;
-      }
-
-      .role-nav{
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 0.6rem;
-        flex-wrap: wrap;
-      }
-
-      .role-link{
-        text-decoration: none;
-        color: #4a5568;
         font-weight: 700;
-        font-size: 0.92rem;
-        padding: 0.5rem 0.9rem;
-        border-radius: 999px;
-        border: 1px solid transparent;
-        background: #edf2f7;
-        transition: transform .15s, box-shadow .15s, background .15s, color .15s, border-color .15s;
-        display: inline-flex;
-        align-items: center;
-        gap: .5rem;
+        color: var(--color-primary);
+        text-decoration: none;
       }
 
-      .role-link:hover{
-        transform: translateY(-1px);
-        background: #e6f2ff;
-        border-color: #bee3f8;
-        box-shadow: 0 6px 16px rgba(43,108,176,0.12);
-      }
-
-      .role-link.active{
-        color: #1a365d;
-        background: #e6f2ff;
-        border-color: #90cdf4;
-        box-shadow: 0 0 0 3px rgba(66,153,225,0.18), 0 10px 22px rgba(43,108,176,0.18);
-      }
-
-      .header-right{
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+        border-radius: 10px;
         display: flex;
         align-items: center;
-        gap: 1rem;
-        white-space: nowrap;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+        box-shadow: var(--shadow-medium);
+      }
+
+      /* ===== NAVIGATION ===== */
+      .role-nav {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+        justify-content: center;
+      }
+
+      .role-link {
+        text-decoration: none;
+        color: var(--color-text-secondary);
+        font-weight: 500;
+        font-size: 0.9375rem;
+        padding: 0.625rem 1.25rem;
+        border-radius: 10px;
+        transition: all var(--transition);
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .role-link:hover {
+        color: var(--color-primary);
+        background: rgba(99, 102, 241, 0.08);
+      }
+
+      .role-link.active {
+        color: var(--color-primary);
+        background: rgba(99, 102, 241, 0.12);
+        font-weight: 600;
+      }
+
+      .role-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60%;
+        height: 2px;
+        background: var(--color-primary);
+        border-radius: 2px 2px 0 0;
+      }
+
+      /* ===== USER SECTION ===== */
+      .header-right {
+        position: relative;
+      }
+
+      .user-section {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all var(--transition);
+        background: var(--color-background);
+        border: 1px solid var(--color-border);
+      }
+
+      .user-section:hover {
+        background: var(--color-surface);
+        box-shadow: var(--shadow-medium);
+        border-color: var(--color-primary);
+      }
+
+      .user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        flex-shrink: 0;
       }
 
       .user-info {
         display: flex;
         flex-direction: column;
-        padding: 0.45rem 0.75rem;
-        background: #edf2f7;
-        border-radius: 8px;
-        line-height: 1.1;
+        line-height: 1.3;
       }
 
-      .user-info span:first-child{
-        font-weight: 700;
-        color: #2d3748;
-        font-size: 0.9rem;
+      .user-name {
+        font-weight: 600;
+        color: var(--color-text-primary);
+        font-size: 0.9375rem;
       }
 
       .user-role {
-        font-size: 0.8rem;
-        color: #718096;
-        font-weight: 600;
+        font-size: 0.8125rem;
+        color: var(--color-text-secondary);
+        text-transform: capitalize;
       }
 
-      .header-right a{
-        color: #4a5568;
+      .user-chevron {
+        color: var(--color-text-secondary);
+        transition: transform var(--transition);
+        font-size: 0.75rem;
+      }
+
+      .user-section:hover .user-chevron {
+        transform: rotate(180deg);
+      }
+
+      /* ===== LOGOUT DROPDOWN ===== */
+      .logout-dropdown {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        right: 0;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        box-shadow: var(--shadow-elevated);
+        min-width: 200px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all var(--transition);
+        z-index: 200;
+      }
+
+      .header-right:hover .logout-dropdown {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      .logout-dropdown a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1.25rem;
+        color: var(--color-danger);
         text-decoration: none;
-        font-weight: 700;
-        transition: color 0.2s;
+        font-weight: 500;
+        font-size: 0.9375rem;
+        transition: all var(--transition);
+        border-radius: 10px;
+        margin: 0.25rem;
       }
 
-      .header-right a:hover{
-        color: #2b6cb0;
+      .logout-dropdown a:hover {
+        background: rgba(239, 68, 68, 0.08);
+        color: var(--color-danger-dark);
       }
 
-      .logout{
-        color: #c53030 !important;
-      }
-
-      .logout:hover{
-        text-decoration: underline;
-      }
-
+      /* ===== MAIN CONTENT ===== */
       main {
-        max-width: 1600px;
+        flex: 1;
+        max-width: 1400px;
+        width: 100%;
         margin: 0 auto;
         padding: 2rem;
       }
 
-      /* ===== MOBILE ===== */
-      @media (max-width: 900px) {
-        header.main-header{
-          grid-template-columns: 1fr;
-          gap: 0.75rem;
+      /* ===== RESPONSIVE ===== */
+      @media (max-width: 1024px) {
+        header.main-header {
+          padding: 0 1.5rem;
+        }
+
+        .role-nav {
+          gap: 0.25rem;
+        }
+
+        .role-link {
+          padding: 0.5rem 0.875rem;
+          font-size: 0.875rem;
+        }
+
+        main {
+          padding: 1.5rem;
+        }
+      }
+
+      @media (max-width: 768px) {
+        header.main-header {
+          flex-wrap: wrap;
+          height: auto;
           padding: 1rem;
         }
 
-        .logo{
-          text-align: center;
+        .logo {
+          font-size: 1.25rem;
         }
 
-        .header-right{
-          justify-content: center;
+        .logo-icon {
+          width: 36px;
+          height: 36px;
+          font-size: 1.125rem;
         }
 
-        .role-link{
+        .role-nav {
           width: 100%;
+          order: 3;
+          flex-wrap: wrap;
+          margin-top: 0.5rem;
+        }
+
+        .role-link {
+          flex: 1 1 auto;
+          min-width: calc(50% - 0.25rem);
           justify-content: center;
         }
 
@@ -164,9 +313,24 @@ html(lang="es")
         }
       }
 
+      @media (max-width: 480px) {
+        .role-link {
+          min-width: 100%;
+        }
+
+        .user-info {
+          display: none;
+        }
+
+        .user-section {
+          padding: 0.5rem;
+        }
+      }
+
   body
     header.main-header
-      .logo Sarumed
+      a.logo(href="/")
+        span SARUMED
 
       if user
         nav.role-nav
@@ -174,29 +338,59 @@ html(lang="es")
           - const isActive = (prefix) => p === prefix || p.startsWith(prefix + '/')
 
           if user.rol === 'secretaria'
-            a.role-link(class=isActive('/turno/listar') ? 'active' : '', href="/turno/listar") 📅 Turnos
-            a.role-link(class=isActive('/paciente/lista') ? 'active' : '', href="/paciente/lista") 🧑‍⚕️ Pacientes
-            a.role-link(class=isActive('/paciente/nuevo') ? 'active' : '', href="/paciente/nuevo") ➕ Nuevo paciente
-            a.role-link(class=isActive('/paciente/personas') ? 'active' : '', href="/paciente/personas") 🪪 Asignar rol
+            a.role-link(class=isActive('/turno/listar') ? 'active' : '', href="/turno/listar")
+              span 📅
+              span Turnos
+            a.role-link(class=isActive('/paciente/lista') ? 'active' : '', href="/paciente/lista")
+              span 👥
+              span Pacientes
+            a.role-link(class=isActive('/paciente/nuevo') ? 'active' : '', href="/paciente/nuevo")
+              span ➕
+              span Nuevo Paciente
+            a.role-link(class=isActive('/paciente/personas') ? 'active' : '', href="/paciente/personas")
+              span 🪪
+              span Asignar Rol
 
           if user.rol === 'admin'
-            a.role-link(class=isActive('/medico/lista') ? 'active' : '', href="/medico/lista") 🩺 Médicos
-            a.role-link(class=isActive('/medico/nuevo') ? 'active' : '', href="/medico/nuevo") ➕ Nuevo médico
-            a.role-link(class=isActive('/medico/personas') ? 'active' : '', href="/medico/personas") 🪪 Asignar rol
-            a.role-link(class=isActive('/dia_no_laborales/lista') ? 'active' : '', href="/dia_no_laborales/lista") 🚫 Días no laborables
+            a.role-link(class=isActive('/medico/lista') ? 'active' : '', href="/medico/lista")
+              span 🩺
+              span Médicos
+            a.role-link(class=isActive('/medico/nuevo') ? 'active' : '', href="/medico/nuevo")
+              span ➕
+              span Nuevo Médico
+            a.role-link(class=isActive('/medico/personas') ? 'active' : '', href="/medico/personas")
+              span 🪪
+              span Asignar Rol
+            a.role-link(class=isActive('/dia_no_laborales/lista') ? 'active' : '', href="/dia_no_laborales/lista")
+              span 🚫
+              span Días No Laborables
 
           if user.rol === 'paciente'
-            a.role-link(class=isActive('/turno/mis-turnos') ? 'active' : '', href="/turno/mis-turnos") ✅ Mis turnos
-            a.role-link(class=isActive('/turno/solicitar') ? 'active' : '', href="/turno/solicitar") 📝 Solicitar
-            a.role-link(class=isActive('/historia-clinica') ? 'active' : '', href="/historia-clinica") 📄 Historia clínica
-            a.role-link(class=isActive('/perfil') ? 'active' : '', href="/perfil") 👤 Perfil
+            a.role-link(class=isActive('/turno/mis-turnos') ? 'active' : '', href="/turno/mis-turnos")
+              span ✅
+              span Mis Turnos
+            a.role-link(class=isActive('/turno/solicitar') ? 'active' : '', href="/turno/solicitar")
+              span 📝
+              span Solicitar
+            a.role-link(class=isActive('/historia-clinica') ? 'active' : '', href="/historia-clinica")
+              span 📄
+              span Historia Clínica
+            a.role-link(class=isActive('/perfil') ? 'active' : '', href="/perfil")
+              span 👤
+              span Perfil
 
       .header-right
         if user
-          .user-info
-            span #{user.nombre || 'Usuario'}
-            span.user-role (#{user.rol || 'Usuario'})
-          a.logout(href="/usuario/logout") Cerrar Sesión
+          .user-section
+            .user-avatar #{user.nombre ? user.nombre.charAt(0) : 'U'}
+            .user-info
+              .user-name #{user.nombre || 'Usuario'}
+              .user-role #{user.rol || 'Usuario'}
+            span.user-chevron ▼
+          .logout-dropdown
+            a(href="/usuario/logout")
+              span 🚪
+              span Cerrar Sesión
 
     main
       block content
