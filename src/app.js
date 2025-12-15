@@ -54,6 +54,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
+app.use((req, res, next) => {
+  res.locals.currentPath = req.path; 
+  next();
+});
+
 // Rutas
 app.use("/", indexRouter);
 

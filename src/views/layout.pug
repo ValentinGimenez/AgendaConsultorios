@@ -3,120 +3,200 @@ html(lang="es")
   head
     meta(charset="utf-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    title Sarumed
+    title Sarumed - Sistema de Gestión Médica
+
     link(rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css")
     link(rel='stylesheet', href='/stylesheets/style.css')
+
     script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/index.global.min.js")
     script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/web-component@6.1.15/index.global.min.js")
     script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.15/index.global.min.js")
+
     block scripts
+
     style.
-      :root {
-        --primary-color: #3498db;
-        --secondary-color: #2ecc71;
-        --text-color: #333;
-        --background-color: #f9f9f9;
-        --card-background: #ffffff;
-      }
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
+
       body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        line-height: 1.6;
-        color: var(--text-color);
-        background-color: var(--background-color);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: #f5f7fa;
+        color: #1a202c;
       }
-      header {
-        background-color: var(--card-background);
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+      header.main-header{
         position: sticky;
         top: 0;
-        z-index: 1000;
-      }
-      .header-content {
-        display: flex;
-        justify-content: space-between;
+        z-index: 20;
+        background: white;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 0.85rem 1.5rem;
+
+        display: grid;
+        grid-template-columns: auto 1fr auto;
         align-items: center;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 1rem;
+        gap: 1rem;
       }
-      .business-name {
-        font-size: 1.8rem;
-        font-weight: bold;
-        color: var(--primary-color);
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #2d3748;
+        white-space: nowrap;
       }
-      nav ul {
-        list-style-type: none;
+
+      .role-nav{
         display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
       }
-      nav ul li {
-        margin-left: 1.5rem;
-      }
-      nav ul li a {
-        color: var(--text-color);
+
+      .role-link{
         text-decoration: none;
-        font-weight: 500;
-        transition: color 0.3s ease;
-        position: relative;
+        color: #4a5568;
+        font-weight: 700;
+        font-size: 0.92rem;
+        padding: 0.5rem 0.9rem;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        background: #edf2f7;
+        transition: transform .15s, box-shadow .15s, background .15s, color .15s, border-color .15s;
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
       }
-      nav ul li a::after {
-        content: '';
-        position: absolute;
-        width: 0;
-        height: 2px;
-        bottom: -5px;
-        left: 0;
-        background-color: var(--secondary-color);
-        transition: width 0.3s ease;
+
+      .role-link:hover{
+        transform: translateY(-1px);
+        background: #e6f2ff;
+        border-color: #bee3f8;
+        box-shadow: 0 6px 16px rgba(43,108,176,0.12);
       }
-      nav ul li a:hover::after {
-        width: 100%;
+
+      .role-link.active{
+        color: #1a365d;
+        background: #e6f2ff;
+        border-color: #90cdf4;
+        box-shadow: 0 0 0 3px rgba(66,153,225,0.18), 0 10px 22px rgba(43,108,176,0.18);
       }
-      main {
-        max-width: 1200px;
-        margin: 2rem auto;
-        padding: 0 1rem;
+
+      .header-right{
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        white-space: nowrap;
       }
-      .content-container {
-        background-color: var(--card-background);
+
+      .user-info {
+        display: flex;
+        flex-direction: column;
+        padding: 0.45rem 0.75rem;
+        background: #edf2f7;
         border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        line-height: 1.1;
+      }
+
+      .user-info span:first-child{
+        font-weight: 700;
+        color: #2d3748;
+        font-size: 0.9rem;
+      }
+
+      .user-role {
+        font-size: 0.8rem;
+        color: #718096;
+        font-weight: 600;
+      }
+
+      .header-right a{
+        color: #4a5568;
+        text-decoration: none;
+        font-weight: 700;
+        transition: color 0.2s;
+      }
+
+      .header-right a:hover{
+        color: #2b6cb0;
+      }
+
+      .logout{
+        color: #c53030 !important;
+      }
+
+      .logout:hover{
+        text-decoration: underline;
+      }
+
+      main {
+        max-width: 1600px;
+        margin: 0 auto;
         padding: 2rem;
-        transition: box-shadow 0.3s ease;
       }
-      .content-container:hover {
-        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-      }
-      @media (max-width: 768px) {
-        .header-content {
-          flex-direction: column;
+
+      /* ===== MOBILE ===== */
+      @media (max-width: 900px) {
+        header.main-header{
+          grid-template-columns: 1fr;
+          gap: 0.75rem;
+          padding: 1rem;
         }
-        nav ul {
-          margin-top: 1rem;
+
+        .logo{
+          text-align: center;
         }
-        nav ul li {
-          margin: 0 0.75rem;
+
+        .header-right{
+          justify-content: center;
+        }
+
+        .role-link{
+          width: 100%;
+          justify-content: center;
+        }
+
+        main {
+          padding: 1rem;
         }
       }
 
   body
-    header
-      .header-content
-        .business-name Sarumed
-        nav 
-          ul
-            if user
-              li 
-                a(href="/") Inicio
-              li 
-                a(href="/usuario/logout") Desconectarse
-            //- else
-            //-   li
-            //-     a(href="/usuario/login") Iniciar sesión
+    header.main-header
+      .logo Sarumed
+
+      if user
+        nav.role-nav
+          - const p = currentPath || ''
+          - const isActive = (prefix) => p === prefix || p.startsWith(prefix + '/')
+
+          if user.rol === 'secretaria'
+            a.role-link(class=isActive('/turno/listar') ? 'active' : '', href="/turno/listar") 📅 Turnos
+            a.role-link(class=isActive('/paciente/lista') ? 'active' : '', href="/paciente/lista") 🧑‍⚕️ Pacientes
+            a.role-link(class=isActive('/paciente/nuevo') ? 'active' : '', href="/paciente/nuevo") ➕ Nuevo paciente
+            a.role-link(class=isActive('/paciente/personas') ? 'active' : '', href="/paciente/personas") 🪪 Asignar rol
+
+          if user.rol === 'admin'
+            a.role-link(class=isActive('/medico/lista') ? 'active' : '', href="/medico/lista") 🩺 Médicos
+            a.role-link(class=isActive('/medico/nuevo') ? 'active' : '', href="/medico/nuevo") ➕ Nuevo médico
+            a.role-link(class=isActive('/medico/personas') ? 'active' : '', href="/medico/personas") 🪪 Asignar rol
+            a.role-link(class=isActive('/dia_no_laborales/lista') ? 'active' : '', href="/dia_no_laborales/lista") 🚫 Días no laborables
+
+          if user.rol === 'paciente'
+            a.role-link(class=isActive('/turno/mis-turnos') ? 'active' : '', href="/turno/mis-turnos") ✅ Mis turnos
+            a.role-link(class=isActive('/turno/solicitar') ? 'active' : '', href="/turno/solicitar") 📝 Solicitar
+            a.role-link(class=isActive('/historia-clinica') ? 'active' : '', href="/historia-clinica") 📄 Historia clínica
+            a.role-link(class=isActive('/perfil') ? 'active' : '', href="/perfil") 👤 Perfil
+
+      .header-right
+        if user
+          .user-info
+            span #{user.nombre || 'Usuario'}
+            span.user-role (#{user.rol || 'Usuario'})
+          a.logout(href="/usuario/logout") Cerrar Sesión
+
     main
-      .content-container
-        block content
+      block content

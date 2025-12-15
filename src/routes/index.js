@@ -9,11 +9,13 @@ router.get("/", (req, res) => {
     switch (user.rol) {
       case "admin":
         console.log("Redirigiendo a la vista de admin");
-        res.render("admin/home", { user });
+        //res.render("admin/home", { user });
+        res.redirect("/medico/lista");
         break;
       case "secretaria":
         console.log("Redirigiendo a la vista de secretaria");
-        res.render("secretaria/home", { user });
+        //res.render("secretaria/home", { user });
+        res.redirect("/turno/listar");
         break;
       case "paciente":
         console.log("Redirigiendo a la vista de paciente");
