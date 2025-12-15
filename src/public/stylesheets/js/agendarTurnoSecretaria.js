@@ -630,6 +630,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   //abrir modal para agendar turno
     let confirmado = false;
+    
+        const modal = document.getElementById('turnoModal');
+        const btnConfirmar = document.getElementById('confirmar');
+        const btnCerrar = document.getElementById('cerrarModal');
 
 
   async function abrirModal(id_turno, esSobreturno) {
@@ -637,16 +641,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const match = url.match(/\/(\d+)\/agendarTurno/);
     const idPaciente = match ? match[1] : null;
 
-    const modal = document.getElementById('turnoModal');
-    const btnConfirmar = document.getElementById('confirmar');
-    const btnCerrar = document.getElementById('cerrarModal');
-
     modal.style.display = 'flex';
     confirmado = false;
     btnConfirmar.disabled=false;
-      btnConfirmar.textContent = 'Confirmar';
+    btnConfirmar.textContent = 'Confirmar';
+    btnCerrar.classList.remove('hidden');
 
-    
+
 
     btnCerrar.onclick = null;
     btnConfirmar.onclick = null;
@@ -658,6 +659,7 @@ document.addEventListener('DOMContentLoaded', function () {
       confirmado = true;
       btnConfirmar.disabled=true;
       btnConfirmar.textContent = 'Confirmando...';
+      btnCerrar.classList.add('hidden');
 
       const motivo = document.getElementById('motivoConsulta').value.trim();
       

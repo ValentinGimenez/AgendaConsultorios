@@ -299,3 +299,6 @@ textarea#motivoConsulta:focus {
   align-items: center;
   gap: 30px;
 }
+.hidden {
+  display: none;
+  }
