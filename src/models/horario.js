@@ -24,6 +24,12 @@ const Horario = {
     async obtenerRango(id){
         const [rows] = await pool.query('SELECT hora_inicio, hora_fin FROM horario WHERE idAgenda = ?', [id]);
         return rows;
+    },
+    async obtenerAgendaHorarios(data){
+        const {idMedico, diasSemana} = data;
+        const dias = diasSemana.map(()=> '?').join(',');
+        const [rows] = await pool.query(`SELECT a.ID, a.dia_semana, h.fecha_inicio, h.fecha_fin, h.hora_inicio, h.hora_fin, h.estado FROM agenda a JOIN horario h ON h.idAgenda = a.ID JOIN medico_especialidad me ON me.ID = a.idEspecialidadMedico WHERE me.idMedico = ? AND a.dia_semana IN (${dias}) AND h.estado = 'libre'`, [idMedico,...diasSemana]);
+        return rows;
     }
 };
 

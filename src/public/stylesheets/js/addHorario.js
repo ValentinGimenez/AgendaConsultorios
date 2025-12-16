@@ -152,7 +152,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('La duración entre la hora de inicio y la hora de fin no puede exceder las 8 horas laborales.');
             return;
         }
+        //VALIDAR SOLAPAMIENTO DE HORARIOS YA ESTABLECIDOS
+        //obtenerAgendaHorario
+        console.log("semana", semana);
+        console.log("idMedico", idMedico);
+        const semanaNorm = semana.map(d => d.toUpperCase());
 
+        const horariosExistentes = await obtenerAgendaHorario(idMedico, semanaNorm);
+        const r = validarSolapamiento({
+        diasSeleccionados: semanaNorm,
+        fechaInicioNueva: fecha_init,
+        fechaFinNueva: fecha_fin,
+        horaInicioNueva: hora_inicio,
+        horaFinNueva: hora_fin,
+        horariosExistentes
+        });
+
+        if (r.hayConflicto) {
+            alert(r.mensaje);
+            return; 
+        }
         alert("Validación exitosa. Los datos son correctos.");
 
 
@@ -232,6 +251,77 @@ document.addEventListener('DOMContentLoaded', async () => {
         formHorario.reset();
         alert('Horario y turnos registrados exitosamente');
     });
+    function seSolapanFechas(nuevoIni, nuevoFin, exIni, exFin) {
+        const nI = new Date(nuevoIni);
+        const nF = new Date(nuevoFin);
+        const eI = new Date(exIni);
+        const eF = new Date(exFin);
+
+        return nI <= eF && nF >= eI;
+    }
+    function horaAMinutos(hora) {
+    const [h, m] = hora.split(':').map(Number);
+    return h * 60 + m;
+    }
+    function seSolapanHoras(nuevaIni, nuevaFin, exIni, exFin) {
+        let nI = horaAMinutos(nuevaIni);
+        let nF = horaAMinutos(nuevaFin);
+        let eI = horaAMinutos(exIni);
+        let eF = horaAMinutos(exFin);
+
+        if (nF <= nI) nF += 24 * 60;
+        if (eF <= eI) eF += 24 * 60;
+
+        return nI < eF && nF > eI;
+    }
+    function validarSolapamiento({
+    diasSeleccionados,
+    fechaInicioNueva,
+    fechaFinNueva,
+    horaInicioNueva,
+    horaFinNueva,
+    horariosExistentes
+    }) {
+        const porDia = new Map();
+        for (const h of horariosExistentes) {
+            const dia = h.dia_semana;
+            if (!porDia.has(dia)) porDia.set(dia, []);
+            porDia.get(dia).push(h);
+        }
+
+        // validar día por día
+        for (const dia of diasSeleccionados) {
+            const lista = porDia.get(dia) || [];
+
+            for (const h of lista) {
+            // if (h.estado && h.estado !== 'libre') continue;
+
+            const pisaFechas = seSolapanFechas(
+                fechaInicioNueva, fechaFinNueva,
+                h.fecha_inicio, h.fecha_fin
+            );
+            if (!pisaFechas) continue;
+
+            const pisaHoras = seSolapanHoras(
+                horaInicioNueva, horaFinNueva,
+                h.hora_inicio, h.hora_fin
+            );
+
+            if (pisaHoras) {
+                return {
+                hayConflicto: true,
+                dia,
+                conflicto: h,
+                mensaje: `No se puede guardar.\nEl ${dia} (${horaInicioNueva}–${horaFinNueva}) se superpone con un horario ya cargado.`
+                };
+            }
+            }
+        }
+
+        return { hayConflicto: false };
+    }
+
+
     const cargarSelectEspecialidades = async (idMedico) => {
         const especialidades = await obtenerEspecialidades(idMedico);
         selectEspecialidad.innerHTML = '';
@@ -295,5 +385,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error al obtener las sucursales:', error);
             return null;
         }
+    }
+    async function obtenerAgendaHorario(idMedico,diasSemana) {
+        try{
+            const response = await fetch('/horario/obtenerAgendaHorario',{
+
+                method :   'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    idMedico,
+                    diasSemana
+                })
+            });
+            const horariosExistentes = await response.json();
+            return horariosExistentes;
+        }catch (error) {
+            console.error('Error al obtener los horarios:', error);
+            return null;
+        }
+        
     }
 })

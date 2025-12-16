@@ -1,4 +1,6 @@
 const DiaNoLaborales = require('../models/dia_no_laborales');
+const Sucursal = require("../models/sucursal");
+const Medico = require("../models/medico");
 
 const diaNoLaboralesController = {
   async getAll(req, res) {
@@ -27,7 +29,11 @@ const diaNoLaboralesController = {
       await DiaNoLaborales.update(req.params.id, req.body);
       res.json({ message: 'Día no laboral actualizado' });
     } catch (err) {
-      console.error(err);
+      
+      console.error("🔥 update día no laboral ERROR:", err);
+  console.error("sqlMessage:", err?.sqlMessage);
+  console.error("sqlState:", err?.sqlState);
+  console.error("sql:", err?.sql);
       res.status(500).json({ message: 'Error al actualizar el día no laboral' });
     }
   },
@@ -44,13 +50,21 @@ const diaNoLaboralesController = {
 
   async vistaLista(req, res) {
     try {
-      const dias = await DiaNoLaborales.findAll();
-      res.render('admin/dias-no-laborales', { dias });
+      const diasAll = await DiaNoLaborales.findAll();
+      const medicosAll = await Medico.obtenerMedicos();
+      const sucursales = await Sucursal.findAll();
+      const medicos = medicosAll.filter(m => m.estado === 'activo');
+      const dias = diasAll.filter(m => m.estado === 'activo');
+
+
+      res.render('admin/dias-no-laborales', { dias, medicos, sucursales});
     } catch (err) {
-      console.error('Error al obtener días no laborables:', err);
-      res.status(500).render('error', { error: 'Error al obtener días no laborables' });
+      console.error('Error al cargar la vista', err);
+      res.status(500).render('error', { error: 'Error al cargar la vista' });
     }
-  }
+  },
+  
 };
+
 
 module.exports = diaNoLaboralesController;

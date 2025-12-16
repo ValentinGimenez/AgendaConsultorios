@@ -11,15 +11,51 @@ block content
 
           form#diaForm.dias-form
             input(type="hidden" id="diaId")
-
             .form-group
-              label(for="fecha") Fecha
-              input.dias-input(type="date" id="fecha" name="fecha" required)
-
+              label(for="tipo") Tipo
+              select#tipo(name="tipo" required)
+                option(value="FERIADO") Feriado
+                option(value="VACACIONES") Vacaciones 
+                option(value="AUSENCIA") Ausencia
+            .form-group 
+              label(for="alcance") Alcance
+              select#alcance(name="alcance" required)
+                option(value="GLOBAL") Todos
+                option(value="PROFESIONAL") Profesional específico
+                option(value="SUCURSAL") Sucursal específica
+            .form-group#groupMedico(style="display:none")
+              label(for="idMedico") Médico
+              select#idMedico(name="idMedico")
+                option(value="") Seleccionar médico
+                each m in medicos
+                  option(value=m.medico_id) #{m.nombre   + ' ' + m.apellido}
+            .form-group#groupSucursal(style="display:none")
+              label(for="idSucursal") Sucursal
+              select#idSucursal(name="idSucursal")
+                option(value="") Seleccionar sucursal
+                each s in sucursales
+                  option(value=s.ID) #{s.nombre}
+            .form-group 
+              label(for="fecha_inicio") Fecha inicio
+              input#fecha_inicio(type="date" name="fecha_inicio" required)
+            .form-group 
+              label(for="fecha_fin") Fecha fin
+              input#fecha_fin(type="date" name="fecha_fin" required)
             .form-group
-              label(for="descripcion") Descripción
+              label
+                input(type="radio" name="all_day" value="1" checked)
+                | Todo el día
+              label(style="margin-left:12px")
+                input(type="radio" name="all_day" value="0")
+                | Rango horario
+            .form-group#rangoHorario(style="display:none")
+              label(for="hora_inicio") Hora inicio
+              input#hora_inicio(type="time" name="hora_inicio" )
+              label(for="hora_fin") Hora fin
+              input#hora_fin(type="time" name="hora_fin")
+            .form-group
+              label(for="descripcion") Motivo
               input.dias-input(type="text" id="descripcion" name="descripcion" placeholder="Ej: Feriado nacional" required)
-
             .form-actions
               button#btnGuardar(type="submit" class="btn-primary") Guardar
               button#btnCancelar(type="button" class="btn-secondary" style="display:none") Cancelar edición
@@ -33,18 +69,38 @@ block content
                 tr
                   th ID
                   th Fecha
-                  th Descripción
+                  th Motivo
+                  th Tipo
+                  th Aplica a
                   th Acciones
               tbody
                 each dia in dias
+                  - const m = dia.idMedico ? medicos.find(x => Number(x.medico_id) === Number(dia.idMedico)) : null
+                  - const s = dia.idSucursal ? sucursales.find(x => Number(x.ID || x.id) === Number(dia.idSucursal)) : null
+                  - const aplicaA = m ? `Dr.  ${(m.nombre + ' ' + m.apellido)}` : (s ? `Sucursal: ${s.nombre}` : 'Todas las sucursales')
+                  - let alcance = 'GLOBAL'
+                  - if (dia.idMedico)
+                    - alcance = 'PROFESIONAL'
+                  - else if (dia.idSucursal)
+                    - alcance = 'SUCURSAL'
                   tr(
                     data-id=dia.ID
-                    data-fecha=dia.fecha
-                    data-descripcion=dia.descripcion
+                    data-fechainicio= new Date(dia.fecha_inicio).toISOString().slice(0,10)
+                    data-fechafin= new Date(dia.fecha_fin).toISOString().slice(0,10)
+                    data-descripcion = dia.descripcion
+                    data-tipo= dia.tipo
+                    data-alcance=alcance
+                    data-idmedico=dia.idMedico
+                    data-idsucursal=dia.idSucursal
+                    data-allday=dia.all_day
+                    data-horainicio=dia.hora_inicio
+                    data-horafin=dia.hora_fin
                   )
                     td= dia.ID
-                    td= dia.fecha
+                    td= new Date(dia.fecha_inicio).toISOString().slice(0,10)
                     td= dia.descripcion
+                    td= dia.tipo
+                    td= aplicaA
                     td.dias-actions
                       button.dias-link(type="button" data-action="edit") Editar
                       button.dias-btn-danger(type="button" data-action="delete") Eliminar
@@ -54,25 +110,160 @@ block content
   script.
     document.addEventListener('DOMContentLoaded', () => {
       const form = document.getElementById('diaForm');
+
       const inputId = document.getElementById('diaId');
-      const inputFecha = document.getElementById('fecha');
+
+      const selectTipo = document.getElementById('tipo');
+      const selectAlcance = document.getElementById('alcance');
+
+      const groupMedico = document.getElementById('groupMedico');
+      const groupSucursal = document.getElementById('groupSucursal');
+
+      const selectMedico = document.getElementById('idMedico');
+      const selectSucursal = document.getElementById('idSucursal');
+
+      const inputFechaInicio = document.getElementById('fecha_inicio');
+      const inputFechaFin = document.getElementById('fecha_fin');
+
+      const rangoHorario = document.getElementById('rangoHorario');
+      const inputHoraInicio = document.getElementById('hora_inicio');
+      const inputHoraFin = document.getElementById('hora_fin');
+
       const inputDescripcion = document.getElementById('descripcion');
+
       const formTitle = document.getElementById('formTitle');
       const btnGuardar = document.getElementById('btnGuardar');
       const btnCancelar = document.getElementById('btnCancelar');
 
+      const hoy = new Date().toISOString().split('T')[0];
+      inputFechaInicio.min = hoy;
+      inputFechaFin.min = hoy;
+
       let editingId = null;
+
+      function getAllDayValue() {
+        const checked = document.querySelector('input[name="all_day"]:checked');
+        return checked ? checked.value : '1';
+      }
+
+      function refreshAlcanceUI(preserve=false) {
+        const a = selectAlcance.value;
+
+        groupMedico.style.display = (a === 'PROFESIONAL') ? 'block' : 'none';
+        groupSucursal.style.display = (a === 'SUCURSAL') ? 'block' : 'none';
+
+        if (!preserve) {
+          if (a !== 'PROFESIONAL') selectMedico.value = '';
+          if (a !== 'SUCURSAL') selectSucursal.value = '';
+        }
+      }
+
+      function refreshHorasUI(preserve=false) {
+        const allDay = getAllDayValue();
+        rangoHorario.style.display = (allDay === '0') ? 'block' : 'none';
+
+        if (!preserve && allDay === '1') {
+          inputHoraInicio.value = '';
+          inputHoraFin.value = '';
+        }
+      }
+
+      selectAlcance.addEventListener('change', () => refreshAlcanceUI(false));
+        document.querySelectorAll('input[name="all_day"]').forEach(r => {
+        r.addEventListener('change', () => refreshHorasUI(false));
+      });
+
+
+      refreshAlcanceUI();
+      refreshHorasUI();
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const fecha = inputFecha.value;
-        const descripcion = inputDescripcion.value.trim();
+        const tipo = selectTipo.value;
+        const alcance = selectAlcance.value;
 
-        if (!fecha || !descripcion) {
-          showAlert('Todos los campos son obligatorios.', 'error');
+        const fecha_inicio = inputFechaInicio.value;
+        const fecha_fin = inputFechaFin.value;
+
+        const all_day = getAllDayValue(); 
+        const hora_inicio = inputHoraInicio.value;
+        const hora_fin = inputHoraFin.value;
+
+        const descripcion = (inputDescripcion.value || '').trim();
+
+        if (!tipo || !alcance) {
+          showAlert('Seleccione tipo y alcance.', 'error');
           return;
         }
+
+        if (!fecha_inicio || !fecha_fin) {
+          showAlert('Seleccione fecha inicio y fecha fin.', 'error');
+          return;
+        }
+
+        if (new Date(fecha_fin) < new Date(fecha_inicio)) {
+          showAlert('La fecha fin no puede ser menor que la fecha inicio.', 'error');
+          return;
+        }
+
+        if (!descripcion) {
+          showAlert('El motivo/descripcion es obligatorio.', 'error');
+          return;
+        }
+
+        let idMedico = null;
+        let idSucursal = null;
+
+        if (alcance === 'PROFESIONAL') {
+          if (!selectMedico.value) {
+            showAlert('Seleccione un médico.', 'error');
+            return;
+          }
+          idMedico = Number(selectMedico.value);
+        }
+
+        if (alcance === 'SUCURSAL') {
+          if (!selectSucursal.value) {
+            showAlert('Seleccione una sucursal.', 'error');
+            return;
+          }
+          idSucursal = Number(selectSucursal.value);
+        }
+
+        let horaInicioToSend = null;
+        let horaFinToSend = null;
+
+        if (all_day === '0') {
+          if (!hora_inicio || !hora_fin) {
+            showAlert('Complete hora inicio y hora fin o marque "Todo el día".', 'error');
+            return;
+          }
+          if (hora_fin <= hora_inicio) {
+            showAlert('La hora fin debe ser mayor a la hora inicio.', 'error');
+            return;
+          }
+          horaInicioToSend = hora_inicio;
+          horaFinToSend = hora_fin;
+        }
+          console.log("fecha_inicio input:", inputFechaInicio);
+          console.log("fecha_inicio value:", inputFechaInicio?.value);
+          console.log("fecha_fin value:", inputFechaFin?.value);
+          console.log("idMedico: ", idMedico);
+
+        const payload = {
+          tipo,
+          alcance,
+          idMedico,     
+          idSucursal,  
+          fecha_inicio,
+          fecha_fin,
+          all_day: Number(all_day), 
+          hora_inicio: horaInicioToSend,
+          hora_fin: horaFinToSend,
+          descripcion
+        };
+          console.log("PAYLOAD FINAL:", payload);
 
         try {
           const isEditing = !!editingId;
@@ -85,17 +276,17 @@ block content
           const response = await fetch(url, {
             method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fecha, descripcion })
+            body: JSON.stringify(payload)
           });
 
-          const data = await response.json();
+          const data = await response.json().catch(() => ({}));
 
           if (!response.ok) {
-            showAlert(data.message || 'Error al guardar el día no laboral.', 'error');
+            showAlert(data.message || 'Error al guardar el registro.', 'error');
             return;
           }
 
-          showAlert(data.message || (isEditing ? 'Día actualizado.' : 'Día creado.'), 'success');
+          showAlert(data.message || (isEditing ? 'Registro actualizado.' : 'Registro creado.'), 'success');
           setTimeout(() => window.location.reload(), 800);
 
         } catch (error) {
@@ -104,22 +295,32 @@ block content
         }
       });
 
-      // Cancelar edición
+      
       btnCancelar.addEventListener('click', () => {
         editingId = null;
         inputId.value = '';
-        inputFecha.value = '';
-        inputDescripcion.value = '';
+        selectAlcance.disabled = false;
+        selectMedico.disabled = false;
+        selectSucursal.disabled = false;
+
+        inputFechaInicio.min = hoy;
+        inputFechaFin.min = hoy;
+
+
+        form.reset();
+
+  
         formTitle.textContent = 'Nuevo Día No Laboral';
         btnGuardar.textContent = 'Guardar';
         btnCancelar.style.display = 'none';
+
+        refreshAlcanceUI();
+        refreshHorasUI();
       });
 
-      // Editar / Eliminar
+    
       document.querySelectorAll('tbody tr').forEach(row => {
         const id = row.dataset.id;
-        const fecha = row.dataset.fecha;
-        const descripcion = row.dataset.descripcion;
 
         row.querySelectorAll('button').forEach(btn => {
           const action = btn.dataset.action;
@@ -128,9 +329,41 @@ block content
             btn.addEventListener('click', () => {
               editingId = id;
               inputId.value = id;
-              inputFecha.value = fecha;
-              inputDescripcion.value = descripcion;
-              formTitle.textContent = 'Editar Día No Laboral';
+
+              inputFechaInicio.min = '';
+              inputFechaFin.min = '';
+
+              const tipo = row.dataset.tipo || 'FERIADO';
+              const alcanceOriginal = inferAlcanceFromRow(row);
+              selectTipo.value = tipo;
+              selectAlcance.value = alcanceOriginal;
+
+              refreshAlcanceUI(true);
+
+              selectAlcance.disabled = true;
+              selectMedico.value = row.dataset.idmedico || '';
+              selectSucursal.value = row.dataset.idsucursal || '';
+
+              inputFechaInicio.value = row.dataset.fechainicio || '';
+              inputFechaFin.value = row.dataset.fechafin || '';
+
+              const allDay = (row.dataset.allday || '1').toString();
+              const radio = document.querySelector(`input[name="all_day"][value="${allDay}"]`);
+              if (radio) radio.checked = true;
+
+              refreshHorasUI(true);
+              
+              if (allDay === '0') {
+                inputHoraInicio.value = row.dataset.horainicio || '';
+                inputHoraFin.value = row.dataset.horafin || '';
+              } else {
+                inputHoraInicio.value = '';
+                inputHoraFin.value = '';
+              }
+
+              inputDescripcion.value = row.dataset.descripcion || '';
+
+              formTitle.textContent = 'Editar registro';
               btnGuardar.textContent = 'Guardar cambios';
               btnCancelar.style.display = 'inline-block';
               window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -139,21 +372,23 @@ block content
 
           if (action === 'delete') {
             btn.addEventListener('click', async () => {
-              if (!confirm('¿Seguro que deseas eliminar este día no laboral?')) return;
+              if (!confirm('¿Seguro que deseas eliminar este registro?')) return;
 
               try {
                 const response = await fetch(`/dia_no_laborales/eliminarDiaNoLaboral/${id}`, {
                   method: 'DELETE'
                 });
-                const data = await response.json();
+
+                const data = await response.json().catch(() => ({}));
 
                 if (!response.ok) {
-                  showAlert(data.message || 'Error al eliminar el día no laboral.', 'error');
+                  showAlert(data.message || 'Error al eliminar.', 'error');
                   return;
                 }
 
-                showAlert(data.message || 'Día eliminado.', 'success');
+                showAlert(data.message || 'Registro eliminado.', 'success');
                 row.remove();
+
                 if (!document.querySelector('tbody tr')) {
                   const listSection = document.querySelector('.dias-list-section');
                   const emptyMsg = document.createElement('p');
@@ -164,7 +399,7 @@ block content
 
               } catch (error) {
                 console.error(error);
-                showAlert('Error al eliminar el día no laboral.', 'error');
+                showAlert('Error al eliminar.', 'error');
               }
             });
           }
@@ -182,8 +417,17 @@ block content
         document.querySelector('.dias-card').prepend(alertDiv);
         setTimeout(() => alertDiv.remove(), 4000);
       }
-    });
+      function inferAlcanceFromRow(row) {
+        const idMedico = (row.dataset.idmedico || '').trim();
+        const idSucursal = (row.dataset.idsucursal || '').trim();
 
+        if (idMedico) return 'PROFESIONAL';
+        if (idSucursal) return 'SUCURSAL';
+        return 'GLOBAL';
+      }
+
+    });
+  
   style.
     .dias-container {
       max-width: 1100px;
