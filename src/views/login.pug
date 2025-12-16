@@ -2,148 +2,539 @@ extends layout
 
 block content
   style.
-    .login-container {
-      max-width: 400px;
-      margin: 2rem auto;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --success-hover: #15803d;
+      --background: #f3f4f6;
+      --foreground: #111827;
+      --card: #ffffff;
+      --muted: #f9fafb;
+      --muted-foreground: #6b7280;
+      --border: #e5e7eb;
+      --radius: 1rem;
+      --input-height: 48px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--background);
+      color: var(--foreground);
+      min-height: 100vh;
+    }
+
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 2rem;
-      background-color: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    .login-title {
-      color: #3498db;
-      font-size: 2rem;
+
+    .login-container {
+      width: 100%;
+      max-width: 32rem; 
+    }
+
+    .auth-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 2.5rem 2.5rem 1rem 2.5rem;
       text-align: center;
-      margin-bottom: 1.5rem;
     }
-    .form-group {
-      margin-bottom: 1.5rem;
+
+    .card-header h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 0.5rem;
     }
+
+    .card-header p {
+      color: var(--muted-foreground);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .card-content { 
+      padding: 2rem 2.5rem 2.5rem 2.5rem;
+    }
+
+    .tabs-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      background-color: #f1f5f9;
+      border-radius: 0.75rem;
+      padding: 0.375rem;
+      margin-bottom: 2rem;
+    }
+
+    .tab-button {
+      padding: 0.625rem 1rem;
+      border: none;
+      background: transparent;
+      border-radius: 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-button.active {
+      background: var(--card);
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .tab-button:hover:not(.active) { color: var(--foreground); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-group { margin-bottom: 1.25rem; }
+
     .form-group label {
       display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
       margin-bottom: 0.5rem;
-      color: #333;
-      font-weight: bold;
+      color: #374151;
     }
-    .form-group input {
+
+    .input-wrapper { position: relative; }
+
+    .input-wrapper svg {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1.25rem;
+      height: 1.25rem;
+      color: #9ca3af;
+      pointer-events: none;
+    }
+
+    .form-input {
       width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 1rem;
+      height: var(--input-height);
+      padding: 0 1rem;
+      padding-left: 3rem;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      font-size: 0.95rem;
+      background-color: #ffffff;
+      color: var(--foreground);
+      transition: all 0.2s ease;
     }
-    .form-group input:focus {
+
+    .form-input:focus {
       outline: none;
-      border-color: #3498db;
-      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
     }
+
+    .form-input::placeholder { color: #9ca3af; }
+    .form-input.no-icon { padding-left: 1rem; }
+    
+    .form-grid { 
+      display: grid; 
+      grid-template-columns: repeat(2, 1fr); 
+      gap: 1.25rem; 
+    }
+
+    .file-upload {
+      border: 2px dashed #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #f9fafb;
+    }
+
+    .file-upload:hover { 
+      border-color: var(--primary); 
+      background: #eff6ff;
+    }
+
+    .file-upload svg {
+      width: 2rem;
+      height: 2rem;
+      margin: 0 auto 0.75rem;
+      color: #9ca3af;
+    }
+
+    .file-upload p { font-size: 0.9rem; color: #4b5563; font-weight: 500; }
+    .file-upload .file-types { font-size: 0.75rem; margin-top: 0.25rem; color: #6b7280; font-weight: 400; }
+    .file-upload input { display: none; }
+
     .submit-button {
       width: 100%;
-      padding: 0.75rem;
-      background-color: #3498db;
+      height: var(--input-height);
+      padding: 0 1.5rem;
+      background-color: var(--primary);
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 0.75rem;
       font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: all 0.2s ease;
+      margin-top: 0.5rem;
     }
-    .submit-button:hover {
-      background-color: #2980b9;
+
+    .submit-button:hover { 
+      background-color: var(--primary-hover); 
+      transform: translateY(-1px);
     }
-    .error-message {
-      color: #e74c3c;
+
+    .submit-button:active { transform: translateY(0); }
+
+    .submit-button.success {
+      background-color: var(--success);
+    }
+
+    .submit-button.success:hover {
+      background-color: var(--success-hover);
+    }
+
+    .toggle-container {
+      background: #eff6ff;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid #dbeafe;
+      display: flex;
+      align-items: center;
+    }
+
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      color: #1e40af;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin: 0;
+      width: 100%;
+    }
+
+    .toggle-label input[type="checkbox"] {
+      width: 1.25rem;
+      height: 1.25rem;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .datos-personales-container { transition: all 0.3s ease; }
+
+    .register-note {
+      font-size: 0.9rem;
+      color: var(--muted-foreground);
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: #f3f4f6;
+      border-radius: 0.75rem;
+      line-height: 1.4;
+    }
+
+    .register-note.info {
+      background: #eff6ff;
+      color: #1e40af;
+      border: 1px solid #dbeafe;
+    }
+
+    .error-message, .success-message {
+      font-size: 0.9rem;
       text-align: center;
-      margin-top: 1rem;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      display: none;
+      font-weight: 500;
     }
 
-  .login-container
-    h1.login-title Iniciar Sesión
+    .error-message {
+      color: #991b1b;
+      background: #fef2f2;
+      border: 1px solid #fee2e2;
+    }
 
-    form#loginForm(method="POST" action="/usuario/login")
-      .form-group
-        label(for="nombre") Usuario:
-        input(type="text" name="nombre" id="nombre" required)
-      .form-group
-        label(for="password") Contraseña:
-        input(type="password" name="password" id="password" required)
+    .success-message {
+      color: #166534;
+      background: #f0fdf4;
+      border: 1px solid #dcfce7;
+    }
 
-      button.submit-button(type="submit") Iniciar Sesión   
+    .error-message.visible, .success-message.visible { display: block; animation: fadeIn 0.3s ease; }
 
-    #errorMessage.error-message
+  .login-page
+    .login-container
+      .auth-card
+        .card-header
+          h2 Acceder al Sistema
+          p Bienvenido, ingresa tus credenciales o regístrate
+
+        .card-content
+          .tabs-list
+            button.tab-button.active(type="button" data-tab="login") Iniciar Sesión
+            button.tab-button(type="button" data-tab="register") Registrarse
+
+          .tab-content.active#login-tab
+            form#loginForm(method="POST" action="/usuario/login")
+              .form-group
+                label(for="email") Correo electrónico
+                .input-wrapper
+                  svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                    rect(width="20" height="16" x="2" y="4" rx="2")
+                    path(d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7")
+                  input.form-input(type="email" id="email" name="email" placeholder="correo@ejemplo.com" required)
+
+              .form-group
+                label(for="password") Contraseña
+                .input-wrapper
+                  svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                    rect(width="18" height="11" x="3" y="11" rx="2" ry="2")
+                    path(d="M7 11V7a5 5 0 0 1 10 0v4")
+                  input.form-input(type="password" id="password" name="password" placeholder="••••••••" required)
+
+              button.submit-button(type="submit") Iniciar Sesión
+              #loginError.error-message
+              #loginSuccess.success-message
+
+          .tab-content#register-tab
+            form#registerForm(method="POST" action="/usuario/register")
+              .toggle-container
+                label.toggle-label
+                  input#esPacienteExistente(type="checkbox" name="esPacienteExistente")
+                  span ¿Ya te has atendido aquí antes?
+
+              p.register-note#msgNuevo Registro para pacientes nuevos. Por favor completa todos tus datos personales.
+              p.register-note.info#msgExistente(style="display:none;") Si ya eres paciente de la clínica, solo ingresa tu DNI y Email para crear tu usuario web.
+
+              .datos-personales-container
+                .form-grid
+                  .form-group
+                    label(for="nombre") Nombre
+                    .input-wrapper
+                      svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                        path(d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2")
+                        circle(cx="12" cy="7" r="4")
+                      input.form-input(type="text" id="nombre" name="nombre" placeholder="Juan" required)
+
+                  .form-group
+                    label(for="apellido") Apellido
+                    input.form-input.no-icon(type="text" id="apellido" name="apellido" placeholder="Pérez" required)
+
+                .form-group
+                  label(for="telefono") Teléfono
+                  .input-wrapper
+                    svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                      path(d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z")
+                    input.form-input(type="tel" id="telefono" name="telefono" placeholder="011-4555-1234" required)
+
+                .form-group
+                  label Fotocopia del DNI
+                  label.file-upload(for="dni-file")
+                    svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                      path(d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4")
+                      polyline(points="17 8 12 3 7 8")
+                      line(x1="12" y1="3" x2="12" y2="15")
+                    p Haz clic para seleccionar o arrastra tu archivo
+                    p.file-types(id="file-name-display") PNG, JPG o PDF (máx. 5MB)
+                    input(type="file" id="dni-file" name="dniFile" accept=".png,.jpg,.jpeg,.pdf")
+
+              .form-group
+                label(for="dni") DNI (Identificación)
+                .input-wrapper
+                  svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                    path(d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z")
+                    path(d="M14 2v4a2 2 0 0 0 2 2h4")
+                  input.form-input(type="text" id="dni" name="dni" placeholder="12345678" required)
+
+              .form-group
+                label(for="reg-email") Correo electrónico
+                .input-wrapper
+                  svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                    rect(width="20" height="16" x="2" y="4" rx="2")
+                    path(d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7")
+                  input.form-input(type="email" id="reg-email" name="email" placeholder="correo@ejemplo.com" required)
+
+              .form-grid
+                .form-group
+                  label(for="reg-password") Contraseña
+                  input.form-input.no-icon(type="password" id="reg-password" name="password" placeholder="••••••••" required)
+
+                .form-group
+                  label(for="confirm-password") Confirmar
+                  input.form-input.no-icon(type="password" id="confirm-password" name="confirmPassword" placeholder="••••••••" required)
+
+              button.submit-button.success(type="submit") Crear Cuenta
+              #registerError.error-message
+              #registerSuccess.success-message
 
 block scripts
   script.
     document.addEventListener('DOMContentLoaded', () => {
+      const tabButtons = document.querySelectorAll('.tab-button');
+      const tabContents = document.querySelectorAll('.tab-content');
+
+      tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const targetTab = button.dataset.tab;
+          tabButtons.forEach(btn => btn.classList.remove('active'));
+          button.classList.add('active');
+          tabContents.forEach(content => {
+            content.classList.remove('active');
+            if (content.id === `${targetTab}-tab`) {
+              content.classList.add('active');
+            }
+          });
+        });
+      });
+
+      const fileInput = document.getElementById('dni-file');
+      const fileNameDisplay = document.getElementById('file-name-display');
+      const fileUpload = document.querySelector('.file-upload');
+      
+      if (fileInput && fileUpload) {
+        fileInput.addEventListener('change', (e) => {
+          const fileName = e.target.files[0]?.name;
+          if (fileName) {
+            fileNameDisplay.textContent = `Archivo: ${fileName}`;
+            fileNameDisplay.style.color = '#2563eb';
+            fileNameDisplay.style.fontWeight = '600';
+            fileUpload.style.borderColor = '#2563eb';
+            fileUpload.style.background = '#eff6ff';
+          }
+        });
+      }
+
+      const checkExistente = document.getElementById('esPacienteExistente');
+      const containerDatos = document.querySelector('.datos-personales-container');
+      const msgNuevo = document.getElementById('msgNuevo');
+      const msgExistente = document.getElementById('msgExistente');
+      const inputsOcultables = containerDatos.querySelectorAll('input');
+
+      checkExistente.addEventListener('change', (e) => {
+        if(e.target.checked) {
+          containerDatos.style.display = 'none';
+          msgNuevo.style.display = 'none';
+          msgExistente.style.display = 'block';
+          inputsOcultables.forEach(inp => inp.removeAttribute('required'));
+        } else {
+          containerDatos.style.display = 'block';
+          msgNuevo.style.display = 'block';
+          msgExistente.style.display = 'none';
+          document.getElementById('nombre').setAttribute('required', '');
+          document.getElementById('apellido').setAttribute('required', '');
+          document.getElementById('telefono').setAttribute('required', '');
+        }
+      });
+
       const loginForm = document.getElementById('loginForm');
-      const errorMessage = document.getElementById('errorMessage');
+      const loginError = document.getElementById('loginError');
+      const loginSuccess = document.getElementById('loginSuccess');
 
       loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-
-        const nombre = document.getElementById('nombre').value.trim();
+        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
 
-        if (!nombre || !password) {
-          errorMessage.textContent = 'Por favor, completa todos los campos.';
+        loginError.classList.remove('visible');
+        loginSuccess.classList.remove('visible');
+
+        if (!email || !password) {
+          loginError.textContent = 'Por favor completa todos los campos';
+          loginError.classList.add('visible');
           return;
         }
 
         try {
           const response = await fetch('/usuario/login', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ nombre, password }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
           });
-
+          const data = await response.json();
           if (response.ok) {
-            window.location.href = '/'; 
+            loginSuccess.textContent = 'Inicio de sesión exitoso. Redirigiendo...';
+            loginSuccess.classList.add('visible');
+            setTimeout(() => {
+              window.location.href = data.redirectUrl || '/dashboard';
+            }, 1500);
           } else {
-            const errorData = await response.json();
-            errorMessage.textContent = 'Error al iniciar sesión: ' + (errorData.message || 'Error desconocido');
+            loginError.textContent = data.message || 'Credenciales inválidas';
+            loginError.classList.add('visible');
           }
         } catch (error) {
-          console.error('Error al enviar el formulario:', error);
-          errorMessage.textContent = 'Error al enviar el formulario.';
+          loginError.textContent = 'Error de conexión. Intenta nuevamente.';
+          loginError.classList.add('visible');
+        }
+      });
+
+      const registerForm = document.getElementById('registerForm');
+      const registerError = document.getElementById('registerError');
+      const registerSuccess = document.getElementById('registerSuccess');
+
+      registerForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(registerForm);
+        const password = formData.get('password');
+        const confirmPassword = formData.get('confirmPassword');
+
+        registerError.classList.remove('visible');
+        registerSuccess.classList.remove('visible');
+
+        if (password !== confirmPassword) {
+          registerError.textContent = 'Las contraseñas no coinciden';
+          registerError.classList.add('visible');
+          return;
+        }
+        if (password.length < 6) {
+          registerError.textContent = 'La contraseña debe tener al menos 6 caracteres';
+          registerError.classList.add('visible');
+          return;
+        }
+
+        try {
+          const response = await fetch('/usuario/register', {
+            method: 'POST',
+            body: formData,
+          });
+          const data = await response.json();
+          if (response.ok) {
+            registerSuccess.textContent = 'Registro exitoso. Redirigiendo...';
+            registerSuccess.classList.add('visible');
+            setTimeout(() => {
+              window.location.href = '/usuario/login';
+            }, 2000);
+            registerForm.reset();
+          } else {
+            registerError.textContent = data.message || 'Error en el registro';
+            registerError.classList.add('visible');
+          }
+        } catch (error) {
+          registerError.textContent = 'Error de conexión. Intenta nuevamente.';
+          registerError.classList.add('visible');
         }
       });
     });
-//- block scripts
-//-   script.
-//-     document.addEventListener('DOMContentLoaded', () => {
-//-       const loginForm = document.getElementById('loginForm');
-
-//-       loginForm.addEventListener('submit', async(event)=> {
-//-         event.preventDefault();
-
-//-         const nombre = document.getElementById('nombre').value.trim();
-//-         const password = document.getElementById('password').value;
-
-//-         if (!nombre || !password) {
-//-           alert('Por favor, completa todos los campos.');
-//-           return;
-//-         }
-
-//-         try {
-//-           const response = await fetch('/usuario/login', {
-//-             method: 'POST',
-//-             headers: {
-//-               'Content-Type': 'application/json',
-//-             },
-//-             body: JSON.stringify({ nombre, password }),
-//-           });
-
-//-           if (response.ok) {
-//-             window.location.href = '/'; 
-//-           } else {
-//-             const errorData = await response.json();
-//-             alert('Error al iniciar sesión: ' + (errorData.message || 'Error desconocido'));
-//-           }
-//-         } catch (error) {
-//-           console.error('Error al enviar el formulario:', error);
-//-           alert('Error al enviar el formulario.');
-//-         }
-//-       });
-//-     });

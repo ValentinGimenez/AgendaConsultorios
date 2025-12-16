@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const usuarioController = require("../Controllers/usuario");
 const Persona = require("../models/persona");
+const upload = require("../utils/uploadConfig");
 const { authMiddleware, adminMiddleware , userMiddleware } = require('../middlewares/auth');
 
 router.post("/", authMiddleware, adminMiddleware, usuarioController.crearUsuario); 
@@ -11,7 +12,7 @@ router.put("/actualizarUsuario/:id", authMiddleware, adminMiddleware, usuarioCon
 router.delete("/eliminarUsuario/:id", authMiddleware, adminMiddleware, usuarioController.delete);
 
 router.post("/login", usuarioController.login);
-
+router.post("/register", upload.single('dniFile'), usuarioController.register);
 
 router.get("/nuevo", userMiddleware, authMiddleware, adminMiddleware, async (req, res) => {
   try {

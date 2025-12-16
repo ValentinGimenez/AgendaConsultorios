@@ -66,7 +66,31 @@ const Usuario = {
             console.error('Error al eliminar el usuario:', error);
             throw error;
         }
-    }
+    },
+    async findByEmail(email) {
+        try {
+            const query = `
+                SELECT u.*, p.nombre as persona_nombre, p.apellido, p.mail 
+                FROM usuario u 
+                JOIN persona p ON u.idPersona = p.id 
+                WHERE p.mail = ?
+            `;
+            const [rows] = await pool.query(query, [email]);
+            return rows[0];
+        } catch (error) {
+            console.error('Error al obtener el usuario por email:', error);
+            throw error;
+        }
+    },
+    async findByIdPersona(idPersona) {
+        try {
+            const [rows] = await pool.query('SELECT * FROM usuario WHERE idPersona = ?', [idPersona]);
+            return rows[0];
+        } catch (error) {
+            console.error('Error al buscar usuario por idPersona:', error);
+            throw error;
+        }
+    },
 };
 
 module.exports = Usuario;
