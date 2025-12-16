@@ -2,7 +2,15 @@ extends ../layout
 
 block content
   .pacientes-container
-    h1.page-title Lista de Pacientes
+    .header-actions
+      h1.page-title Lista de Pacientes
+      
+      a.btn.btn-nuevo(href="/paciente/nuevo")
+        svg(viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round")
+          circle(cx="12" cy="12" r="10")
+          line(x1="12" y1="8" x2="12" y2="16")
+          line(x1="8" y1="12" x2="16" y2="12")
+        span Nuevo Paciente
 
     table#tablaPacientes.display
       thead
@@ -26,6 +34,7 @@ block content
             td.acciones
               a.btn.btn-editar(href=`/paciente/${paciente.id}/editar`) Editar
               a.btn.btn-agendar(href=`/paciente/${paciente.id}/agendarTurno`) Agendar Turno 
+
 block scripts
   script(src='https://code.jquery.com/jquery-3.7.1.min.js')
   script(src='https://cdn.datatables.net/2.1.8/js/dataTables.min.js')
@@ -41,6 +50,7 @@ block scripts
         }
       })
     });
+
   block styles
     style.
       .pacientes-container {
@@ -48,12 +58,20 @@ block scripts
         margin: 0 auto;
         padding: 20px;
       }
+      
+      .header-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+      }
+
       .page-title {
         font-size: 2em;
         color: #333;
-        margin-bottom: 20px;
-        text-align: center;
+        margin: 0; 
       }
+
       #tablaPacientes { 
         width: 100%;
         border-collapse: separate;
@@ -86,15 +104,20 @@ block scripts
         white-space: nowrap;
       }
       .btn {
-        display: inline-block;
-        padding: 6px 12px;
+        display: inline-flex; 
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 8px 16px;
         margin: 2px;
         border: none;
-        border-radius: 4px;
+        border-radius: 6px;
         cursor: pointer;
         font-size: 0.9em;
         text-decoration: none;
-        transition: background-color 0.3s;
+        transition: all 0.2s;
+        font-family: inherit;
+        font-weight: 500;
       }
       .btn-editar {
         background-color: #007bff;
@@ -104,32 +127,29 @@ block scripts
         background-color: #28a745; 
         color: white;
       }
-      .btn:hover {
-        opacity: 0.8;
-      }
-      .table-top {
-        margin-bottom: 20px;
-      }
-      .table-bottom {
-        margin-top: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .dataTables_filter input {
-        padding: 6px 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-      }
-      .dataTables_paginate .paginate_button {
-        padding: 6px 12px;
-        margin: 0 2px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      .dataTables_paginate .paginate_button.current {
-        background-color: #007bff;
+      
+      .btn-nuevo {
+        background-color: #0f172a;
         color: white;
+        padding: 10px 20px;
+        font-size: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      }
+      .btn-nuevo:hover {
+        background-color: #1e293b;
+        transform: translateY(-1px);
+      }
+
+      .btn:hover {
+        opacity: 0.9;
+      }
+      
+      .dataTables_filter input {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        outline: none;
+      }
+      .dataTables_filter input:focus {
         border-color: #007bff;
       }

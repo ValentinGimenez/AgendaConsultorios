@@ -173,7 +173,7 @@ html(lang="es")
               
               if user.rol === 'secretaria'
                 .sidebar-section
-                  .sidebar-section-title Principal
+                  .sidebar-section-title FUNCIONANDO CREO
                   ul.sidebar-menu
                     li.sidebar-menu-item
                       a.sidebar-link(href="/turno/listar" class=isActive('/turno/listar') ? 'active' : '')
@@ -194,7 +194,6 @@ html(lang="es")
                             line(x1="8" y1="2" x2="8" y2="6")
                             line(x1="3" y1="10" x2="21" y2="10")
                         span Programar Turno
-
                     li.sidebar-menu-item
                       a.sidebar-link(href="/paciente/lista" class=isActive('/paciente/lista') ? 'active' : '')
                         span.sidebar-link-icon
@@ -203,17 +202,34 @@ html(lang="es")
                             circle(cx="9" cy="7" r="4")
                             path(d="M23 21v-2a4 4 0 0 0-3-3.87")
                             path(d="M16 3.13a4 4 0 0 1 0 7.75")
-                        span Pacientes
-                    
+                        span Pacientes                        
+                .sidebar-section
+                  .sidebar-section-title EN PROCESO
+                  ul.sidebar-menu                    
                     li.sidebar-menu-item
-                      a.sidebar-link(href="/paciente/nuevo" class=isActive('/paciente/nuevo') ? 'active' : '')
+                      a.sidebar-link(href="/turno/lista-espera" class=isActive('/turno/lista-espera') ? 'active' : '')
+                        span.sidebar-link-icon
+                          svg.icon(viewBox="0 0 24 24")
+                            path(d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01")
+                        span Lista de Espera
+
+                    li.sidebar-menu-item
+                      a.sidebar-link(href="/turno/sobreturnos" class=isActive('/turno/sobreturnos') ? 'active' : '')
                         span.sidebar-link-icon
                           svg.icon(viewBox="0 0 24 24")
                             circle(cx="12" cy="12" r="10")
-                            line(x1="12" y1="8" x2="12" y2="16")
-                            line(x1="8" y1="12" x2="16" y2="12")
-                        span Nuevo Paciente
-                    
+                            polyline(points="12 6 12 12 16 14")
+                        span Sobreturnos
+
+                    li.sidebar-menu-item
+                      a.sidebar-link(href="/turno/transferir" class=isActive('/turno/transferir') ? 'active' : '')
+                        span.sidebar-link-icon
+                          svg.icon(viewBox="0 0 24 24")
+                            path(d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4")
+                        span Transferir Turnos
+                .sidebar-section
+                  .sidebar-section-title DUDOSO SI VA ACA
+                  ul.sidebar-menu   
                     li.sidebar-menu-item
                       a.sidebar-link(href="/paciente/personas" class=isActive('/paciente/personas') ? 'active' : '')
                         span.sidebar-link-icon
