@@ -38,7 +38,7 @@ block content
 
     .login-container {
       width: 100%;
-      max-width: 32rem; 
+      max-width: 32rem;
     }
 
     .auth-card {
@@ -301,12 +301,12 @@ block content
           .tab-content.active#login-tab
             form#loginForm(method="POST" action="/usuario/login")
               .form-group
-                label(for="email") Correo electrónico
+                label(for="nombre") Usuario
                 .input-wrapper
                   svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
-                    rect(width="20" height="16" x="2" y="4" rx="2")
-                    path(d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7")
-                  input.form-input(type="email" id="email" name="email" placeholder="correo@ejemplo.com" required)
+                    path(d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2")
+                    circle(cx="12" cy="7" r="4")
+                  input.form-input(type="text" id="login-nombre" name="nombre" placeholder="Nombre de usuario" required)
 
               .form-group
                 label(for="password") Contraseña
@@ -371,7 +371,7 @@ block content
                   input.form-input(type="text" id="dni" name="dni" placeholder="12345678" required)
 
               .form-group
-                label(for="reg-email") Correo electrónico
+                label(for="reg-email") Correo electrónico (Será tu usuario)
                 .input-wrapper
                   svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
                     rect(width="20" height="16" x="2" y="4" rx="2")
@@ -456,13 +456,13 @@ block scripts
 
       loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const email = document.getElementById('email').value.trim();
+        const nombre = document.getElementById('login-nombre').value.trim();
         const password = document.getElementById('password').value;
 
         loginError.classList.remove('visible');
         loginSuccess.classList.remove('visible');
 
-        if (!email || !password) {
+        if (!nombre || !password) {
           loginError.textContent = 'Por favor completa todos los campos';
           loginError.classList.add('visible');
           return;
@@ -472,7 +472,7 @@ block scripts
           const response = await fetch('/usuario/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ nombre, password }),
           });
           const data = await response.json();
           if (response.ok) {

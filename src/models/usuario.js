@@ -22,7 +22,13 @@ const Usuario = {
     },
     async findByNombre(nombre) {
         try {
-            const [rows] = await pool.query('SELECT * FROM usuario WHERE nombre = ?', [nombre]);
+            const query = `
+                SELECT u.*, p.nombre as persona_nombre, p.apellido 
+                FROM usuario u 
+                JOIN persona p ON u.idPersona = p.id 
+                WHERE u.nombre = ?
+            `;
+            const [rows] = await pool.query(query, [nombre]);
             return rows[0];
         } catch (error) {
             console.error('Error al obtener el usuario por nombre:', error);

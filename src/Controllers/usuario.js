@@ -121,14 +121,21 @@ const usuarioController = {
   },
   async login(req, res) {
     try {
-      const { email, password } = req.body;
       
-      const usuario = await Usuario.findByEmail(email);
+      const { nombre, password } = req.body;
+      const usuario = await Usuario.findByNombre(nombre);
 
       if (usuario) {
         const match = await bcrypt.compare(password, usuario.password);
 
         if (match) {
+          req.session.user = {
+            id: usuario.ID,
+            rol: usuario.tipo,
+            nombre: usuario.persona_nombre, 
+            username: usuario.nombre,      
+            email: usuario.mail
+          };
           req.session.user = {
             id: usuario.ID,
             rol: usuario.tipo,
