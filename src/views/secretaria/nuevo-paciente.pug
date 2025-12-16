@@ -1,155 +1,250 @@
 extends ../layout
 
 block content
-    h1 Registrar Paciente 
+  style.
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-    form#formPaciente.container(method="POST" action="/paciente") 
-        h2 Datos de la Persona
-        div#formPersonaContainer
-            div.form-group
-                label(for="nombre") Nombre:
-                br
-                input(type="text" name="nombre" id="nombre" required)
-            div.form-group
-                label(for="apellido") Apellido:
-                br
-                input(type="text" name="apellido" id="apellido" required)
-            div.form-group
-                label(for="dni") DNI:
-                br
-                input(type="text" name="dni" id="dni" required)
-            div.form-group
-                label(for="mail") Email:
-                br
-                input(type="email" name="mail" id="mail" required)
-            div.form-group
-                label(for="telefono") Teléfono:
-                br
-                input(type="text" name="telefono" id="telefono" required)
-            div.form-group
-                label(for="fotodni") Foto DNI:
-                br
-                input(type="file" name="fotodni" id="fotodni" accept="image/*" required)
-            div.form-group
-            label(for="obrasocial") Obra Social:
-            br
-            select(name="obrasocial" id="obrasocial" required)
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --background: #f3f4f6;
+      --foreground: #111827;
+      --card: #ffffff;
+      --border: #e5e7eb;
+      --input-height: 48px;
+      --radius: 0.75rem;
+    }
+
+    .page-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .form-card {
+      background: var(--card);
+      width: 100%;
+      max-width: 40rem;
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      padding: 2.5rem;
+    }
+
+    .header { text-align: center; margin-bottom: 2rem; }
+    .header h2 { font-size: 1.75rem; font-weight: 700; color: var(--foreground); margin-bottom: 0.5rem; }
+    .header p { color: #6b7280; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    .full-width { grid-column: span 2; }
+
+    .form-group { margin-bottom: 0.5rem; }
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+
+    .input-wrapper { position: relative; }
+    .input-wrapper svg {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1.25rem;
+      height: 1.25rem;
+      color: #9ca3af;
+      pointer-events: none;
+    }
+
+    .form-input {
+      width: 100%;
+      height: var(--input-height);
+      padding: 0 1rem 0 3rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      transition: all 0.2s;
+      background: #fff;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+
+    .file-upload {
+      border: 2px dashed #e5e7eb;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #f9fafb;
+      display: block;
+    }
+    .file-upload:hover { border-color: var(--primary); background: #eff6ff; }
+    .file-upload svg { width: 2rem; height: 2rem; margin: 0 auto 0.75rem; color: #9ca3af; display: block; position: static; transform: none; }
+    .file-upload input { display: none; }
+
+    .submit-button {
+      width: 100%;
+      height: var(--input-height);
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 1.5rem;
+    }
+    .submit-button:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+
+  div.page-container
+    div.form-card
+      div.header
+        h2 Registrar Paciente
+        p Ingresa los datos personales para dar de alta un nuevo paciente
+
+      form#formPaciente(method="POST" action="/paciente/nuevo" enctype="multipart/form-data")
+        div.form-grid
+          div.form-group
+            label(for="nombre") Nombre
+            div.input-wrapper
+              svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                path(d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2")
+                circle(cx="12" cy="7" r="4")
+              input.form-input(type="text" id="nombre" name="nombre" placeholder="Nombre" required)
+
+          div.form-group
+            label(for="apellido") Apellido
+            div.input-wrapper
+              svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                path(d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2")
+                circle(cx="12" cy="7" r="4")
+              input.form-input(type="text" id="apellido" name="apellido" placeholder="Apellido" required)
+
+          div.form-group
+            label(for="dni") DNI
+            div.input-wrapper
+              svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                rect(x="3" y="4" width="18" height="16" rx="2")
+                line(x1="7" y1="8" x2="17" y2="8")
+                line(x1="7" y1="12" x2="17" y2="12")
+              input.form-input(type="text" id="dni" name="dni" placeholder="Ej: 12345678" required)
+
+          div.form-group
+            label(for="telefono") Teléfono
+            div.input-wrapper
+              svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                path(d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z")
+              input.form-input(type="text" id="telefono" name="telefono" placeholder="Ej: 11-4444-5555" required)
+
+          div.form-group.full-width
+            label(for="mail") Email
+            div.input-wrapper
+              svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                rect(width="20" height="16" x="2" y="4" rx="2")
+                path(d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7")
+              input.form-input(type="email" id="mail" name="mail" placeholder="correo@ejemplo.com" required)
+
+          div.form-group.full-width
+            label(for="obrasocial") Obra Social
+            div.input-wrapper
+              svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                path(d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z")
+              select.form-input(name="idObraSocial" id="obrasocial" required style="appearance: none;")
+                option(value="" disabled selected) Seleccione Obra Social
                 each obraSocial in obrasSociales
-                    option(value=obraSocial.id)= obraSocial.nombre
-            button(type="submit" id="AgregarPaciente") Registrar Paciente
+                  option(value=obraSocial.id)= obraSocial.nombre
+
+          div.form-group.full-width
+            label Foto DNI
+            label.file-upload(for="fotodni")
+              svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                path(d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4")
+                polyline(points="17 8 12 3 7 8")
+                line(x1="12" y1="3" x2="12" y2="15")
+              p Haz clic para subir imagen
+              p#file-name-display(style="font-size: 0.8rem; color: #6b7280; font-weight: normal; margin-top:5px") Formato JPG o PNG
+              input(type="file" name="fotodni" id="fotodni" accept="image/*" required)
+
+        button.submit-button(type="submit") Registrar Paciente
 
 block scripts
-    script.
-        document.addEventListener('DOMContentLoaded', async () => {
-            const formPaciente = document.getElementById('formPaciente');
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      const formPaciente = document.getElementById('formPaciente');
+      const fileInput = document.getElementById('fotodni');
+      const fileNameDisplay = document.getElementById('file-name-display');
+      const fileUploadDiv = document.querySelector('.file-upload');
 
-            formPaciente.addEventListener('submit', async (event) => {
-                event.preventDefault();
-                const nombre = document.getElementById('nombre').value.trim().toUpperCase();
-                const apellido = document.getElementById('apellido').value.trim().toUpperCase();
-                const dni = document.getElementById('dni').value.trim();
-                const mail = document.getElementById('mail').value.trim();
-                const telefono = document.getElementById('telefono').value.trim();
-                const fotoDni = document.getElementById('fotodni').value; 
-                const idObraSocial = document.getElementById('obrasocial').value; 
-                // Validación de campos
-                if (!nombre || !apellido || !dni || !mail || !telefono) {
-                    alert('Todos los campos son obligatorios.');
-                    return;
-                }
-
-                // Validación de formato de email
-                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailPattern.test(mail)) {
-                    alert('Por favor ingresa un email válido.');
-                    return;
-                }
-
-                // Validación de DNI
-                if (!/^\d{8}$/.test(dni)) {
-                    alert('El DNI debe contener 8 dígitos.');
-                    return;
-                }
-                try {
-                    const response = await fetch('/paciente/nuevo', { 
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            nombre,
-                            apellido,
-                            dni,
-                            mail,
-                            telefono,
-                            fotoDni,
-                            idObraSocial
-                        }),
-                    });
-
-                    if (response.ok) {
-                        formPaciente.reset(); 
-                        alert('Paciente registrado exitosamente');
-                    } else {
-                        const errorData = await response.json();
-                        alert('Error al registrar el Paciente: ' + (errorData.message || 'Error desconocido')); 
-                    }
-                } catch (error) {
-                    console.error('Error al enviar el formulario:', error);
-                    alert('Error al enviar el formulario.');
-                }
-            });
+      if(fileInput) {
+        fileInput.addEventListener('change', (e) => {
+          const fileName = e.target.files[0]?.name;
+          if (fileName) {
+            fileNameDisplay.textContent = `Archivo seleccionado: ${fileName}`;
+            fileNameDisplay.style.color = '#2563eb';
+            fileNameDisplay.style.fontWeight = 'bold';
+            fileUploadDiv.style.borderColor = '#2563eb';
+            fileUploadDiv.style.background = '#eff6ff';
+          }
         });
-    block styles
-        style.
-            #formPaciente.container {
-            width: 500px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            }
-            #formPaciente h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            }
-            .form-group {
-            margin-bottom: 15px;
-            }
-            label {
-            display: block;
-            margin-bottom: 5px;
-            }
-            input[type="text"],
-            input[type="email"],
-            input[type="file"],
-            select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            white-space: nowrap;        
-            overflow: hidden;          
-            text-overflow: ellipsis;
-            }
-            button[type="submit"] {
-            background-color: #4CAF50; 
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top:20px;
-            }
-            button[type="submit"]:hover {
-            background-color: #45a049; 
-            }
-            a {
-            color: #007bff;
-            text-decoration: none;
-            }
+      }
 
-            a:hover {
-            text-decoration: underline;
-            }
+      formPaciente.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const dni = document.getElementById('dni').value.trim();
+        const mail = document.getElementById('mail').value.trim();
+
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(mail)) {
+          alert('Por favor ingresa un email válido.');
+          return;
+        }
+
+        if (!/^\d{8}$/.test(dni)) {
+          alert('El DNI debe contener 8 dígitos.');
+          return;
+        }
+
+        const formData = new FormData(formPaciente);
+
+        formData.set('nombre', document.getElementById('nombre').value.trim().toUpperCase());
+        formData.set('apellido', document.getElementById('apellido').value.trim().toUpperCase());
+
+        try {
+          const response = await fetch('/paciente/nuevo', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (response.ok) {
+            alert('Paciente registrado exitosamente');
+            formPaciente.reset();
+            fileNameDisplay.textContent = 'Formato JPG o PNG';
+            fileUploadDiv.style.borderColor = '#e5e7eb';
+            fileUploadDiv.style.background = '#f9fafb';
+          } else {
+            const errorData = await response.json();
+            alert('Error: ' + (errorData.message || 'Error desconocido'));
+          }
+        } catch (error) {
+          console.error('Error al enviar:', error);
+          alert('Error de conexión al servidor.');
+        }
+      });
+    });

@@ -1,0 +1,255 @@
+extends ../layout
+
+block content
+  style.
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      --page-bg: #f3f4f6;
+      --card-bg: #ffffff;
+      --primary: #3182ce;
+      --primary-hover: #2c5282;
+      --text-main: #2d3748;
+      --text-muted: #718096;
+      --border-card: #e2e8f0;
+      --border-input: #cbd5e0;
+      --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.1);
+      --radius-card: 12px;
+      --radius-input: 8px;
+    }
+
+    body {
+      background-color: var(--page-bg) !important;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-main);
+    }
+
+    .wizard-wrapper {
+      max-width: 1100px;
+      margin: 40px auto;
+    }
+
+    .header-title { 
+      font-size: 1.75rem; 
+      font-weight: 700; 
+      margin-bottom: 0.5rem; 
+      color: var(--text-main); 
+    }
+    .header-subtitle { 
+      color: var(--text-muted); 
+      font-size: 1rem; 
+      margin-bottom: 2rem; 
+    }
+
+    .stepper { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      margin-bottom: 2rem; 
+      padding: 0 10px; 
+    }
+    .step { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      color: #cbd5e0; 
+      font-weight: 500; 
+    }
+    .step.active { 
+      color: var(--text-main); 
+      font-weight: 700; 
+    }
+    .step-circle { 
+      width: 32px; height: 32px; border-radius: 50%; 
+      background-color: #edf2f7; 
+      color: var(--text-muted);
+      display: flex; align-items: center; justify-content: center; 
+      font-weight: 600; 
+    }
+    .step.active .step-circle { 
+      background-color: var(--primary); 
+      color: #fff; 
+      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+    }
+    .step-line { 
+      flex-grow: 1; height: 2px; background-color: var(--border-card); margin: 0 15px; 
+    }
+
+    .card-busqueda {
+      background: var(--card-bg);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-card);
+      padding: 3rem;
+      box-shadow: var(--shadow-card);
+      max-width: 600px;
+      margin: 40px auto; 
+    }
+
+    .card-header-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+    }
+
+    .input-label { 
+      display: block; 
+      font-weight: 600; 
+      margin-bottom: 0.5rem; 
+      font-size: 0.9rem; 
+      color: var(--text-main);
+    }
+
+    .search-group { display: flex; gap: 10px; margin-bottom: 20px;}
+    .search-input-wrapper { position: relative; flex-grow: 1; }
+    
+    .form-input { 
+      width: 100%; 
+      padding: 0.75rem 1rem; 
+      border: 2px solid var(--border-input); 
+      border-radius: var(--radius-input); 
+      font-size: 1rem; 
+      outline: none; 
+      transition: border-color 0.2s;
+    }
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+    }
+
+    .btn-primary { 
+      background-color: var(--primary); 
+      color: white; 
+      border: none; 
+      padding: 0 24px; 
+      border-radius: var(--radius-input); 
+      cursor: pointer; 
+      font-weight: 600; 
+      transition: all 0.2s;
+    }
+    .btn-primary:hover { 
+      background-color: var(--primary-hover); 
+      transform: translateY(-1px);
+    }
+    
+    .btn-outline { 
+      width: 100%; 
+      padding: 12px; 
+      background: white; 
+      border: 2px solid var(--border-card); 
+      border-radius: var(--radius-input); 
+      color: var(--text-main); 
+      font-weight: 600; 
+      cursor: pointer; 
+      display: flex; 
+      justify-content: center; 
+      gap: 8px; 
+      transition: all 0.2s;
+    }
+    .btn-outline:hover { 
+      background-color: #f7fafc; 
+      border-color: var(--border-input); 
+      color: var(--primary);
+    }
+    
+    .divider-container { position: relative; text-align: center; margin: 2rem 0; }
+    .divider-line { border-top: 1px solid var(--border-card); position: absolute; top: 50%; width: 100%; z-index: 0; }
+    .divider-text { background: var(--card-bg); padding: 0 10px; position: relative; z-index: 1; color: var(--text-muted); font-size: 0.9rem; }
+    
+    #errorMessage { 
+      color: #e53e3e; 
+      background-color: #fff5f5;
+      border: 1px solid #fed7d7;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 15px; 
+      font-size: 0.9rem; 
+      display: none; 
+      text-align: center;
+    }
+
+  .wizard-wrapper
+    h1.header-title Programar Turno
+    p.header-subtitle Identifique al paciente para comenzar la reserva
+
+    .stepper
+      .step.active
+        .step-circle 1
+        span Paciente
+      .step-line
+      .step
+        .step-circle 2
+        span Agenda
+
+
+    .card-busqueda
+      h3.card-header-title Identificar Paciente
+      p(style="color: var(--text-muted); margin-bottom: 2rem;") Busque al paciente por DNI o regístrelo si es nuevo.
+
+      label.input-label DNI del Paciente
+      
+      .search-group
+        .search-input-wrapper
+          input#inputDni.form-input(type="text" placeholder="Ingrese el DNI sin puntos" autocomplete="off")
+        button#btnBuscar.btn-primary Buscar
+      
+      p#errorMessage Paciente no encontrado
+
+      .divider-container
+        .divider-line
+        span.divider-text o
+
+      a(href="/paciente/nuevo" style="text-decoration:none;") 
+        button.btn-outline 
+          span +
+          span Registrar Nuevo Paciente
+
+  script.
+    const btnBuscar = document.getElementById('btnBuscar');
+    const inputDni = document.getElementById('inputDni');
+    const errorMessage = document.getElementById('errorMessage');
+
+    async function buscarPaciente() {
+      const dni = inputDni.value.trim();
+      errorMessage.style.display = 'none';
+
+      if (!dni) {
+        alert("Por favor ingrese un DNI");
+        return;
+      }
+
+      const originalText = btnBuscar.innerText;
+      btnBuscar.innerText = "Buscando...";
+      btnBuscar.disabled = true;
+      btnBuscar.style.opacity = '0.7';
+
+      try {
+        const response = await fetch(`/paciente/buscarPorDni/${dni}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          window.location.href = `/paciente/${data.id}/agendarTurno/`;
+        } else {
+          const errorData = await response.json();
+          errorMessage.innerText = errorData.message || "Paciente no encontrado. Verifique el DNI.";
+          errorMessage.style.display = 'block';
+        }
+
+      } catch (error) {
+        console.error(error);
+        errorMessage.innerText = "Error de conexión con el servidor.";
+        errorMessage.style.display = 'block';
+      } finally {
+        btnBuscar.innerText = originalText;
+        btnBuscar.disabled = false;
+        btnBuscar.style.opacity = '1';
+      }
+    }
+
+    btnBuscar.addEventListener('click', buscarPaciente);
+    inputDni.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') buscarPaciente();
+    });

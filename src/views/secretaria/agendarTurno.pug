@@ -1,80 +1,314 @@
 extends ../layout
+
 block content
-  .container-turno
-    .containerFiltro
-      .filtro1 
-        select(name="especialidad" id="especialidad")
-      .filtro1 
-        select(name="medico" id="medico")
-      .boton 
-        button(type="button" id="limpiarbtn") Limpiar filtro 
-    .container-titulo 
-      #texto 
-        #agenda
-          #agenda-medico 
-          #agenda-especialidad
-    .calendar-container
-      #calendar(class="calendar")
-      .horas-disponibles
-        h2(id="date-title") Selecciona una fecha
-        div(id="available-times")
-  #turnoModal.modal 
-    #modal-content 
-      #modal-header Confirmación de turno 
-      form(id="confirmarTurnoForm" method="POST") 
-        #form-field 
-          p
-            span#titulo Datos del paciente:
-          p
-            strong DNI:
-            span=paciente.dni 
-            span#dni 
-          p
-            strong Nombre:
-            span=paciente.nombre 
-            span#nombrePaciente 
-          p 
-            strong Apellido: 
-            span=paciente.apellido 
-            span#apellidoPaciente
-          p
-            strong Obra Social: 
-            span=paciente.obrasocialNombre
-            span#obraSocial 
-          p
-            hr
-            span#titulo Datos del Profesinal:
-          p
-            strong Nombre completo: 
-            span#doctor 
-          p 
-            strong Especialidad: 
-            span#especialidadDoctor
-          p
-            strong Sucursal:
-            span#sucursal 
-          p
-            strong Hora: 
-            span#horario 
-          p
-            strong Fecha: 
-            span#fecha 
-          p 
-            strong Motivo de consulta: 
-            textarea#motivoConsulta(name="motivoConsulta" rows="3")
+  style.
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-        #modal-footer 
-          button(type="button" id="cerrarModal") Cancelar 
-          button(type="button" id="confirmar") Confirmar  
+    :root {
+      --page-bg: #f3f4f6;
+      --card-bg: #ffffff;
+      --primary: #3182ce;
+      --primary-hover: #2c5282;
+      --text-main: #2d3748;
+      --text-muted: #4a5568;
+      --border-card: #e2e8f0;
+      --border-input: #cbd5e0;
+      --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.1);
+      --radius-card: 12px;
+      --radius-input: 8px;
+    }
 
+    body {
+      background-color: var(--page-bg) !important;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-main);
+    }
 
-    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous")
-    link(rel="stylesheet", href="/stylesheets/calendario.css")    
-
+    .wizard-wrapper {
+      max-width: 1100px;
+      margin: 40px auto;
+    }
     
-    script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/index.global.min.js") 
-    script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.15/index.global.min.js") 
-    script(src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js") 
-    script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous") 
-    script(src="/stylesheets/js/agendarTurnoSecretaria.js") 
+    .header-title { 
+      font-size: 1.75rem; 
+      font-weight: 700; 
+      margin-bottom: 0.5rem; 
+      color: var(--text-main); 
+    }
+    
+    .header-subtitle { 
+      color: var(--text-muted); 
+      font-size: 1rem; 
+      margin-bottom: 2rem; 
+    }
+
+    .stepper { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      margin-bottom: 2rem; 
+      padding: 0 10px; 
+    }
+    .step { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      color: #cbd5e0;
+      font-weight: 500; 
+      text-decoration: none !important;
+    }
+    .step.active { 
+      color: var(--text-main); 
+      font-weight: 700; 
+    }
+    .step-circle { 
+      width: 32px; 
+      height: 32px; 
+      border-radius: 50%; 
+      background-color: #edf2f7; 
+      color: var(--text-muted);
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-weight: 600; 
+    }
+    .step.active .step-circle { 
+      background-color: var(--primary); 
+      color: #fff; 
+      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+    }
+    .step-line { 
+      flex-grow: 1; 
+      height: 2px; 
+      background-color: var(--border-card); 
+      margin: 0 15px; 
+    }
+
+    .container-turno {
+      background: var(--card-bg);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      padding: 2rem;
+      margin-top: 20px;
+    }
+
+    .containerFiltro { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr auto; 
+      gap: 1rem; 
+      margin-bottom: 20px; 
+      align-items: end;
+    }
+
+    select { 
+      width: 100%;
+      padding: 0.625rem 0.875rem;
+      border: 2px solid var(--border-input);
+      border-radius: var(--radius-input);
+      font-size: 0.9375rem;
+      background-color: white;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+    }
+
+    #limpiarbtn, #confirmar {
+      padding: 0.625rem 1.5rem;
+      border: none;
+      border-radius: var(--radius-input);
+      font-weight: 600;
+      font-size: 0.9375rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--primary);
+      color: white;
+      height: 46px;
+    }
+    #limpiarbtn:hover, #confirmar:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .container-titulo #texto { margin-bottom: 1.5rem; }
+    #agenda-medico, #agenda-especialidad { 
+      font-weight: 600; 
+      color: var(--text-main); 
+      font-size: 1.1rem;
+    }
+    
+    #date-title { 
+      color: var(--primary); 
+      font-weight: 700; 
+      margin-top: 0;
+    }
+
+    .calendar-container {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+    }
+    
+    .fc { font-family: 'Inter', sans-serif; }
+    .fc-col-header-cell { background: #f7fafc; padding: 10px 0; }
+    .fc-button-primary { background-color: var(--primary) !important; border-color: var(--primary) !important; }
+
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+    
+    #modal-content {
+      background-color: var(--card-bg);
+      margin: 5% auto;
+      padding: 0;
+      border-radius: var(--radius-card);
+      width: 50%;
+      max-width: 600px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      overflow: hidden;
+      animation: slideIn 0.3s ease;
+    }
+
+    #modal-header {
+      background: #f7fafc;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border-card);
+      font-weight: 700;
+      font-size: 1.125rem;
+      color: var(--text-main);
+    }
+
+    #form-field { padding: 1.5rem; }
+    #form-field p { margin-bottom: 0.75rem; border-bottom: 1px solid #f7fafc; padding-bottom: 0.5rem; }
+    #form-field strong { color: var(--text-muted); display: inline-block; width: 140px; }
+    
+    #modal-footer {
+      padding: 1.25rem 1.5rem;
+      background: #f7fafc;
+      border-top: 1px solid var(--border-card);
+      text-align: right;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    #cerrarModal {
+      padding: 0.625rem 1.5rem;
+      border: 1px solid var(--border-input);
+      background: white;
+      color: var(--text-main);
+      border-radius: var(--radius-input);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #cerrarModal:hover { background: #f7fafc; }
+
+    textarea {
+      width: 100%;
+      border: 2px solid var(--border-input);
+      border-radius: var(--radius-input);
+      padding: 10px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .wizard-wrapper
+    h1.header-title Programar Turno
+    p.header-subtitle Paciente: 
+      strong.text-uppercase(style="color: var(--primary)") #{paciente.nombre} #{paciente.apellido}
+
+    .stepper
+      a.step(href="/paciente/identificar")
+        .step-circle ✓
+        span Paciente
+      .step-line
+      .step.active
+        .step-circle 2
+        span Agenda
+
+    .container-turno
+      .containerFiltro
+        .filtro1 
+          select(name="especialidad" id="especialidad")
+            option(value="") Seleccionar Especialidad
+        .filtro1 
+          select(name="medico" id="medico")
+            option(value="") Seleccionar Médico
+        .boton 
+          button(type="button" id="limpiarbtn") Limpiar filtro 
+
+      .container-titulo 
+        #texto 
+          #agenda
+            #agenda-medico 
+            #agenda-especialidad
+      
+      .calendar-container
+        #calendar(class="calendar")
+        .horas-disponibles
+          h2(id="date-title") Selecciona una fecha
+          div(id="available-times")
+    
+    #turnoModal.modal 
+      #modal-content 
+        #modal-header Confirmación de turno 
+        form(id="confirmarTurnoForm" method="POST") 
+          #form-field 
+            p
+              span(style="color: var(--primary); font-weight:700") Datos del paciente
+            p
+              strong DNI:
+              span=paciente.dni 
+              span#dni 
+            p
+              strong Nombre:
+              span.text-uppercase=paciente.nombre 
+              span#nombrePaciente 
+            p 
+              strong Apellido: 
+              span.text-uppercase=paciente.apellido 
+              span#apellidoPaciente
+            p
+              strong Obra Social: 
+              span=paciente.obrasocialNombre
+              span#obraSocial 
+            
+            div(style="margin: 1.5rem 0;")
+              span(style="color: var(--primary); font-weight:700") Datos del Profesional
+
+            p
+              strong Nombre completo: 
+              span#doctor 
+            p 
+              strong Especialidad: 
+              span#especialidadDoctor
+            p
+              strong Sucursal:
+              span#sucursal 
+            p
+              strong Hora: 
+              span#horario 
+            p
+              strong Fecha: 
+              span#fecha 
+            div(style="margin-top:1rem") 
+              strong(style="display:block; margin-bottom:0.5rem") Motivo de consulta: 
+              textarea#motivoConsulta(name="motivoConsulta" rows="3")
+
+          #modal-footer 
+            button(type="button" id="cerrarModal") Cancelar 
+            button(type="button" id="confirmar") Confirmar  
+
+  link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous")
+  link(rel="stylesheet", href="/stylesheets/calendario.css")    
+
+  script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/index.global.min.js") 
+  script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.15/index.global.min.js") 
+  script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.15/index.global.min.js")
+  script(src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js") 
+  script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous") 
   
+  script(src="/stylesheets/js/agendarTurnoSecretaria.js")

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pacienteController = require('../Controllers/paciente'); 
 const obraSocial = require('../models/obrasocial'); 
+const upload = require("../utils/uploadConfig");
 const { authMiddleware, secretariaMiddleware,pacienteMiddleware,userMiddleware} = require('../middlewares/auth');
 
 router.post('/crearPaciente', pacienteController.create);
@@ -21,7 +22,7 @@ router.get('/nuevo',userMiddleware, authMiddleware, secretariaMiddleware, async 
       res.status(500).render('error', { error: 'Error al obtener la lista de pacientes' });
     }
   });
-  router.post("/nuevo", userMiddleware, authMiddleware, secretariaMiddleware,pacienteController.crearPaciente);
+  router.post("/nuevo", upload.single('fotodni'), userMiddleware, authMiddleware, secretariaMiddleware,pacienteController.crearPaciente);
 
   router.get('/lista',userMiddleware, authMiddleware, secretariaMiddleware, async (req, res) => {
     try {
@@ -73,4 +74,10 @@ router.get('/nuevo',userMiddleware, authMiddleware, secretariaMiddleware, async 
       res.status(500).render('error', { error: 'Error al obtener la lista de personas' });
     }
   });
+  
+  router.get('/identificar', userMiddleware, authMiddleware, secretariaMiddleware, (req, res) => {
+      res.render('secretaria/identificarPaciente');
+  });
+
+  router.get('/buscarPorDni/:dni', userMiddleware, authMiddleware, secretariaMiddleware, pacienteController.buscarPorDni);
 module.exports = router;

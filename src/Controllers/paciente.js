@@ -92,26 +92,38 @@ const pacienteController = {
       }
     },
     async crearPaciente(req, res) {
-      console.log("Datos recibidos en el servidor:", req.body);
+      console.log("Datos body:", req.body);
+      console.log("Archivo file:", req.file);
+
       try {
-        const { nombre, apellido, dni, mail, telefono, fotoDni, idObraSocial, idPersona } = req.body;
+        const { nombre, apellido, dni, mail, telefono, idObraSocial, idPersona } = req.body;
+        
+        const fotoDni = req.file ? req.file.filename : null; 
+
+        let personaExistente = null;
+        if(idPersona) {
+             personaExistente = await Persona.findById(idPersona);
+        }
+
         const pacienteExistente = await Paciente.findPacienteByDni(dni);
         if (pacienteExistente) {
           return res.status(400).json({ message: "Ya existe un paciente con ese DNI!" });
         }
-        const personaExistente = await Persona.findById(idPersona);
+
         if (personaExistente) {
           const pacienteId = await Paciente.create({
             idPersona: idPersona,
-            fotoDni,
-            idObraSocial: "10" 
+            fotoDni: fotoDni,
+            idObraSocial: idObraSocial 
           });
           res.status(201).json({ id: pacienteId, message: "Paciente registrado exitosamente" });
+
         } else {
           const dniExistente = await Persona.findByDni(dni);
           if (dniExistente) {
             return res.status(400).json({ message: "Ya existe una persona con ese DNI!" });
           }
+
           const personaId = await Persona.create({
             nombre,
             apellido,
@@ -119,10 +131,11 @@ const pacienteController = {
             mail,
             telefono,
           });
+
           const pacienteId = await Paciente.create({
             idPersona: personaId,
-            fotoDni,
-            idObraSocial
+            fotoDni: fotoDni,
+            idObraSocial: idObraSocial
           });
   
           res.status(201).json({ id: pacienteId, message: "Paciente registrado exitosamente" });
@@ -141,6 +154,25 @@ const pacienteController = {
           throw error;
         }
       },
+    async buscarPorDni(req, res) {
+    try {
+      const dni = String(req.params.dni || "").trim();
+      if (!dni) return res.status(400).json({ message: "DNI requerido" });
+
+      const paciente = await Paciente.findPacienteByDni(dni);
+
+      if (!paciente) return res.status(404).json({ message: "Paciente no encontrado" });
+
+      // tu tabla devuelve "id" (minúscula) según tu model, pero por las dudas:
+      const idPaciente = paciente.id ?? paciente.ID;
+
+      return res.json({ id: idPaciente });
+    } catch (error) {
+      console.error("Error al buscar paciente por DNI:", error);
+      return res.status(500).json({ message: "Error interno" });
+    }
+  },
+
 };
 
 module.exports = pacienteController;

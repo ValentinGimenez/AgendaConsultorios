@@ -19,6 +19,7 @@ router.get("/", (req, res) => {
         break;
       case "paciente":
         console.log("Redirigiendo a la vista de paciente");
+        //res.redirect("/paciente/reservar-turno");
         res.render("paciente/home", { user });;
         break;
     }
