@@ -80,4 +80,5 @@ router.get('/nuevo',userMiddleware, authMiddleware, secretariaMiddleware, async 
   });
 
   router.get('/buscarPorDni/:dni', userMiddleware, authMiddleware, secretariaMiddleware, pacienteController.buscarPorDni);
+  router.get('/buscarPorDniConDatos/:dni', userMiddleware, authMiddleware, secretariaMiddleware, pacienteController.buscarPorDniConDatos);
 module.exports = router;

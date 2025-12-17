@@ -155,23 +155,49 @@ const pacienteController = {
         }
       },
     async buscarPorDni(req, res) {
-    try {
-      const dni = String(req.params.dni || "").trim();
-      if (!dni) return res.status(400).json({ message: "DNI requerido" });
+      try {
+        const dni = String(req.params.dni || "").trim();
+        if (!dni) return res.status(400).json({ message: "DNI requerido" });
+        const paciente = await Paciente.findPacienteByDni(dni);
+        if (!paciente) return res.status(404).json({ message: "Paciente no encontrado" });
+        const idPaciente = paciente.id ?? paciente.ID;
+        return res.json({ id: idPaciente });
+      } catch (error) {
+        console.error("Error al buscar paciente por DNI:", error);
+        return res.status(500).json({ message: "Error interno" });
+      }
+    },
+    async buscarPorDniConDatos(req, res) {
+      try {
+        const dni = String(req.params.dni || "").trim();
+        if (!dni) {
+          return res.status(400).json({ message: "DNI requerido" });
+        }
+        const pacienteBase = await Paciente.findPacienteByDni(dni);
+        if (!pacienteBase) {
+          return res.status(404).json({ message: "Paciente no encontrado" });
+        }
+        const pacienteId = pacienteBase.id ?? pacienteBase.ID;
+        const paciente = await Paciente.findById(pacienteId);
+        if (!paciente) {
+          return res.status(404).json({ message: "Paciente no encontrado" });
+        }
+        const persona = await Persona.findById(paciente.idPersona);
+        if (!persona) {
+          return res.status(404).json({ message: "Persona no encontrada" });
+        }
+        return res.json({
+          nombre: persona.nombre,
+          apellido: persona.apellido,
+          dni: persona.dni
+        });
 
-      const paciente = await Paciente.findPacienteByDni(dni);
-
-      if (!paciente) return res.status(404).json({ message: "Paciente no encontrado" });
-
-      // tu tabla devuelve "id" (minúscula) según tu model, pero por las dudas:
-      const idPaciente = paciente.id ?? paciente.ID;
-
-      return res.json({ id: idPaciente });
-    } catch (error) {
-      console.error("Error al buscar paciente por DNI:", error);
-      return res.status(500).json({ message: "Error interno" });
+      } catch (error) {
+        console.error("Error al buscar paciente por DNI:", error);
+        return res.status(500).json({ message: "Error interno" });
+      }
     }
-  },
+
 
 };
 

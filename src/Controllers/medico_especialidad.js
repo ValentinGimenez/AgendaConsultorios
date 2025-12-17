@@ -44,7 +44,7 @@ const medicoEspecialidadController = {
     },
     async obtenerEspecialidades(req, res) {
         try {
-          const medicoId = req.params.id; // Obtener el ID del médico de la solicitud
+          const medicoId = req.params.id;
           const especialidades = await MedicoEspecialidad.obtenerEspecialidad(medicoId);
           res.json(especialidades);
         } catch (error) {

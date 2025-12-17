@@ -1,0 +1,569 @@
+extends ../layout
+
+block content
+    - const ps = Array.isArray(pacientes) ? pacientes : []
+    - const es = Array.isArray(especialidades) ? especialidades : []
+    - const ms = Array.isArray(medicos) ? medicos : []
+    - const ss = Array.isArray(sucursales) ? sucursales : []
+    - const le = Array.isArray(listaEspera) ? listaEspera : []
+
+    style.
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+          --primary: #2563eb; --primary-dark: #1e40af; 
+          --bg-page: #f8fafc; --bg-card: #ffffff;
+          --border: #e2e8f0; --text-main: #0f172a; --text-muted: #64748b;
+          --danger: #ef4444; 
+          --radius: 0.75rem;
+        }
+
+        body { background: var(--bg-page); font-family: 'Inter', sans-serif; color: var(--text-main); }
+        
+        .espera-container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+        .header-actions { display: flex; align-items: center; margin-bottom: 2rem; }
+        .header-title-group { display: flex; align-items: center; gap: 1rem; }
+        .header-icon { 
+          width: 48px; height: 48px; background: #dbeafe; color: var(--primary);
+          border-radius: 12px; display: flex; align-items: center; justify-content: center;
+        }
+        .header-icon svg { width: 24px; height: 24px; }
+        .page-title { font-size: 1.5rem; font-weight: 700; margin: 0; }
+        .page-subtitle { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
+
+        .espera-grid { display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; align-items: start; }
+        @media (max-width: 1024px) { .espera-grid { grid-template-columns: 1fr; } }
+
+        .card-form, .card-list {
+          background: var(--bg-card); border-radius: var(--radius);
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border);
+          padding: 1.5rem;
+        }
+        .card-title { font-size: 1.1rem; font-weight: 600; margin: 0; color: #2d3748; }
+        
+        .table-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 2px solid #f1f5f9; }
+
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.4rem; color: #334155; }
+        select, input[type="date"], input[type="text"] {
+          width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem;
+          font-family: inherit; font-size: 0.9rem; background: #fff; box-sizing: border-box;
+        }
+        select:focus, input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .text-help { display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem; }
+
+        .btn-submit {
+          width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+          padding: 0.75rem; background: var(--primary); color: white; border: none;
+          border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 1rem;
+        }
+        .btn-submit:hover { background: var(--primary-dark); }
+        .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .search-group { display: flex; gap: 8px; }
+        .search-input-wrapper { flex-grow: 1; }
+        .btn-buscar {
+          padding: 0.6rem 1rem; background: var(--primary); color: white; border: none;
+          border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+          white-space: nowrap;
+        }
+        .btn-buscar:hover { background: var(--primary-dark); }
+        .btn-buscar:disabled { opacity: 0.7; cursor: not-allowed; }
+        
+        .paciente-info {
+          background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.5rem;
+          padding: 0.75rem; margin-top: 0.5rem; display: none;
+        }
+        .paciente-info.show { display: block; }
+        .paciente-info .paciente-nombre { font-weight: 600; color: #166534; text-transform: uppercase; }
+        .paciente-info .paciente-dni { font-size: 0.85rem; color: #15803d; }
+        .paciente-info .btn-limpiar {
+          background: none; border: none; color: #dc2626; cursor: pointer;
+          font-size: 0.8rem; padding: 0; margin-left: 0.5rem; text-decoration: underline;
+        }
+        
+        .error-message {
+          color: #dc2626; background: #fef2f2; border: 1px solid #fecaca;
+          padding: 0.5rem; border-radius: 0.5rem; margin-top: 0.5rem;
+          font-size: 0.85rem; display: none;
+        }
+        .error-message.show { display: block; }
+        .dataTables_wrapper .dataTables_filter input { border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.4rem; margin-left: 0.5rem; }
+        .dataTables_wrapper .dataTables_length select { border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.3rem; }
+        table.dataTable.no-footer { border-bottom: 1px solid #e2e8f0 !important; }
+        table.dataTable thead th { background-color: #f8fafc; color: #64748b; font-weight: 600; font-size: 0.85rem; border-bottom: 1px solid #e2e8f0 !important; }
+        .font-medium { font-weight: 500; color: var(--text-main);}
+        .text-date { font-family: 'Courier New', monospace; font-size: 0.9rem; color: #2563eb; }
+        .text-muted { color: var(--text-muted); font-style: italic; font-size: 0.85rem; }
+        .text-error { color: var(--danger); font-size: 0.8rem; }
+        .badge { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; }
+        .badge-count { background: #e0e7ff; color: #3730a3; }
+        .badge-medico { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; }
+        .badge-any { background: #f3f4f6; color: #4b5563; border: 1px solid #e2e8f0; }
+        .badge-estado { padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .estado-pendiente { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+        .actions-cell { text-align: center; }
+        .btn-icon { background: none; border: none; cursor: pointer; padding: 6px; border-radius: 6px; transition: background 0.2s; }
+        .btn-delete { color: #ef4444; background: #fef2f2; }
+        .btn-delete:hover { background: #fee2e2; }
+        .sucursal-direccion { font-size: 0.75rem; color: var(--text-muted); display: block; }
+
+    .espera-container
+        .header-actions
+            .header-title-group
+                .header-icon
+                    svg(xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+                        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z")
+                div
+                    h1.page-title Lista de Espera
+                    p.page-subtitle Gestión de pacientes aguardando turno por especialidad
+
+        .espera-grid
+            
+            .card-form
+                h2.card-title Nuevo Ingreso
+                form#formEspera
+                    .form-group
+                        label(for="inputDni") Paciente * (Buscar por DNI)
+                        .search-group
+                            .search-input-wrapper
+                                input#inputDni(type="text" placeholder="Ingrese DNI sin puntos" autocomplete="off")
+                            button#btnBuscar.btn-buscar(type="button") Buscar
+                        input#idPaciente(type="hidden" name="idPaciente")
+                        .paciente-info#pacienteInfo
+                            span.paciente-nombre#pacienteNombre
+                            span.paciente-dni#pacienteDni
+                            button.btn-limpiar(type="button" id="btnLimpiar") Cambiar
+                        .error-message#errorPaciente Paciente no encontrado
+                    
+                    .form-group
+                        label(for="idEspecialidad") Especialidad *
+                        select(name="idEspecialidad" id="idEspecialidad" required)
+                            option(value="" disabled selected) Seleccione especialidad...
+                            each e in es
+                                option(value=e.id) #{e.nombre}
+
+                    .form-group
+                        label(for="idMedico") Médico Preferido (Opcional)
+                        select(name="idMedico" id="idMedico")
+                            option(value="" selected) Cualquiera
+
+                    .form-group
+                        label(for="idSucursal") Sucursal (Opcional)
+                        select(name="idSucursal" id="idSucursal")
+                            option(value="" selected) Cualquiera
+                        small.text-help Si se deja vacío, aplica a todas las que el médico atienda.
+
+                    .form-group
+                        label(for="fecha_vencimiento") Vencimiento (Opcional)
+                        input(type="date" id="fecha_vencimiento" name="fecha_vencimiento")
+
+                    button.btn-submit(type="submit" id="btnGuardar") 
+                        span Agregar a Lista
+                        svg(xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+                            path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4")
+
+            .card-list
+                .table-header-row
+                    h2.card-title Pacientes en Espera
+                    span.badge.badge-count Total: #{le.length}
+
+                .table-content
+                    table#tablaEspera.display.nowrap(style="width:100%")
+                        thead
+                            tr
+                                th Fecha Reg.
+                                th Paciente
+                                th Especialidad
+                                th Sucursal
+                                th Espera por
+                                th Vence
+                                th Estado
+                                th Acciones
+                        tbody
+                            each item in le
+                                tr(data-id=item.ID)
+                                    td.text-date= item.fecha_registro ? new Date(item.fecha_registro).toLocaleDateString() : '-'
+                                    
+                                    td.font-medium 
+                                        | #{item.pacienteNombre} #{item.pacienteApellido}
+
+                                    td= item.especialidadNombre
+                                    
+                                    td
+                                        if item.sucursalNombre
+                                            span.text-dark #{item.sucursalNombre}
+                                            if item.sucursalDireccion
+                                                span.sucursal-direccion #{item.sucursalDireccion}
+                                        else
+                                            span.text-muted Todas
+
+                                    td
+                                        if item.medicoNombre
+                                            span.badge.badge-medico Dr. #{item.medicoApellido}
+                                        else
+                                            span.badge.badge-any Cualquiera
+
+                                    td
+                                        if item.fecha_vencimiento
+                                            | #{new Date(item.fecha_vencimiento).toLocaleDateString()}
+                                        else
+                                            span.text-muted -
+
+                                    td
+                                        span(class=`badge-estado estado-${item.estado ? item.estado.toLowerCase() : 'pendiente'}`)= item.estado || 'PENDIENTE'
+                                    
+                                    td.actions-cell
+                                        button.btn-icon.btn-delete(type="button" onclick=`eliminarEspera(${item.ID})` title="Eliminar de lista")
+                                            svg(xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2")
+                                                path(d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16")
+
+    script(src='https://code.jquery.com/jquery-3.7.1.min.js')
+    script(src='https://cdn.datatables.net/2.1.8/js/dataTables.min.js')
+    
+    script.
+        console.log('[DEBUG] ====== SCRIPT INICIADO ======');
+
+        $(document).ready(function () {
+            console.log('[DEBUG] ====== DOCUMENT READY ======');
+            
+            $('#tablaEspera').DataTable({
+                dom: 'frtip',
+                pageLength: 10,
+                info:false,
+                order: [[0, 'asc']], 
+                language: {
+                    search: "Buscar:",
+                    searchPlaceholder: "Filtrar paciente...",
+                    zeroRecords: "No hay pacientes en espera",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    infoEmpty: "No hay datos",
+                    infoFiltered: "(filtrado de _MAX_ totales)",
+                    paginate: { first: "Primero", last: "Último", next: "›", previous: "‹" }
+                },
+                responsive: true,
+                scrollX: true
+            });
+            console.log('[DEBUG] DataTable inicializado correctamente');
+        });
+
+        const inputDni = document.getElementById('inputDni');
+        const btnBuscar = document.getElementById('btnBuscar');
+        const idPacienteInput = document.getElementById('idPaciente');
+        const pacienteInfo = document.getElementById('pacienteInfo');
+        const pacienteNombre = document.getElementById('pacienteNombre');
+        const pacienteDni = document.getElementById('pacienteDni');
+        const errorPaciente = document.getElementById('errorPaciente');
+        const btnLimpiar = document.getElementById('btnLimpiar');
+
+        async function buscarPaciente() {
+            const dni = inputDni.value.trim();
+            console.log('[DEBUG] Buscando paciente con DNI:', dni);
+            
+            errorPaciente.classList.remove('show');
+            pacienteInfo.classList.remove('show');
+
+            if (!dni) {
+                alert("Por favor ingrese un DNI");
+                return;
+            }
+
+            const originalText = btnBuscar.innerText;
+            btnBuscar.innerText = "Buscando...";
+            btnBuscar.disabled = true;
+
+            try {
+                const response = await fetch(`/paciente/buscarPorDniConDatos/${dni}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                console.log('[DEBUG] Response status:', response.status);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('[DEBUG] Paciente encontrado - objeto completo:', data);
+                    console.log('[DEBUG] Propiedades del objeto:', Object.keys(data));
+                    console.log('[DEBUG] data.id:', data.id);
+                    console.log('[DEBUG] data.nombre:', data.nombre);
+                    console.log('[DEBUG] data.apellido:', data.apellido);
+                    console.log('[DEBUG] data.dni:', data.dni);
+                    console.log('[DEBUG] data.paciente_id:', data.paciente_id);
+                    console.log('[DEBUG] data.nombre_completo:', data.nombre_completo);
+                    console.log('[DEBUG] data.documento:', data.documento);
+                    
+                    idPacienteInput.value = data.id;
+                    pacienteNombre.textContent = `${data.nombre} ${data.apellido}`;
+                    pacienteDni.textContent = ` (DNI: ${data.dni})`;
+                    pacienteInfo.classList.add('show');
+                    inputDni.disabled = true;
+                    btnBuscar.style.display = 'none';
+                } else {
+                    const errorData = await response.json();
+                    console.log('[DEBUG] Paciente no encontrado:', errorData);
+                    errorPaciente.textContent = errorData.message || "Paciente no encontrado. Verifique el DNI.";
+                    errorPaciente.classList.add('show');
+                }
+
+            } catch (error) {
+                console.error('[DEBUG] Error de conexión:', error);
+                errorPaciente.textContent = "Error de conexión con el servidor.";
+                errorPaciente.classList.add('show');
+            } finally {
+                btnBuscar.innerText = originalText;
+                btnBuscar.disabled = false;
+            }
+        }
+
+        btnBuscar.addEventListener('click', buscarPaciente);
+        inputDni.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscarPaciente();
+            }
+        });
+
+        btnLimpiar.addEventListener('click', function() {
+            console.log('[DEBUG] Limpiando paciente seleccionado');
+            idPacienteInput.value = '';
+            inputDni.value = '';
+            inputDni.disabled = false;
+            btnBuscar.style.display = 'block';
+            pacienteInfo.classList.remove('show');
+            errorPaciente.classList.remove('show');
+        });
+
+        const selectEspecialidad = document.getElementById('idEspecialidad');
+        const selectMedico = document.getElementById('idMedico');
+        const selectSucursal = document.getElementById('idSucursal');
+
+        console.log('[DEBUG] Elementos DOM obtenidos:');
+        console.log('[DEBUG] selectEspecialidad:', selectEspecialidad);
+        console.log('[DEBUG] selectMedico:', selectMedico);
+        console.log('[DEBUG] selectSucursal:', selectSucursal);
+
+        // FUNCIÓN 1: Carga Médicos (activos) cuando cambia la Especialidad
+        selectEspecialidad.addEventListener('change', async () => {
+            console.log('[DEBUG] ====== ESPECIALIDAD CAMBIADA ======');
+            const idEspecialidad = selectEspecialidad.value;
+            console.log('[DEBUG] idEspecialidad:', idEspecialidad);
+
+            // 1. Limpiar selects
+            console.log('[DEBUG] Limpiando selectMedico y selectSucursal');
+            selectMedico.innerHTML = '<option value="">Cualquiera</option>';
+            selectSucursal.innerHTML = '<option value="">Cualquiera</option>';
+            
+            if (!idEspecialidad) {
+                console.log('[DEBUG] idEspecialidad vacío, return');
+                return;
+            }
+
+            try {
+                const url = `/medico_especialidad/obtenerMedicosActivos/${idEspecialidad}`;
+                console.log('[DEBUG] Fetch médicos URL:', url);
+                
+                const response = await fetch(url);
+                console.log('[DEBUG] Response status:', response.status);
+                
+                const medicos = await response.json();
+                console.log('[DEBUG] Médicos recibidos:', medicos);
+
+                medicos.forEach((medico, i) => {
+                    console.log(`[DEBUG] Agregando médico [${i}]:`, medico);
+                    const option = document.createElement('option');
+                    option.value = medico.medico_id;
+                    option.textContent = `Dr. ${medico.nombre_completo}`;
+                    selectMedico.appendChild(option);
+                });
+                console.log('[DEBUG] Total opciones en selectMedico:', selectMedico.options.length);
+            } catch (error) {
+                console.error('[DEBUG] ERROR al cargar médicos activos:', error);
+                selectMedico.innerHTML = '<option value="">Error al cargar</option>';
+            }
+        });
+        
+        // FUNCIÓN 2: Carga Sucursales cuando cambia el Médico
+        const cargarSucursales = async () => {
+            console.log('[DEBUG] ====== CARGANDO SUCURSALES ======');
+            const idMedico = selectMedico.value;
+            const idEspecialidad = selectEspecialidad.value;
+            
+            console.log('[DEBUG] idMedico:', idMedico);
+            console.log('[DEBUG] idEspecialidad:', idEspecialidad);
+            
+            selectSucursal.innerHTML = '<option value="">Cualquiera</option>';
+            console.log('[DEBUG] selectSucursal limpiado');
+
+            if (!idMedico || !idEspecialidad) {
+                console.log('[DEBUG] idMedico o idEspecialidad vacío, sucursal queda vacía');
+                return;
+            }
+
+            let idMedicoEspecialidad;
+
+            try {
+                // PASO 1: Obtener el ID de la relación médico-especialidad
+                const urlLookup = `/medico_especialidad/obtenerId/${idMedico}/${idEspecialidad}`;
+                console.log('[DEBUG] PASO 1 - Fetch ID relación URL:', urlLookup);
+                
+                const responseLookup = await fetch(urlLookup);
+                console.log('[DEBUG] PASO 1 - Response status:', responseLookup.status);
+                
+                const relacion = await responseLookup.json();
+                console.log('[DEBUG] PASO 1 - Relación recibida:', relacion);
+
+                if (!responseLookup.ok || !relacion || !relacion.id) {
+                    console.error("[DEBUG] PASO 1 - Error: No se pudo obtener ID de relación");
+                    selectSucursal.innerHTML = '<option value="">No hay agenda o ID de relación</option>';
+                    return;
+                }
+                
+                idMedicoEspecialidad = relacion.id;
+                console.log('[DEBUG] PASO 1 - idMedicoEspecialidad extraído:', idMedicoEspecialidad);
+
+                // PASO 2: USAR EL ID NUMÉRICO REAL PARA FILTRAR LAS SUCURSALES
+                const urlSucursales = `/agenda/obtenerSucursalesPorMedicoEspecialidad/${idMedicoEspecialidad}`;
+                console.log('[DEBUG] PASO 2 - Fetch sucursales URL:', urlSucursales);
+                
+                const responseSucursales = await fetch(urlSucursales);
+                console.log('[DEBUG] PASO 2 - Response status:', responseSucursales.status);
+                
+                const sucursales = await responseSucursales.json();
+                console.log('[DEBUG] PASO 2 - Sucursales recibidas:', sucursales);
+
+                sucursales.forEach((sucursal, i) => {
+                    console.log(`[DEBUG] PASO 2 - Agregando sucursal [${i}]:`, sucursal);
+                    const option = document.createElement('option');
+                    option.value = sucursal.ID || sucursal.id;
+                    option.textContent = sucursal.direccion ? `${sucursal.nombre} - ${sucursal.direccion}` : sucursal.nombre;
+                    selectSucursal.appendChild(option);
+                });
+                console.log('[DEBUG] PASO 2 - Total opciones en selectSucursal:', selectSucursal.options.length);
+
+            } catch (error) {
+                console.error('[DEBUG] ERROR en el flujo de carga de sucursales:', error);
+                selectSucursal.innerHTML = '<option value="">Error al cargar sucursales</option>';
+            }
+        };
+
+        selectMedico.addEventListener('change', () => {
+            console.log('[DEBUG] ====== MEDICO CAMBIADO (listener) ======');
+            cargarSucursales();
+        });
+        
+        // Lógica de Fetch (Crear y Eliminar)
+        const form = document.getElementById('formEspera');
+        const btnGuardar = document.getElementById('btnGuardar');
+
+        // 1. Crear
+        form.addEventListener('submit', async (e) => {
+            console.log('[DEBUG] ====== FORM SUBMIT ======');
+            e.preventDefault();
+            
+            const idPacienteVal = document.getElementById('idPaciente').value;
+            const idEspecialidadVal = document.getElementById('idEspecialidad').value;
+            const idSucursalVal = document.getElementById('idSucursal').value;
+            const idMedicoVal = document.getElementById('idMedico').value;
+            const fechaVencimientoVal = document.getElementById('fecha_vencimiento').value;
+            
+            console.log('[DEBUG] idPaciente value:', idPacienteVal);
+            console.log('[DEBUG] idEspecialidad value:', idEspecialidadVal);
+            console.log('[DEBUG] idSucursal value:', idSucursalVal);
+            console.log('[DEBUG] idMedico value:', idMedicoVal);
+            console.log('[DEBUG] fecha_vencimiento value:', fechaVencimientoVal);
+            
+            if(!idPacienteVal) {
+                alert('Debe buscar y seleccionar un paciente primero');
+                return;
+            }
+            
+            if(!idEspecialidadVal) {
+                alert('Debe seleccionar una especialidad');
+                return;
+            }
+            
+            const data = {
+                idPaciente: idPacienteVal,
+                idEspecialidad: idEspecialidadVal,
+                idSucursal: idSucursalVal || null,
+                idMedico: idMedicoVal || null,
+            };
+            
+            if (fechaVencimientoVal && fechaVencimientoVal.trim() !== '') {
+                data.fecha_vencimiento = fechaVencimientoVal;
+                console.log('[DEBUG] fecha_vencimiento AGREGADA al data');
+            } else {
+                console.log('[DEBUG] fecha_vencimiento NO agregada (vacía)');
+            }
+            
+            console.log('[DEBUG] Data FINAL a enviar:', data);
+
+            try {
+                btnGuardar.disabled = true;
+                btnGuardar.textContent = 'Guardando...';
+                
+                const urlPost = '/lista_de_espera/crearListaEspera';
+                console.log('[DEBUG] Iniciando fetch POST a:', urlPost);
+
+                const response = await fetch(urlPost, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                console.log('[DEBUG] Response status:', response.status);
+
+                const result = await response.json();
+                console.log('[DEBUG] Result:', result);
+
+                if(response.ok) {
+                    console.log('[DEBUG] Éxito! Recargando página...');
+                    alert('Paciente agregado correctamente');
+                    window.location.reload(); 
+                } else {
+                    console.log('[DEBUG] Error del servidor:', result.message);
+                    alert('Error: ' + (result.message || 'Error desconocido'));
+                }
+
+            } catch(error) {
+                console.error('[DEBUG] ERROR en submit:', error);
+                alert('Error de conexión');
+            } finally {
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = '<span>Agregar a Lista</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>';
+            }
+        });
+
+        // 2. Eliminar
+        window.eliminarEspera = async (id) => {
+            console.log('[DEBUG] ====== ELIMINAR ESPERA ======');
+            console.log('[DEBUG] ID a eliminar:', id);
+            
+            if(!confirm('¿Estás seguro de quitar a este paciente de la lista?')) {
+                console.log('[DEBUG] Usuario canceló eliminación');
+                return;
+            }
+
+            try {
+                const url = `/lista_de_espera/EliminarPacienteListaEspera/${id}`;
+                console.log('[DEBUG] Fetch DELETE URL:', url);
+                
+                const response = await fetch(url, {
+                    method: 'DELETE'
+                });
+                console.log('[DEBUG] Response status:', response.status);
+                
+                if(response.ok) {
+                    console.log('[DEBUG] Eliminado correctamente, recargando...');
+                    alert('Registro eliminado');
+                    window.location.reload(); 
+                } else {
+                    console.log('[DEBUG] Error al eliminar');
+                    alert('No se pudo eliminar el registro');
+                }
+            } catch(error) {
+                console.error('[DEBUG] ERROR al eliminar:', error);
+                alert('Error al intentar eliminar');
+            }
+        };
+
+        console.log('[DEBUG] ====== SCRIPT FINALIZADO ======');

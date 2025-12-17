@@ -8,5 +8,6 @@ router.get('/obtenerAgenda/:id', agendaController.getById);
 router.get('/obtenerAgendas/:idMedicoEspecialidad', agendaController.obtenerAgendas);
 router.put('/actualizarAgenda/:id', agendaController.update); 
 router.delete('/eliminarAgenda/:id', agendaController.delete);
-
+router.get('/obtenerSucursalesPorMedicoEspecialidad/:idMedicoEspecialidad', agendaController.obtenerSucursalesPorMedicoEspecialidad);
+router.get('/obtenerMedicoEspecialidadPorSucursal/:idSucursal', agendaController.obtenerMedicoEspecialidadPorSucursal);
 module.exports = router;

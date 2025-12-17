@@ -24,6 +24,44 @@ const Agenda = {
     async obtenerAgendas(idMedicoEspecialidad) {
         const [rows] = await pool.query(' SELECT a.*,s.nombre AS sucursalNombre,s.direccion   AS sucursalDireccion FROM agenda a JOIN sucursal s ON s.ID = a.idSucursal WHERE a.idEspecialidadMedico = ?', [idMedicoEspecialidad]);
         return rows;
+    },
+    async obtenerSucursales(idMedicoEspecialidad) {
+        const [rows] = await pool.query(
+            `
+            SELECT DISTINCT s.id, s.nombre, s.direccion
+            FROM agenda a
+            JOIN sucursal s ON s.id = a.idSucursal
+            WHERE a.idEspecialidadMedico = ?
+            `,
+            [idMedicoEspecialidad]
+        );
+        return rows;
+    },
+    async obtenerMedicoEspecialidadPorSucursal(idSucursal) {
+        const [rows] = await pool.query(
+            `
+            SELECT DISTINCT
+                me.ID AS idMedicoEspecialidad,
+                m.ID AS idMedico,
+                e.ID AS idEspecialidad,
+                p.nombre AS medicoNombre,
+                p.apellido AS medicoApellido,
+                e.nombre AS especialidadNombre
+            FROM 
+                agenda a
+            JOIN 
+                medico_especialidad me ON me.ID = a.idEspecialidadMedico
+            JOIN
+                medico m ON m.ID = me.idMedico
+            JOIN
+                persona p ON p.ID = m.idPersona
+            JOIN
+                especialidad e ON e.ID = me.idEspecialidad
+            WHERE a.idSucursal = ?
+            `,
+            [idSucursal]
+        );
+        return rows;
     }
 };
 
