@@ -2,19 +2,19 @@ document.addEventListener('DOMContentLoaded', function () {
   const calendarEl = document.getElementById('calendar');
   const selectEspecialidad = document.getElementById('especialidad');
   const selectMedico = document.getElementById('medico');
+  const selectSucursal = document.getElementById('sucursal');
   const limpiarbtn = document.getElementById('limpiarbtn');
   const divs = document.getElementById('available-times');
 
   let calendar;
   document.getElementById('agenda').style.display = 'none';
-  //document.getElementById('texto').style.display = 'none';
   document.getElementById('date-title').style.display = 'none';
   //limpiar Filtros
   limpiarbtn.addEventListener('click', () => {
+    selectSucursal.value = -1;
     cargarSelectMedicos2();
     cargarSelectEspecialidades1();
     document.getElementById('agenda').style.display = 'none';
-    //document.getElementById('texto').style.display = 'none'; 
     if (divs) {
       divs.innerHTML = '';
     }
@@ -40,19 +40,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   })
 
-  selectMedico.addEventListener('change', async () => {
-    if (selectMedico.value != -1) {
-      valorMedicoSeleccionado = selectMedico.value;
+ selectMedico.addEventListener('change', async () => {
+  valorMedicoSeleccionado = selectMedico.value;
+  if (selectMedico.value != -1) {
+    cargarDatosCalendario();
+  } else {
+    if (calendar) calendar.destroy();
+  }
+});
 
-      const idMedico = selectMedico.value;
-      await cargarSelectEspecialidades2(idMedico);
-      selectEspecialidad.value = valorEspecialidadSeleccionada;
-      cargarDatosCalendario();
-    } else {
-      await cargarSelectEspecialidades1();
-      selectEspecialidad.value = valorEspecialidadSeleccionada;
-    }
-  })
   function obtenerDiasSemana(dataAgenda) {
     const diasSemana = [];
 
@@ -139,107 +135,164 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   let medico_especialidad;
 
-  // buscar.addEventListener('click', async () => {
-  //   cargarDatosCalendario();
-  // })
+
   let sucursalesPorAgenda = {};
   async function cargarDatosCalendario() {
-    if (selectEspecialidad.value != -1 && selectMedico.value != -1) {
 
-      //importante
-      const idEspecialidad = selectEspecialidad.value;
-      const idMedico = selectMedico.value;
-      const medico = selectMedico.options[selectMedico.selectedIndex];
-      const especialidad = selectEspecialidad.options[selectEspecialidad.selectedIndex];
+    const idSucursal = selectSucursal.value;
+    const idEspecialidad = selectEspecialidad.value;
+    const idMedico = selectMedico.value;
 
-      const response = await fetch(`/medico_especialidad/obtenerId/${idMedico}/${idEspecialidad}`);
-      if (response.ok) {
-        medico_especialidad = await response.json();
-        const idMedicoEspecialidad = medico_especialidad.id;
-        //obtener la agenda
-        const responseAgenda = await fetch(`/agenda/obtenerAgendas/${idMedicoEspecialidad}`);
-        if (responseAgenda.ok) {
-          const dataAgenda = await responseAgenda.json();
-          sucursalesPorAgenda = {};
-          dataAgenda.forEach(a => {
-            sucursalesPorAgenda[a.ID] = {
-              nombre: a.sucursalNombre,
-              direccion: a.sucursalDireccion
-            };
-          });
-          console.log("dataAgenda", dataAgenda);
-          if (dataAgenda.length > 0) {
+     if (idSucursal == -1 || idEspecialidad == -1 || idMedico == -1) return;
 
-            diasemanas = obtenerDiasSemana(dataAgenda);
-            console.log("DIAS SEMANA: ", diasemanas);
-            //obtener los turnos
-            turnosDisponibles = await obtenerTurnosLibres(dataAgenda);
-            //turnosReservados = await obtenerTurnosReservados(dataAgenda);
-            turnosReservados = await obtenerTurnosConSobreturno(dataAgenda); //turnos reservados de tipo normales
-            //traer todos los sobreturnos
-            sobreturnos = await obtenerSobreturnos(dataAgenda);
+    const medicoTxt = selectMedico.options[selectMedico.selectedIndex]?.textContent || '';
+    const sucursalTxt = selectSucursal.options[selectSucursal.selectedIndex]?.textContent || '';
+    const especialidadTxt = selectEspecialidad.options[selectEspecialidad.selectedIndex]?.textContent || '';
 
-            console.log("TURNOS DISPONIBLES: ", turnosDisponibles);
-            console.log("TURNOS RESERVADOS: ", turnosReservados);
-            console.log("SOBRETURNOS: ", sobreturnos);
-
-            //mapeo de sobreturnos max por agenda del medico
-            const maxSobreturnoPorAgenda = {};
-            dataAgenda.forEach(a => {
-              maxSobreturnoPorAgenda[a.ID] = a.sobreturnoMax;
-            })
-
-            if (turnosDisponibles.length > 0 || turnosReservados.length > 0) {
-              document.getElementById('date-title').style.display = 'flex';
-
-              if (calendar) {
-                calendar.destroy();
-                document.getElementById('agenda').style.display = 'none';
-              }
-              const agenda = document.getElementById('agenda-medico');
-              const agendaE = document.getElementById('agenda-especialidad');
-              document.getElementById('agenda').style.display = 'flex';
-
-
-              agenda.style.display = 'flex';
-              agenda.innerHTML = `Agenda de  &nbsp;<strong> ${medico.textContent} </strong>`;
-              agendaE.style.display = 'flex';
-              agendaE.innerHTML = "  Especialidad: " + especialidad.textContent;
-
-              crearCalendario(diasemanas, turnosDisponibles, turnosReservados, sobreturnos, maxSobreturnoPorAgenda);
-            } else {
-              alert("Sin turnos disponibles");
-              if (divs) {
-                divs.innerHTML = '';
-              }
-              document.getElementById('agenda').style.display = 'none';
-              document.getElementById('date-title').style.display = 'none';
-              if (calendar) {
-                calendar.destroy();
-              }
-            }
-
-
-          } else {
-            alert('Sin agendas disponibles');
-            //importante si
-            if (divs) {
-              divs.innerHTML = '';
-            }
-            document.getElementById('agenda').style.display = 'none';
-            document.getElementById('date-title').style.display = 'none';
-            if (calendar) {
-              calendar.destroy();
-            }
-
-          }
-        }
-
-      } else {
-        console.error("Error al obtener el ID de Médico y Especialidad:", response.status);
-      }
-
+    //obtener turnos 
+    const resp = await fetch(`/turno/turnosDisponibles/${idSucursal}/${idEspecialidad}/${idMedico}`);
+    if (!resp.ok) {
+      console.error('Error turnosDisponibles', resp.status);
+      return;
     }
+     const rows = await resp.json();
+     turnosDisponibles = [rows];
+
+      const agendasIds = [...new Set(rows.map(t => t.idAgenda))];
+      if (rows.length === 0) {
+        alert("Sin turnos disponibles");
+        if (divs) divs.innerHTML = '';
+        document.getElementById('agenda').style.display = 'none';
+        document.getElementById('date-title').style.display = 'none';
+        if (calendar) calendar.destroy();
+        return;
+      }
+      diasemanas = [...new Set(rows.map(t => new Date(t.fecha).getUTCDay()))].sort();
+      sucursalesPorAgenda = {};
+      for (const idA of agendasIds) {
+        sucursalesPorAgenda[idA] = { nombre: sucursalTxt, direccion: '' };
+      }
+      turnosReservados = await obtenerTurnosConSobreturno(agendasIds);
+      sobreturnos = await obtenerSobreturnos(agendasIds);
+      
+      const maxSobreturnoPorAgenda = {};
+      agendasIds.forEach(idA => maxSobreturnoPorAgenda[idA] = 0);
+
+      document.getElementById('date-title').style.display = 'flex';
+      if (calendar) {
+        calendar.destroy();
+        document.getElementById('agenda').style.display = 'none';
+      }
+      
+      document.getElementById('agenda').style.display = 'flex';
+      const agenda = document.getElementById('agenda-medico');
+      const agendaE = document.getElementById('agenda-especialidad');
+
+      agenda.style.display = 'flex';
+      agenda.innerHTML = `Agenda de &nbsp;<strong>${medicoTxt}</strong>`;
+
+      agendaE.style.display = 'flex';
+      agendaE.innerHTML = `Especialidad: ${especialidadTxt}`;
+
+      crearCalendario(diasemanas, turnosDisponibles, turnosReservados, sobreturnos, maxSobreturnoPorAgenda);
+
+
+    // if (selectEspecialidad.value != -1 && selectMedico.value != -1) {
+
+     
+    //   const idEspecialidad = selectEspecialidad.value;
+    //   const idMedico = selectMedico.value;
+    //   const medico = selectMedico.options[selectMedico.selectedIndex];
+    //   const especialidad = selectEspecialidad.options[selectEspecialidad.selectedIndex];
+
+    //   const response = await fetch(`/medico_especialidad/obtenerId/${idMedico}/${idEspecialidad}`);
+    //   if (response.ok) {
+    //     medico_especialidad = await response.json();
+    //     const idMedicoEspecialidad = medico_especialidad.id;
+    //     //obtener la agenda
+    //     const responseAgenda = await fetch(`/agenda/obtenerAgendas/${idMedicoEspecialidad}`);
+    //     if (responseAgenda.ok) {
+    //       const dataAgenda = await responseAgenda.json();
+    //       sucursalesPorAgenda = {};
+    //       dataAgenda.forEach(a => {
+    //         sucursalesPorAgenda[a.ID] = {
+    //           nombre: a.sucursalNombre,
+    //           direccion: a.sucursalDireccion
+    //         };
+    //       });
+    //       console.log("dataAgenda", dataAgenda);
+    //       if (dataAgenda.length > 0) {
+
+    //         diasemanas = obtenerDiasSemana(dataAgenda);
+    //         console.log("DIAS SEMANA: ", diasemanas);
+    //         //obtener los turnos
+    //         turnosDisponibles = await obtenerTurnosLibres(dataAgenda);
+    //         //turnosReservados = await obtenerTurnosReservados(dataAgenda);
+    //         turnosReservados = await obtenerTurnosConSobreturno(dataAgenda); //turnos reservados de tipo normales
+    //         //traer todos los sobreturnos
+    //         sobreturnos = await obtenerSobreturnos(dataAgenda);
+
+    //         console.log("TURNOS DISPONIBLES: ", turnosDisponibles);
+    //         console.log("TURNOS RESERVADOS: ", turnosReservados);
+    //         console.log("SOBRETURNOS: ", sobreturnos);
+
+    //         //mapeo de sobreturnos max por agenda del medico
+    //         const maxSobreturnoPorAgenda = {};
+    //         dataAgenda.forEach(a => {
+    //           maxSobreturnoPorAgenda[a.ID] = a.sobreturnoMax;
+    //         })
+
+    //         if (turnosDisponibles.length > 0 || turnosReservados.length > 0) {
+    //           document.getElementById('date-title').style.display = 'flex';
+
+    //           if (calendar) {
+    //             calendar.destroy();
+    //             document.getElementById('agenda').style.display = 'none';
+    //           }
+    //           const agenda = document.getElementById('agenda-medico');
+    //           const agendaE = document.getElementById('agenda-especialidad');
+    //           document.getElementById('agenda').style.display = 'flex';
+
+
+    //           agenda.style.display = 'flex';
+    //           agenda.innerHTML = `Agenda de  &nbsp;<strong> ${medico.textContent} </strong>`;
+    //           agendaE.style.display = 'flex';
+    //           agendaE.innerHTML = "  Especialidad: " + especialidad.textContent;
+
+    //           crearCalendario(diasemanas, turnosDisponibles, turnosReservados, sobreturnos, maxSobreturnoPorAgenda);
+    //         } else {
+    //           alert("Sin turnos disponibles");
+    //           if (divs) {
+    //             divs.innerHTML = '';
+    //           }
+    //           document.getElementById('agenda').style.display = 'none';
+    //           document.getElementById('date-title').style.display = 'none';
+    //           if (calendar) {
+    //             calendar.destroy();
+    //           }
+    //         }
+
+
+    //       } else {
+    //         alert('Sin agendas disponibles');
+    //         //importante si
+    //         if (divs) {
+    //           divs.innerHTML = '';
+    //         }
+    //         document.getElementById('agenda').style.display = 'none';
+    //         document.getElementById('date-title').style.display = 'none';
+    //         if (calendar) {
+    //           calendar.destroy();
+    //         }
+
+    //       }
+    //     }
+
+    //   } else {
+    //     console.error("Error al obtener el ID de Médico y Especialidad:", response.status);
+    //   }
+
+    // }
   }
   //medicos de la especialidad seleccionada
   const cargarSelectMedicos1 = async (idEspecialidad) => {
@@ -247,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function () {
     selectMedico.innerHTML = '';
     const option = document.createElement('option');
     option.value = -1;
-    option.textContent = '-- Seleccione un medico --';
+    option.textContent = 'Seleccione un medico';
     option.disabled = true;
     option.selected = true;
     selectMedico.appendChild(option);
@@ -258,18 +311,31 @@ document.addEventListener('DOMContentLoaded', function () {
       option.textContent = medico.nombre_completo;
       selectMedico.appendChild(option);
     });
-    //   $(selectmedico).select2({
-    //     placeholder: '-- Seleccione un medico --',
-    //     allowClear: true
-    // });
+
   }
+  async function onFiltroCambio() {
+    const idSucursal = selectSucursal.value;
+    const idEspecialidad = selectEspecialidad.value;
+    if (idSucursal == -1 || idEspecialidad == -1) {
+      await cargarSelectMedicos2();
+      if (calendar) calendar.destroy();
+      return;
+    }
+    if (valorMedicoSeleccionado != -1) selectMedico.value = valorMedicoSeleccionado;
+
+    cargarDatosCalendario();
+
+    await cargarSelectMedicosPorSucursalEspecialidad(idSucursal, idEspecialidad);
+  }
+  selectSucursal.addEventListener('change', onFiltroCambio);
+  selectEspecialidad.addEventListener('change', onFiltroCambio);
   //todos los médicos 
   const cargarSelectMedicos2 = async () => {
     const medicos = await obtenerMedicos();
     selectMedico.innerHTML = '';
     const option = document.createElement('option');
     option.value = -1;
-    option.textContent = '-- Seleccione un medico --';
+    option.textContent = 'Seleccione un medico';
     option.disabled = true;
     option.selected = true;
     selectMedico.appendChild(option);
@@ -279,10 +345,7 @@ document.addEventListener('DOMContentLoaded', function () {
       option.textContent = `${medico.nombre_completo}`;
       selectMedico.appendChild(option);
     });
-    //   $(selectMedico).select2({
-    //     placeholder: '-- Seleccione un medico --',
-    //     allowClear: true
-    // });
+
   }
   const cargarSelectEspecialidades1 = async () => {
     //obtener todas las especialidades
@@ -303,17 +366,14 @@ document.addEventListener('DOMContentLoaded', function () {
       option.textContent = especialidad.nombre;
       selectEspecialidad.appendChild(option);
     });
-    //   $(selectEspecialidad).select2({
-    //     placeholder: '-- Seleccione una especialidad --',
-    //     allowClear: true
-    // });
+
   }
   const cargarSelectEspecialidades2 = async (idMedico) => {
     const especialidades = await obtenerEspecialidades(idMedico);
     selectEspecialidad.innerHTML = '';
     const option = document.createElement('option');
     option.value = -1;
-    option.textContent = '-- Seleccione una especialidad --';
+    option.textContent = 'Seleccione una especialidad';
     option.disabled = true;
     option.selected = true;
     selectEspecialidad.appendChild(option);
@@ -325,10 +385,7 @@ document.addEventListener('DOMContentLoaded', function () {
       option.textContent = especialidad.nombre;
       selectEspecialidad.appendChild(option);
     });
-    // $(selectEspecialidad).select2({
-    //   placeholder: '-- Seleccione una especialidad --',
-    //   allowClear: true
-    // });
+
   }
 
   cargarSelectMedicos2();
@@ -524,94 +581,43 @@ document.addEventListener('DOMContentLoaded', function () {
                 //controlar que los sobreturnos max no superen el máximo
                 const idAgenda = turno.idAgenda;
                 const maxSobreturnos = maxSobreturnoPorAgenda[idAgenda] || 0;
-                
+
                 const keyDia = `${idAgenda}|${selectedDate}`;
                 const usados = sobreturnosPorFecha.get(keyDia) || 0;
                 const hayCupo = usados < maxSobreturnos;
-                
+
                 const keyHora = `${idAgenda}|${selectedDate}|${turno.hora_inicio}`;
                 const yaTieneSobreturno = sobreturnoPorHorario.has(keyHora);
                 console.log("keyDia:", keyDia, "usados:", usados, "max:", maxSobreturnos, "hayCupo:", hayCupo);
                 console.log("sobreturnosPorFecha: ", sobreturnosPorFecha);
                 //no mostrar turnos ocupados que ya tienen sobreturno
-                 if (turno.estado === "ocupado" && (!hayCupo || yaTieneSobreturno)) {
-                  return; 
+                if (turno.estado === "ocupado" && (!hayCupo || yaTieneSobreturno)) {
+                  return;
                 }
-                
+
                 const timeBtn = document.createElement("div");
                 timeBtn.textContent = turno.hora_inicio;
                 timeBtn.id = turno.id;
-                
-                if(turno.estado == "libre"){
+
+                if (turno.estado == "libre") {
                   timeBtn.className = "hora-disponible";
                   timeBtn.addEventListener("click", () => {
-                    cargarDatosModal(turno,selectedDate,false);
-                    abrirModal(turno.id,false);
+                    cargarDatosModal(turno, selectedDate, false);
+                    abrirModal(turno.id, false);
                   })
-                }else{//ocupados
+                } else {//ocupados
                   const puedeSobreturno = hayCupo && !yaTieneSobreturno;
 
-                  timeBtn.className= "hora-reservada";
-                    timeBtn.addEventListener("click", () => {
-                      cargarDatosModal(turno,selectedDate,true);
-                      abrirModal(turno.id,true);
-                    })
-                  
+                  timeBtn.className = "hora-reservada";
+                  timeBtn.addEventListener("click", () => {
+                    cargarDatosModal(turno, selectedDate, true);
+                    abrirModal(turno.id, true);
+                  })
+
                 }
-                // timeBtn.addEventListener("click", () => {
-                //   const esSobreturno = (turno.estado === "ocupado");
-                //   cargarDatosModal(turno, selectedDate, esSobreturno);
-                //   abrirModal(turno.id, esSobreturno);
-                // });
 
                 availableTimesEl.appendChild(timeBtn);
               });
-
-
-              // Crea los botones de horas disponibles
-              // horariosDisponibles.forEach(turno => {
-
-              //     const timeBtn = document.createElement('div');
-              //     timeBtn.className = 'hora-disponible';
-              //     timeBtn.textContent = turno.hora_inicio;
-              //     timeBtn.id = `${turno.id}`; 
-              //       //console.log(turno);
-
-
-              //     timeBtn.addEventListener('click', async function() {                 
-              //         cargarDatosModal(turno, selectedDate, false);
-              //         abrirModal(turno.id,false);
-              //     });
-
-              //     availableTimesEl.appendChild(timeBtn);
-
-              // });
-
-              //Crear los botones de horas ocupadas: para sobreturnos
-              //const sobreturnosBtn = document.getElementById('sobreturnos'); // otro contenedor
-              //sobreturnosBtn.innerHTML = '';
-              // const horariosOcupadosFiltrados = horariosOcupados.filter(turno => {
-              //   return !turnosConSobreturno.some(s => 
-              //     s.fecha === turno.fecha &&
-              //     s.hora_inicio === turno.hora_inicio &&
-              //     s.idAgenda === turno.idAgenda
-              //    );
-              //  });
-              // horariosOcupados.forEach(turno => {
-              //   const timeBtnReservado = document.createElement('div');
-              //   timeBtnReservado.className = 'hora-reservada';
-              //   timeBtnReservado.textContent = turno.hora_inicio;
-              //   console.log(turno.hora_inicio);
-              //   timeBtnReservado.id = `${turno.id}`;
-
-              //   timeBtnReservado.addEventListener('click', function() {
-              //     cargarDatosModal(turno, selectedDate, true);
-              //     abrirModal(turno.id,true);
-              //   })
-
-              //   availableTimesEl.appendChild(timeBtnReservado);
-              // })
-
             } else {
               alert(`No hay turnos disponibles para el día ${selectedDate}`);
             }
@@ -623,17 +629,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }
 
-
     });
     calendar.render();
   }
 
-  //abrir modal para agendar turno
-    let confirmado = false;
-    
-        const modal = document.getElementById('turnoModal');
-        const btnConfirmar = document.getElementById('confirmar');
-        const btnCerrar = document.getElementById('cerrarModal');
+  //modal para agendar turno
+  let confirmado = false;
+
+  const modal = document.getElementById('turnoModal');
+  const btnConfirmar = document.getElementById('confirmar');
+  const btnCerrar = document.getElementById('cerrarModal');
 
 
   async function abrirModal(id_turno, esSobreturno) {
@@ -643,7 +648,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     modal.style.display = 'flex';
     confirmado = false;
-    btnConfirmar.disabled=false;
+    btnConfirmar.disabled = false;
     btnConfirmar.textContent = 'Confirmar';
     btnCerrar.classList.remove('hidden');
 
@@ -653,16 +658,16 @@ document.addEventListener('DOMContentLoaded', function () {
     btnConfirmar.onclick = null;
 
     btnConfirmar.onclick = async () => {
-      
-      if(confirmado)return;
+
+      if (confirmado) return;
 
       confirmado = true;
-      btnConfirmar.disabled=true;
+      btnConfirmar.disabled = true;
       btnConfirmar.textContent = 'Confirmando...';
       btnCerrar.classList.add('hidden');
 
       const motivo = document.getElementById('motivoConsulta').value.trim();
-      
+
 
       if (esSobreturno) {
         await asignarSobreturno(idPaciente, id_turno, motivo);
@@ -690,10 +695,11 @@ document.addEventListener('DOMContentLoaded', function () {
   function cerrarModal() {
     document.getElementById('turnoModal').style.display = 'none';
     confirmado = false;
-    btnConfirmar.disabled= false;
+    btnConfirmar.disabled = false;
     btnConfirmar.textContent = 'Confirmar';
 
   }
+
   const doctorInput = document.getElementById('doctor');
   const sucursalInput = document.getElementById('sucursal');
   const especialidadInput = document.getElementById('especialidadDoctor');

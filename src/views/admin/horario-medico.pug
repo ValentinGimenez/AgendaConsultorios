@@ -36,12 +36,12 @@ block content
         }
 
         /* Duración ocupa todo el ancho */
-        #formHorario .form-group:nth-child(3) {
+        /*#formHorario .form-group:nth-child(3) {
             grid-column: 1 / -1;
-        }
+        }*/
 
         /* Días de la semana ocupa todo el ancho */
-        #formHorario .form-group:nth-child(4) {
+        #formHorario .form-group:nth-child(5) {
             grid-column: 1 / -1;
             background: #f7fafc;
             padding: 1rem;
@@ -162,39 +162,42 @@ block content
         h1 Registro de horarios
         form#formHorario.container
             div.form-group
-                label(for="especialidad") Seleccione la especialidad:
+                label(for="especialidad") Especialidad
                 select(name="especialidad" id="especialidad" required)
             div.form-group
-                label(for="sucursal") Seleccione una sucursal:
+                label(for="sucursal") Sucursal
                 select(name="sucursal" id="sucursal" required)
             div.form-group
-                label(for="duracionTurno") Seleccione la duración de los turnos en minutos:  
-                input(type="number" name="duracionTurno" id="duracionTurno" min="10" max="60" step="10" required)
+                label(for="duracionTurno") Ingrese la duración del turno (min)  
+                input(type="number" name="duracionTurno" id="duracionTurno" min="10" max="60" step="10" value="10" required)
             div.form-group
-                label(for="semana") Seleccione día/s de la semana en que trabaja:  
-                input(type="checkbox" id="lunes" name="dia" value="Lunes")
-                label(for="lunes") LUNES
-                input(type="checkbox" id="martes" name="dia" value="Martes")
-                label(for="martes") MARTES
-                input(type="checkbox" id="miercoles" name="dia" value="Miercoles")
-                label(for="miercoles") MIERCOLES
-                input(type="checkbox" id="jueves" name="dia" value="Jueves")
-                label(for="jueves") JUEVES
-                input(type="checkbox" id="viernes" name="dia" value="Viernes")
-                label(for="viernes") VIERNES
-                input(type="checkbox" id="sabado" name="dia" value="sabado")
-                label(for="sabado") SABADO
+                label(for="maxSobreturno") Ingrese la cantidad de sobreturnos   
+                input(type="number" name="maxSobreturno" id="maxSobreturno" min="1" max="10" step="1" value="1" required)
             div.form-group
-                label(for="hora_inicio") Hora de inicio de la jornada:  
+                label(for="semana") Seleccione día/s de atención  
+                input(type="checkbox" id="lunes" name="dia" value="LUNES")
+                label(for="lunes") Lunes
+                input(type="checkbox" id="martes" name="dia" value="MARTES")
+                label(for="martes") Martes
+                input(type="checkbox" id="miercoles" name="dia" value="MIERCOLES")
+                label(for="miercoles") Miércoles
+                input(type="checkbox" id="jueves" name="dia" value="JUEVES")
+                label(for="jueves") Jueves
+                input(type="checkbox" id="viernes" name="dia" value="VIERNES")
+                label(for="viernes") Viernes
+                input(type="checkbox" id="sabado" name="dia" value="SABADO")
+                label(for="sabado") Sábado
+            div.form-group
+                label(for="hora_inicio") Hora de inicio de la jornada  
                 input(type="time" id="hora_inicio" name="hora_inicio" required)
             div.form-group
-                label(for="hora_fin") Hora de finalización de la jornada:      
+                label(for="hora_fin") Hora de finalización de la jornada     
                 input(type="time" id="hora_fin" name="horafin" required)
             div.form-group
-                label(for="fecha_inicio") Fecha de inicio:      
+                label(for="fecha_inicio") Fecha de inicio      
                 input(type="date" id="fecha_inicio" name="fecha" required)
             div.form-group
-                label(for="fecha_fin") Fecha final:      
+                label(for="fecha_fin") Fecha final     
                 input(type="date" id="fecha_fin" name="fecha" required)
 
         button(type="submit" id="agregarHorario") Confirmar horario

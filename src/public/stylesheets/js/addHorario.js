@@ -22,12 +22,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnAgregarHorario = document.getElementById('agregarHorario');
     const formHorario = document.getElementById('formHorario');
     const selectSucursal = document.getElementById('sucursal');
+    const sobreTurnoMaxInput = document.getElementById('maxSobreturno');
     const url = window.location.href;
     const match = url.match(/\/medico\/(\d+)/);
     const idMedico = match ? match[1] : null;
 
     const selectEspecialidad = document.getElementById('especialidad');
-    const sobreTurnoMax = 2;
 
     const obtenerEspecialidadSeleccionada = () => {
         const especialidad = selectEspecialidad;
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const fecha_fin = document.getElementById('fecha_fin').value;
         const hora_inicio = document.getElementById('hora_inicio').value;
         const hora_fin = document.getElementById('hora_fin').value;
-
+        const sobreTurnoMax = Number(sobreTurnoMaxInput.value)
         const hoy = new Date(); 
 
         if (!idMedico_especialidad || idMedico_especialidad === '-1') {
@@ -128,6 +128,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('La hora de fin debe ser un múltiplo de 10 minutos.');
             return;
         }
+        if(sobreTurnoMax < 0){
+            alert('El sobreturno maximo debe ser mayor a 0');
+            return;
+        }
+        if(sobreTurnoMax > 10){
+            alert('El sobreturno maximo debe ser menor a 10');
+            return;
+        }
 
         const horaInicioArray = hora_inicio.split(':');
         const horaFinArray = hora_fin.split(':');
@@ -172,84 +180,112 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert(r.mensaje);
             return; 
         }
-        alert("Validación exitosa. Los datos son correctos.");
+        //alert("Validación exitosa. Los datos son correctos.");
 
+        const payload = {
+            idMedico_especialidad,
+            idSucursal,
+            fecha_inicio: fecha_init,
+            fecha_fin,
+            hora_inicio,
+            hora_fin,
+            duracionTurno,
+            sobreTurnoMax,
+            semana
+        };
 
+        const resp = await fetch('/agenda/crearAgendaConHorarios', {
+            method: 'POST',
+            headers: {
+                 'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify(payload)
+        })
+        const data = await resp.json();
 
+        if(resp.ok){
+            alert('Agenda registrada.');
+            console.log(data.message + 'Agenda creada correctamente');
+            formHorario.reset();
 
-        for (const dia of semana) {
-            try {
-                const agendaResponse = await fetch('/agenda/crearAgenda', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        idMedico_especialidad,
-                        idSucursal,
-                        semana: dia,
-                        duracionTurno,
-                        sobreTurnoMax
-                    }),
-                });
-
-                if (agendaResponse.ok) {
-                    const agendaData = await agendaResponse.json();
-                    const idAgenda = agendaData.id;
-
-
-                    const horarioResponse = await fetch('/horario/crearHorario', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            fecha_inicio: fecha_init,
-                            fecha_fin: fecha_fin,
-                            hora_inicio: hora_inicio,
-                            hora_fin: hora_fin,
-                            estado: "libre",
-                            idAgenda
-                        }),
-                    });
-
-                    if (horarioResponse.ok) {
-
-                        const turnoResponse = await fetch("/turno/generarTurnos", {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                idAgenda,
-                                hora_inicio,
-                                hora_fin,
-                                fecha_inicio: fecha_init,
-                                fecha_fin: fecha_fin,
-                                diaSemana: dia,
-                                duracionTurno,
-                                sobreTurnoMax
-                            })
-                        });
-
-                        if (turnoResponse.ok) {
-                            const turnoData = await turnoResponse.json();
-                        } else {
-                            alert(`Error al generar turnos para ${dia}`);
-                        }
-
-                    } else {
-                        alert(`Error al registrar el horario para ${dia}`);
-                    }
-                } else {
-                    alert(`Error al crear la agenda para ${dia}`);
-                }
-            } catch (error) {
-            }
+        }else{
+            console.log(data.message + 'Error al crear la agenda');
         }
 
-        formHorario.reset();
-        alert('Horario y turnos registrados exitosamente');
+        // const agendaResponse = await fetch('/agenda/crearAgenda', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({
+        //         idMedico_especialidad,
+        //         idSucursal,
+        //     }),
+        // });
+
+
+        // for (const dia of semana) {
+        //     try {
+
+        //         if (agendaResponse.ok) {
+        //             const agendaData = await agendaResponse.json();
+        //             const idAgenda = agendaData.id;
+
+
+        //             const horarioResponse = await fetch('/horario/crearHorario', {
+        //                 method: 'POST',
+        //                 headers: {
+        //                     'Content-Type': 'application/json',
+        //                 },
+        //                 body: JSON.stringify({
+        //                     fecha_inicio: fecha_init,
+        //                     fecha_fin: fecha_fin,
+        //                     hora_inicio: hora_inicio,
+        //                     hora_fin: hora_fin,
+        //                     estado: "activo",
+        //                     semana: dia,
+        //                     duracionTurno,
+        //                     sobreTurnoMax,
+        //                     idAgenda
+        //                 }),
+        //             });
+
+        //             if (horarioResponse.ok) {
+
+        //                 const turnoResponse = await fetch("/turno/generarTurnos", {
+        //                     method: 'POST',
+        //                     headers: {
+        //                         'Content-Type': 'application/json',
+        //                     },
+        //                     body: JSON.stringify({
+        //                         idAgenda,
+        //                         hora_inicio,
+        //                         hora_fin,
+        //                         fecha_inicio: fecha_init,
+        //                         fecha_fin: fecha_fin,
+        //                         diaSemana: dia,
+        //                         duracionTurno,
+        //                         sobreTurnoMax
+        //                     })
+        //                 });
+
+        //                 if (turnoResponse.ok) {
+        //                     const turnoData = await turnoResponse.json();
+        //                 } else {
+        //                     alert(`Error al generar turnos para ${dia}`);
+        //                 }
+
+        //             } else {
+        //                 alert(`Error al registrar el horario para ${dia}`);
+        //             }
+        //         } else {
+            //             alert(`Error al crear la agenda para ${dia}`);
+            //         }
+            //     } catch (error) {
+                //     }
+                // }
+                
+
     });
     function seSolapanFechas(nuevoIni, nuevoFin, exIni, exFin) {
         const nI = new Date(nuevoIni);
@@ -326,7 +362,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const especialidades = await obtenerEspecialidades(idMedico);
         selectEspecialidad.innerHTML = '';
         const option = document.createElement('option');
-        option.textContent = '-- Seleccione una especialidad --';
+        option.textContent = 'Seleccione una especialidad';
         option.value = -1;
         option.disabled = true;
         option.selected = true;
@@ -344,7 +380,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const sucursalesDisponibles = await obtenerSucursales();
         selectSucursal.innerHTML = '';
         const option = document.createElement('option');
-        option.textContent = '-- Seleccione una sucursal --';
+        option.textContent = 'Seleccione una sucursal';
         option.value = -1;
         option.disabled = true;
         option.selected = true;

@@ -302,3 +302,37 @@ textarea#motivoConsulta:focus {
 .hidden {
   display: none;
   }
+
+  #tablaHoras thead { display:none; }
+#tablaHoras td { border:none !important; padding:10px !important; }
+
+.btn-hora{
+  display:block;
+  text-align:center;
+  padding:12px 0;
+  border-radius:8px;
+  font-weight:600;
+  cursor:pointer;
+  user-select:none;
+}
+
+/* colores (ajustá a tu paleta) */
+.btn-hora.libre   { background:#34d399; color:#fff; }
+.btn-hora.ocupado  { background:#f59e0b; color:#fff; }
+
+/* paginación arriba/abajo opcional */
+.dataTables_wrapper .dataTables_paginate { margin-top: 10px; }
+  .time-filter-row{
+  display:flex;
+  gap:.5rem;
+  align-items:center;
+  flex-wrap:wrap;
+  margin:.5rem 0;
+}
+.time-filter-row input{
+  padding:.25rem .5rem;
+}
+.time-filter-row button{
+  padding:.35rem .6rem;
+  cursor:pointer;
+}

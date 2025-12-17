@@ -10,4 +10,8 @@ router.put('/actualizarAgenda/:id', agendaController.update);
 router.delete('/eliminarAgenda/:id', agendaController.delete);
 router.get('/obtenerSucursalesPorMedicoEspecialidad/:idMedicoEspecialidad', agendaController.obtenerSucursalesPorMedicoEspecialidad);
 router.get('/obtenerMedicoEspecialidadPorSucursal/:idSucursal', agendaController.obtenerMedicoEspecialidadPorSucursal);
+router.post('/crearAgendaConHorarios', agendaController.crearAgendaConHorarios);
+router.get('/activas', agendaController.activas);
+
+
 module.exports = router;

@@ -28,6 +28,10 @@ const horarioController = {
     async obtenerAgendaHorarios(req, res) {
         const horarios = await Horario.obtenerAgendaHorarios(req.body);
         res.json(horarios);
+    },
+    async obtenerHorariosPorAgenda(req, res) {
+        const horarios = await Horario.obtenerHorariosPorAgenda(req.params.id);
+        res.json(horarios);
     }
 };
 

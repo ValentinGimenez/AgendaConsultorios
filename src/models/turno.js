@@ -47,7 +47,7 @@ const Turno = {
         }
     },
     async turnosLibres(id) {
-        const [rows] = await pool.query('SELECT * FROM turno WHERE idAgenda = ? AND idEstadoTurno = 1 AND fecha >= CURDATE()', [id]);
+        const [rows] = await pool.query('SELECT  t.ID,  t.fecha,  t.hora_inicio,  t.hora_fin,  a.ID AS idAgenda FROM agenda a JOIN medico_especialidad me ON me.ID = a.idEspecialidadMedico JOIN turno t ON t.idAgenda = a.ID WHERE a.ID= ? AND t.idEstadoTurno = 1 AND (  t.fecha > CURDATE()  OR (t.fecha = CURDATE() AND t.hora_inicio > CURTIME())) ORDER BY t.fecha, t.hora_inicio;', [id]);
         return rows;
     },
     async turnosReservados(id) {
@@ -76,40 +76,25 @@ const Turno = {
             console.error('Error al llamar al procedimiento:', error);
         }
     },
-    async crearSobreturno(idTurno, data) {
-        const { idPaciente, motivoConsulta } = data;
-        const [rowsTurno] = await pool.query('SELECT idAgenda, fecha, hora_inicio, hora_fin FROM turno WHERE id = ?', [idTurno]);
-        const turnoBase = rowsTurno[0];
-        if (!turnoBase) throw new Error('Turno no encontrado');
+  async crearSobreturno(idTurno, data) {
+    const { idPaciente, motivoConsulta } = data;
 
-        const { idAgenda, fecha, hora_inicio, hora_fin } = turnoBase;
+    const query = `
+        INSERT INTO turno (idAgenda, idPaciente, idEstadoTurno, fecha, hora_inicio, hora_fin, tipo, motivo_consulta)
+        SELECT idAgenda, ?, 2, fecha, hora_inicio, hora_fin, 'sobreturno', ?
+        FROM turno
+        WHERE id = ?;
+    `;
 
-        const [rowsAgenda] = await pool.query('SELECT sobreturnoMax FROM agenda WHERE ID = ?', [idAgenda]);
-        const agenda = rowsAgenda[0];
-        if (!agenda) throw new Error('Agenda no encontrada');
-        const max = Number(agenda.sobreturnoMax) || 0;
+    const [result] = await pool.query(query, [idPaciente, motivoConsulta, idTurno]);
 
-        //obtener cantidad de sobreturnos reservados para la fecha seleccionada
-        const [rowsCount] = await pool.query('SELECT COUNT(*) as count FROM turno WHERE idAgenda = ? AND fecha = ? AND tipo = "sobreturno" AND idEstadoTurno IN (2)', [idAgenda, fecha]);
-        const count = Number(rowsCount[0].total) || 0;
-        
-        if (count >= max) throw new Error('Se alcanzó el máximo de sobreturnos para este día');
-
-        //insertar el sobreturno en la tabla 
-        await pool.query(
-            `INSERT INTO turno
-            (idAgenda, idPaciente, idEstadoTurno, fecha, hora_inicio, hora_fin, tipo, motivo_consulta)
-            VALUES (?, ?, 2, ?, ?, ?, 'sobreturno', ?)`,
-            [idAgenda, idPaciente, fecha, hora_inicio, hora_fin, motivoConsulta]
-        );
-
-    },
-    // async turnosSinSobreturnoPorAgenda(idAgenda, data) {
-    //     const { fecha, hora_inicio } = data;
-    //     const [rows] = await pool.query(
-    //         `SELECT * FROM turno WHERE idAgenda = ? AND tipo <> 'sobreturno' AND fecha = ? AND hora_inicio = ?`, [idAgenda, fecha, hora_inicio]);
-    //     return rows;
-    // }
+    if (result.affectedRows === 0) {
+        throw new Error('No se pudo crear el sobreturno: el turno original no existe.');
+    }
+    
+    return result.insertId; 
+},
+    
     async turnosSinSobreturnoPorAgenda(idAgenda) {
         const [rows] = await pool.query(
             `SELECT * FROM turno t WHERE t.idAgenda = ? AND t.tipo <> 'sobreturno'`, [idAgenda]);
@@ -163,7 +148,6 @@ const Turno = {
     async cambiarEstado(idTurno, idEstadoTurno) {
         try {
             if (Number(idEstadoTurno) === 1) {
-                // Al liberar: estado = 1, paciente = NULL, motivo = NULL
                 const [r] = await pool.query(
                     'UPDATE turno SET idEstadoTurno = ?, idPaciente = NULL, motivo_consulta = NULL, tipo = "normal" WHERE ID = ?',
                     [idEstadoTurno, idTurno]
@@ -183,7 +167,6 @@ const Turno = {
     },
     
     async findAllEstados() {
-        // Traer todos menos el 1 (Libre) para el filtro
         const [rows] = await pool.query('SELECT ID AS id, descripcion FROM estadoturno WHERE ID != 1 ORDER BY ID');
         return rows;
     }

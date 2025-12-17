@@ -46,6 +46,32 @@ const agendaController = {
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     },
+    async activas(req, res) {
+        const agendas = await Agenda.activas();
+        res.json(agendas);
+    },
+    async crearAgendaConHorarios(req, res) {
+        try {
+            const { idMedico_especialidad, idSucursal, semana, sobreTurnoMax } = req.body;
+
+            if (!idMedico_especialidad || !idSucursal)
+                return res.status(400).json({ message: 'Faltan datos de agenda.' });
+
+            if (!Array.isArray(semana) || semana.length === 0)
+                return res.status(400).json({ message: 'Debe seleccionar al menos un día.' });
+
+            const nSob = Number(sobreTurnoMax);
+            if (!Number.isFinite(nSob))
+                return res.status(400).json({ message: 'sobreturnoMax inválido.' });
+
+            const r = await Agenda.crearAgendaConHorarios({ ...req.body, sobreTurnoMax: nSob });
+            return res.json({ message: 'Agenda, horarios y turnos creados', ...r });
+
+        } catch (err) {
+            console.error('crearAgendaConHorarios ERROR:', err);
+            return res.status(500).json({ message: 'Error al crear agenda/horarios/turnos' });
+        }
+    }
 
 };
 
