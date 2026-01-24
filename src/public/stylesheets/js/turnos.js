@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'idMedico'
         ).sort((a, b) => a.medicoNombre.localeCompare(b.medicoNombre));
 
-        fillSelect(selectSucursal, sucursales, { valueKey: 'idSucursal', labelKey: 'sucursalLabel' }, 'Todas las sucursales');
+        fillSelect(selectSucursal, sucursales, { valueKey: 'idSucursal', labelKey: 'sucursalLabel' }, 'Seleccione una sucursal');
         fillSelect(selectEspecialidad, especialidades, { valueKey: 'idEspecialidad', labelKey: 'especialidadNombre' }, 'Seleccione una especialidad');
         fillSelect(selectMedico, medicos, { valueKey: 'idMedico', labelKey: 'medicoNombre' }, 'Seleccione un medico');
     }
@@ -92,19 +92,44 @@ document.addEventListener('DOMContentLoaded', function () {
         renderAgendas(agendasView);
     }
 
-    function refreshDependentOptions() {
+    function refreshDependentOptionsBidireccional() {
         const sucursalId = selectSucursal.value;
         const especialidadId = selectEspecialidad.value;
+        const medicoId = selectMedico.value;
 
-        let base = agendas;
-        if (sucursalId) base = base.filter(a => String(a.idSucursal) === sucursalId);
+        const all = agendas;
+
+        const buildOptions = (arr, keyId, keyLabel) => {
+            const map = new Map();
+            for (const a of arr) {
+                map.set(String(a[keyId]), { id: a[keyId], label: a[keyLabel] });
+            }
+            return [...map.values()].sort((x, y) => x.label.localeCompare(y.label));
+        };
+
+        let baseSuc = all;
+        if (especialidadId) baseSuc = baseSuc.filter(a => String(a.idEspecialidad) === especialidadId);
+        if (medicoId) baseSuc = baseSuc.filter(a => String(a.idMedico) === medicoId);
+
+        const sucursales = uniqueBy(
+            baseSuc.map(a => ({
+                idSucursal: a.idSucursal,
+                sucursalLabel: `${a.sucursalNombre} - ${a.sucursalDireccion}`
+            })),
+            'idSucursal'
+        ).sort((a, b) => a.sucursalLabel.localeCompare(b.sucursalLabel));
+
+        let baseEsp = all;
+        if (sucursalId) baseEsp = baseEsp.filter(a => String(a.idSucursal) === sucursalId);
+        if (medicoId) baseEsp = baseEsp.filter(a => String(a.idMedico) === medicoId);
 
         const especialidades = uniqueBy(
-            base.map(a => ({ idEspecialidad: a.idEspecialidad, especialidadNombre: a.especialidadNombre })),
+            baseEsp.map(a => ({ idEspecialidad: a.idEspecialidad, especialidadNombre: a.especialidadNombre })),
             'idEspecialidad'
         ).sort((a, b) => a.especialidadNombre.localeCompare(b.especialidadNombre));
 
-        let baseMed = base;
+        let baseMed = all;
+        if (sucursalId) baseMed = baseMed.filter(a => String(a.idSucursal) === sucursalId);
         if (especialidadId) baseMed = baseMed.filter(a => String(a.idEspecialidad) === especialidadId);
 
         const medicos = uniqueBy(
@@ -112,15 +137,24 @@ document.addEventListener('DOMContentLoaded', function () {
             'idMedico'
         ).sort((a, b) => a.medicoNombre.localeCompare(b.medicoNombre));
 
-        const prevEsp = selectEspecialidad.value;
-        const prevMed = selectMedico.value;
+        const prevSuc = sucursalId;
+        const prevEsp = especialidadId;
+        const prevMed = medicoId;
 
+        fillSelect(selectSucursal, sucursales, { valueKey: 'idSucursal', labelKey: 'sucursalLabel' }, 'Sucursales');
         fillSelect(selectEspecialidad, especialidades, { valueKey: 'idEspecialidad', labelKey: 'especialidadNombre' }, 'Especialidades');
-        if (prevEsp && especialidades.some(x => String(x.idEspecialidad) === prevEsp)) selectEspecialidad.value = prevEsp;
-
         fillSelect(selectMedico, medicos, { valueKey: 'idMedico', labelKey: 'medicoNombre' }, 'Médicos');
+
+        if (prevSuc && sucursales.some(x => String(x.idSucursal) === prevSuc)) selectSucursal.value = prevSuc;
+        else selectSucursal.value = '';
+
+        if (prevEsp && especialidades.some(x => String(x.idEspecialidad) === prevEsp)) selectEspecialidad.value = prevEsp;
+        else selectEspecialidad.value = '';
+
         if (prevMed && medicos.some(x => String(x.idMedico) === prevMed)) selectMedico.value = prevMed;
+        else selectMedico.value = '';
     }
+
     function crearCalendario(DiasSemana, turnosLibres, turnosReservados, sobreturnos, maxSobreturnoPorAgenda) {
         let selectedDayEl = null;
         //configuración del calendario
@@ -213,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // Configura el evento de click para las celdas habilitadas
                     info.el.addEventListener('click', function () {
-                        //if (horariosDisponibles.length > 0) {
+                     
                         if (horariosDisponibles.length > 0 || horariosOcupados.length > 0) {
                             // Remueve la clase del día previamente seleccionado
                             if (selectedDayEl) {
@@ -227,6 +261,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             // Muestra las horas disponibles
                             const availableTimesEl = document.getElementById('available-times');
                             availableTimesEl.innerHTML = '';
+                            availableTimesEl.style.display = 'flex';
                             //ordenar los horarios libres y ocupados
                             const horariosCombinados = [
                                 ...horariosDisponibles.map(t => ({ ...t, estado: "libre" })),
@@ -312,46 +347,52 @@ document.addEventListener('DOMContentLoaded', function () {
         renderAgendas(agendasView);
     })();
 
-    selectSucursal.addEventListener('change', () => {
-        refreshDependentOptions();
-        applyFilters();
-    });
+    selectSucursal.addEventListener('change', onFiltersChanged);
+    selectEspecialidad.addEventListener('change', onFiltersChanged);
+    selectMedico.addEventListener('change', onFiltersChanged);
 
-    selectEspecialidad.addEventListener('change', () => {
-        refreshDependentOptions();
-        applyFilters();
-    });
-
-    selectMedico.addEventListener('change', applyFilters);
 
     limpiarbtn.addEventListener('click', (e) => {
         e.preventDefault();
+        resetUIAgenda();
         selectSucursal.value = '';
         selectEspecialidad.value = '';
         selectMedico.value = '';
         buildFiltersFromAgendas(agendas);
         renderAgendas(agendas);
     });
+    function onFiltersChanged() {
+        resetUIAgenda();
+        refreshDependentOptionsBidireccional();
+        applyFilters();
+
+        if (!selectMedico.value || !selectEspecialidad.value) {
+            return;
+        }
+
+        cargarHorariosPorMedicoEspecialidad();
+    }
 
 
     //logica del calendario
     function getAgendasSeleccionadas() {
         const medicoId = selectMedico.value;
         const especialidadId = selectEspecialidad.value;
+        const sucursalId = selectSucursal.value;
 
         return agendas.filter(a =>
             String(a.idMedico) === medicoId &&
-            String(a.idEspecialidad) === especialidadId
+            String(a.idEspecialidad) === especialidadId && (!sucursalId || String(a.idSucursal) === sucursalId)
         );
     }
     async function cargarHorariosPorMedicoEspecialidad() {
-        const agendas = getAgendasSeleccionadas();
-        if (agendas.length === 0) {
+        const agendasSel = getAgendasSeleccionadas();
+        if (agendasSel.length === 0) {
             console.log('No hay agendas disponibles para ese médico/especialidad');
             return;
         }
 
-        const horariosData = await fetchHorariosPorAgenda(agendas);
+        const horariosData = await fetchHorariosPorAgenda(agendasSel);
 
         const horarios = horariosData.flatMap(a => a.horarios || []);
         console.log('Horarios:', horarios);
@@ -378,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             console.log("AGENDA ID", agendaIds);
             turnosDisponibles = await obtenerTurnosLibres(agendaIds);
-            turnosReservados = await obtenerTurnosConSobreturno(agendaIds); //turnos reservados de tipo normales
+            turnosReservados = await obtenerTurnosConSobreturno(agendaIds); //estos son turnos reservados de tipo normales
             sobreturnos = await obtenerSobreturnos(agendaIds);
 
 
@@ -386,8 +427,46 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log("TURNOS RESERVADOS: ", turnosReservados);
             console.log("SOBRETURNOS: ", sobreturnos);
             console.log("MAX SOBRETURNOS POR AGENDA: ", maxSobreturnoPorAgenda);
+            const sobPorFecha = new Map();
+            const sobPorHorario = new Set();
 
-            if (turnosDisponibles.length > 0 || turnosReservados.length > 0) {
+            for (const s of sobreturnos) {
+                const fecha = new Date(s.fecha).toISOString().split('T')[0];
+                const kDia = `${s.idAgenda}|${fecha}`;
+                sobPorFecha.set(kDia, (sobPorFecha.get(kDia) || 0) + 1);
+
+                const kHora = `${s.idAgenda}|${fecha}|${s.hora_inicio}`;
+                sobPorHorario.add(kHora);
+            }
+
+            const hoyStr = new Date().toISOString().split('T')[0];
+
+            function esFuturoOHoy(fechaBD) {
+                const f = new Date(fechaBD).toISOString().split('T')[0];
+                return f >= hoyStr;
+            }
+            const haySobreturnoDisponibleFuturo = turnosReservados.some(t => {
+                if (!esFuturoOHoy(t.fecha)) return false;
+                const fecha = new Date(t.fecha).toISOString().split('T')[0];
+
+                const maxSob = maxSobreturnoPorAgenda[t.idAgenda] || 0;
+
+                const kDia = `${t.idAgenda}|${fecha}`;
+                const usados = sobPorFecha.get(kDia) || 0;
+                const hayCupo = usados < maxSob;
+
+                const kHora = `${t.idAgenda}|${fecha}|${t.hora_inicio}`;
+                const yaTieneSob = sobPorHorario.has(kHora);
+
+                return hayCupo && !yaTieneSob;
+            });
+            console.log("Hay sobreturno disponible: ", haySobreturnoDisponibleFuturo);
+            const turnosLibresFuturos = turnosDisponibles.filter(t => esFuturoOHoy(t.fecha));
+
+
+            const hayAlgoParaMostrar = (turnosLibresFuturos.length > 0) || haySobreturnoDisponibleFuturo;
+           
+            if (hayAlgoParaMostrar) {
                 document.getElementById('date-title').style.display = 'flex';
 
                 if (calendar) {
@@ -406,16 +485,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 agendaE.style.display = 'flex';
                 agendaE.innerHTML = ` Especialidad: &nbsp;<strong> ${especialidadSeleccion} </strong>`;
 
-                crearCalendario(dias, turnosDisponibles, turnosReservados, sobreturnos, maxSobreturnoPorAgenda);
-
+                crearCalendario(dias, turnosLibresFuturos, turnosReservados, sobreturnos, maxSobreturnoPorAgenda);
             } else {
                 alert("Sin turnos disponibles");
                 if (divs) divs.innerHTML = '';
                 document.getElementById('agenda').style.display = 'none';
-                document.getElementById('date-title').style.display = 'none';
+                document.getElementById('time-filter').style.display = 'none';
+                document.getElementById('tablaHoras').style.display = 'none';
+
+                const title = document.getElementById('date-title');
+                title.style.display = 'flex';
+                title.innerHTML = '<div class="turnos-vacio">Sin turnos disponibles</div>';
+
                 if (calendar) calendar.destroy();
             }
-
         } else {
             alert("Sin turnos disponibles");
             if (divs) divs.innerHTML = '';
@@ -558,6 +641,7 @@ document.addEventListener('DOMContentLoaded', function () {
             pageLength: 4,
             lengthChange: false,
             ordering: false,
+            bDestroy:true,
             searching: false,
             info: false,
             paging: true,
@@ -697,6 +781,42 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
     }
+    function resetUIAgenda() {
+        if (calendar) {
+            calendar.destroy();
+            calendar = null;
+        }
+
+
+        const agendaBox = document.getElementById('agenda');
+        if (agendaBox) agendaBox.style.display = 'none';
+
+        const timeFilter = document.getElementById('time-filter');
+        if (timeFilter) {
+            timeFilter.innerHTML = '';
+            timeFilter.style.display = 'none';
+        }
+
+        const available = document.getElementById('available-times');
+        if (available) {
+            available.innerHTML = '';
+            available.style.display = 'none';
+        }
+        const wrapper = document.getElementById('tablaHoras_wrapper');
+        if (wrapper) wrapper.style.display = 'none';
+
+        if (dtHoras) {
+            dtHoras.clear().draw();
+            dtHoras = null;
+        }
+        const title = document.getElementById('date-title');
+        if (title) {
+            title.style.display = 'flex';
+            title.innerHTML = '<div class="turnos-vacio">Seleccione una fecha</div>';
+        }
+
+    }
+
     async function refrescarCalendario() {
         const agendasSeleccionadas = getAgendasSeleccionadas();
         if (agendasSeleccionadas.length === 0) return;
