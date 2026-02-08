@@ -42,12 +42,27 @@ router.get('/nuevo',userMiddleware, authMiddleware, secretariaMiddleware, async 
         if (!paciente) {
           return res.status(404).render('error', { error: 'Paciente no encontrado' });
         }
-        res.render('secretaria/agendarTurno', { paciente });
+        res.render('secretaria/agendarTurno', { paciente, esPaciente: false });
       } catch (error) {
         console.error('Error al obtener los datos del paciente:', error);
         res.status(500).render('error', { error: 'Error al obtener los datos del paciente' });
       }
     });
+    router.get('/solicitarTurno', userMiddleware, authMiddleware, async (req, res) => {
+      try {
+          const idPersona = req.session.user.idPersona; 
+          const paciente = await pacienteController.findPacienteByidPersona(idPersona);
+          if (!paciente) {
+              return res.status(404).render('error', { error: 'No tienes un perfil de paciente asignado.' });
+          }
+          res.render('secretaria/agendarTurno', { paciente, esPaciente: true });
+
+      } catch (error) {
+          console.error('Error al obtener los datos del paciente:', error);
+          res.status(500).render('error', { error: 'Error al obtener los datos del paciente' });
+      }
+    });
+    
   
     router.get('/:id/editar/', userMiddleware, authMiddleware, secretariaMiddleware, async (req, res) => {
       try {

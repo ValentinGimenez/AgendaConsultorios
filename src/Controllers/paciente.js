@@ -59,6 +59,17 @@ const pacienteController = {
         const paciente = await Paciente.obtenerPacienteidPersona(req.params.id);
         res.json(paciente);
     },
+    async findPacienteByidPersona(idPersona) {
+        try { 
+            const paciente = await Paciente.obtenerPacienteidPersona(idPersona);
+            if (!paciente) return null;
+            return await this.obtenerPaciente(paciente.pacienteID);
+            
+        } catch (error) {
+            console.error("Error helper controller:", error);
+            throw error;
+        }
+    },
     async obtenerPaciente(pacienteId) {
 
       try {
@@ -187,6 +198,7 @@ const pacienteController = {
           return res.status(404).json({ message: "Persona no encontrada" });
         }
         return res.json({
+          id: paciente.ID,
           nombre: persona.nombre,
           apellido: persona.apellido,
           dni: persona.dni

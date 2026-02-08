@@ -131,18 +131,12 @@ const usuarioController = {
         if (match) {
           req.session.user = {
             id: usuario.ID,
+            idPersona: usuario.idPersona,
             rol: usuario.tipo,
             nombre: usuario.persona_nombre, 
             username: usuario.nombre,      
             email: usuario.mail
           };
-          req.session.user = {
-            id: usuario.ID,
-            rol: usuario.tipo,
-            nombre: usuario.persona_nombre,
-            email: usuario.mail
-          };
-          
           let redirectUrl = "/";
           res.json({ message: "Inicio de sesión exitoso", redirectUrl });
         } else {

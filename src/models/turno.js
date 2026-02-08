@@ -133,7 +133,7 @@ const Turno = {
                 LEFT JOIN paciente pa ON pa.ID = t.idPaciente
                 LEFT JOIN persona pp ON pp.ID = pa.idPersona
                 WHERE t.fecha = ?
-                  AND t.idEstadoTurno != 1
+                  AND t.idEstadoTurno != 0
                   AND (? IS NULL OR me.idMedico = ?)
                   AND (? IS NULL OR me.idEspecialidad = ?)
                   AND (? IS NULL OR t.idEstadoTurno = ?)
@@ -144,15 +144,56 @@ const Turno = {
             return rows;
         } catch (error) { console.error(error); throw error; }
     },
+    async obtenerTurnosPaciente(idPaciente) {
+        try {
+            const sql = `
+                SELECT
+                    t.ID,
+                    t.fecha,
+                    t.hora_inicio,
+                    t.idEstadoTurno,
+                    et.descripcion AS estado,
+                    CONCAT(pm.apellido,' ',pm.nombre) AS medico,
+                    e.nombre AS especialidad,
+                    s.nombre AS sucursal,
+                    t.motivo_consulta 
+                FROM turno t
+                JOIN agenda a ON a.ID = t.idAgenda
+                JOIN sucursal s ON s.ID = a.idSucursal
+                JOIN medico_especialidad me ON me.ID = a.idEspecialidadMedico
+                JOIN medico m ON m.ID = me.idMedico
+                JOIN persona pm ON pm.ID = m.idPersona
+                JOIN especialidad e ON e.ID = me.idEspecialidad
+                JOIN estadoturno et ON et.ID = t.idEstadoTurno
+                WHERE t.idPaciente = ?
+                ORDER BY t.fecha DESC, t.hora_inicio ASC;
+            `;
+            const [rows] = await pool.query(sql, [idPaciente]);
+            return rows;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
 
-    async cambiarEstado(idTurno, idEstadoTurno) {
+    async cambiarEstado(idTurno, idEstadoTurno, tipo) {
         try {
             if (Number(idEstadoTurno) === 1) {
-                const [r] = await pool.query(
-                    'UPDATE turno SET idEstadoTurno = ?, idPaciente = NULL, motivo_consulta = NULL, tipo = "normal" WHERE ID = ?',
-                    [idEstadoTurno, idTurno]
-                );
-                return r.affectedRows;
+                if (tipo === 'sobreturno') {
+                    const [r] = await pool.query(
+                        'DELETE FROM turno WHERE ID = ?', 
+                        [idTurno]
+                    );
+                    return r.affectedRows;
+                } 
+                else {
+                    const [r] = await pool.query(
+                        'UPDATE turno SET idEstadoTurno = ?, idPaciente = NULL, motivo_consulta = NULL, tipo = NULL WHERE ID = ?',
+                        [idEstadoTurno, idTurno]
+                    );
+                    return r.affectedRows;
+                }
+
             } else {
                 const [r] = await pool.query(
                     'UPDATE turno SET idEstadoTurno = ? WHERE ID = ?',
@@ -167,7 +208,7 @@ const Turno = {
     },
     
     async findAllEstados() {
-        const [rows] = await pool.query('SELECT ID AS id, descripcion FROM estadoturno WHERE ID != 1 ORDER BY ID');
+        const [rows] = await pool.query('SELECT ID AS id, descripcion FROM estadoturno ORDER BY ID');
         return rows;
     }
 };

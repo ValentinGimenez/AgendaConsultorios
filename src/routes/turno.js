@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const turnoController = require('../Controllers/turno'); 
+const pacienteController = require('../Controllers/paciente'); 
 const { authMiddleware, userMiddleware} = require('../middlewares/auth');
 router.post('/crearTurno', turnoController.create);
 router.post('/generarTurnos', turnoController.generarTurnos);
@@ -27,6 +28,15 @@ router.get('/listar', userMiddleware, authMiddleware, async (req, res) => {
     }
 });
 
+router.get('/mis-turnos', userMiddleware, authMiddleware, async (req, res) => {
+    try {
+        const datos = await turnoController.getDatosPaciente(req);
+        res.render('paciente/mis-turnos', datos);
+    } catch (error) {
+        console.error(error);
+        res.status(500).render('error', { error: 'Error al cargar tus turnos' });
+    }
+});
 router.post('/:id/estado', userMiddleware, authMiddleware, turnoController.cambiarEstado);
 
 module.exports = router;

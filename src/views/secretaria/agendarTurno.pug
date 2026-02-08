@@ -216,6 +216,8 @@ block content
     @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
   .wizard-wrapper
+    input(type="hidden" id="idPacienteHidden" value=paciente.ID)
+    input(type="hidden" id="esPacienteHidden" value=esPaciente ? "1" : "0")
     h1.header-title Programar Turno
     p.header-subtitle Paciente: 
       strong.text-uppercase(style="color: var(--primary)") #{paciente.nombre} #{paciente.apellido}

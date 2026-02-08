@@ -1,0 +1,794 @@
+extends ../layout
+
+block content
+  - const ts = Array.isArray(turnos) ? turnos : []
+  - const confirmados = ts.filter(t => t.idEstadoTurno === 4).length
+  - const pendientes = ts.filter(t => t.idEstadoTurno === 2).length
+  - const cancelados = ts.filter(t => t.idEstadoTurno === 6).length
+
+  .turnos-page
+
+    .page-header
+      .page-header-icon
+        svg(xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+          rect(x="3" y="4" width="18" height="18" rx="2" ry="2")
+          line(x1="16" y1="2" x2="16" y2="6")
+          line(x1="8" y1="2" x2="8" y2="6")
+          line(x1="3" y1="10" x2="21" y2="10")
+          path(d="m9 16 2 2 4-4")
+      .page-header-text
+        h1.page-title Mis Turnos
+        p.page-subtitle Gestion y seguimiento de tus citas medicas
+
+    .stats-grid
+      .stat-card.stat-card--total
+        .stat-card__icon
+          svg(xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+            rect(x="3" y="4" width="18" height="18" rx="2" ry="2")
+            line(x1="16" y1="2" x2="16" y2="6")
+            line(x1="8" y1="2" x2="8" y2="6")
+            line(x1="3" y1="10" x2="21" y2="10")
+        .stat-card__content
+          .stat-card__value= ts.length
+          .stat-card__label Total Turnos
+      .stat-card.stat-card--confirmado
+        .stat-card__icon
+          svg(xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+            path(d="M22 11.08V12a10 10 0 1 1-5.93-9.14")
+            polyline(points="22 4 12 14.01 9 11.01")
+        .stat-card__content
+          .stat-card__value= confirmados
+          .stat-card__label Confirmados
+      .stat-card.stat-card--pendiente
+        .stat-card__icon
+          svg(xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+            circle(cx="12" cy="12" r="10")
+            polyline(points="12 6 12 12 16 14")
+        .stat-card__content
+          .stat-card__value= pendientes
+          .stat-card__label Pendientes
+      .stat-card.stat-card--cancelado
+        .stat-card__icon
+          svg(xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+            circle(cx="12" cy="12" r="10")
+            line(x1="15" y1="9" x2="9" y2="15")
+            line(x1="9" y1="9" x2="15" y2="15")
+        .stat-card__content
+          .stat-card__value= cancelados
+          .stat-card__label Cancelados
+
+    .table-container
+
+      .table-toolbar
+        .search-wrapper
+          .search-icon
+            svg(xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+              circle(cx="11" cy="11" r="8")
+              line(x1="21" y1="21" x2="16.65" y2="16.65")
+          input#searchInput.search-input(type="text" placeholder="Buscar por medico, especialidad, motivo...")
+          button#clearSearch.clear-btn(type="button" title="Limpiar busqueda" style="display:none;")
+            svg(xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+              line(x1="18" y1="6" x2="6" y2="18")
+              line(x1="6" y1="6" x2="18" y2="18")
+
+        .filter-pills
+          button.filter-pill.filter-pill--active(data-filter="todos" type="button") Todos
+          button.filter-pill(data-filter="confirmado" type="button") Confirmados
+          button.filter-pill(data-filter="pendiente" type="button") Pendientes
+          button.filter-pill(data-filter="atendido" type="button") Atendidos
+          button.filter-pill(data-filter="cancelado" type="button") Cancelados
+
+      .table-scroll
+        table#tablaTurnos.turnos-table
+          thead
+            tr
+              th Fecha
+              th Hora
+              th Medico
+              th Especialidad
+              th Sucursal
+              th Tipo
+              th Motivo
+              th Estado
+          tbody
+            each t in ts
+              - var estadoId = String(t.idEstadoTurno)
+              tr(data-estado=estadoId)
+                td.cell-fecha(data-order=t.fecha)= t.fechaFormateada
+                td.cell-hora
+                  span.hora-badge= t.hora_inicio ? t.hora_inicio.slice(0,5) : '-'
+                td.cell-medico= t.medico
+                td.cell-especialidad= t.especialidad
+                td.cell-sucursal
+                  .sucursal-name= t.sucursal
+                  .sucursal-dir= t.direccion_sucursal
+                td.cell-tipo
+                  if t.tipo === 'sobreturno'
+                    span.badge.badge--warning Sobreturno
+                  else
+                    span.badge.badge--normal Normal
+                td.cell-motivo
+                  if t.motivo_consulta
+                    span(title=t.motivo_consulta)= t.motivo_consulta.length > 30 ? t.motivo_consulta.substring(0, 30) + '...' : t.motivo_consulta
+                  else
+                    span.text-dimmed -
+                td.cell-estado
+                  - var badgeClass = 'badge--normal'
+                  case t.idEstadoTurno
+                    when 2: - badgeClass = 'badge--warning'
+                    when 4: - badgeClass = 'badge--success'
+                    when 6: - badgeClass = 'badge--danger'
+                    when 3: - badgeClass = 'badge--info'
+                  span.badge.badge--status(class=badgeClass)
+                    span.badge__dot
+                    = t.estado
+
+      .mobile-cards
+        each t in ts
+          - var estadoId = String(t.idEstadoTurno)
+          .turno-card(data-estado=estadoId)
+            .turno-card__header
+              .turno-card__date
+                .turno-card__date-icon
+                  svg(xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                    rect(x="3" y="4" width="18" height="18" rx="2" ry="2")
+                    line(x1="16" y1="2" x2="16" y2="6")
+                    line(x1="8" y1="2" x2="8" y2="6")
+                    line(x1="3" y1="10" x2="21" y2="10")
+                span.turno-card__date-text= t.fechaFormateada
+              .turno-card__status
+                - var cardBadge = 'badge--normal'
+                case t.idEstadoTurno
+                  when 2: - cardBadge = 'badge--warning'
+                  when 4: - cardBadge = 'badge--success'
+                  when 6: - cardBadge = 'badge--danger'
+                  when 3: - cardBadge = 'badge--info'
+                span.badge.badge--status(class=cardBadge)
+                  span.badge__dot
+                  = t.estado
+            .turno-card__body
+              .turno-card__row
+                .turno-card__row-icon
+                  svg(xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                    circle(cx="12" cy="12" r="10")
+                    polyline(points="12 6 12 12 16 14")
+                span.hora-badge= t.hora_inicio ? t.hora_inicio.slice(0,5) : '-'
+                if t.tipo === 'sobreturno'
+                  span.badge.badge--warning.badge--small Sobreturno
+              .turno-card__row
+                .turno-card__row-icon
+                  svg(xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                    path(d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2")
+                    circle(cx="12" cy="7" r="4")
+                span.turno-card__medico= t.medico
+              .turno-card__row
+                .turno-card__row-icon
+                  svg(xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                    path(d="m18 2 4 4")
+                    path(d="m17 7 3-3")
+                    path(d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5")
+                    path(d="m9 11 4 4")
+                    path(d="m5 19-3 3")
+                    path(d="m14 4 6 6")
+                span.turno-card__especialidad= t.especialidad
+              .turno-card__row
+                .turno-card__row-icon
+                  svg(xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                    path(d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z")
+                    circle(cx="12" cy="10" r="3")
+                .turno-card__location
+                  span.turno-card__sucursal= t.sucursal
+                  span.turno-card__dir= t.direccion_sucursal
+              if t.motivo_consulta
+                .turno-card__motivo
+                  span= t.motivo_consulta.length > 60 ? t.motivo_consulta.substring(0, 60) + '...' : t.motivo_consulta
+
+      .empty-state#emptyState(style="display:none;")
+        .empty-state__icon
+          svg(xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+            rect(x="3" y="4" width="18" height="18" rx="2" ry="2")
+            line(x1="16" y1="2" x2="16" y2="6")
+            line(x1="8" y1="2" x2="8" y2="6")
+            line(x1="3" y1="10" x2="21" y2="10")
+        h3.empty-state__title No se encontraron turnos
+        p.empty-state__text Intenta con otros terminos de busqueda o cambia el filtro activo.
+        button#clearAll.empty-state__btn Limpiar filtros
+
+      .table-footer#tableFooter
+        span Mostrando 
+          strong#visibleCount= ts.length
+          |  de 
+          strong= ts.length
+          |  turnos
+
+  script(src='https://code.jquery.com/jquery-3.7.1.min.js')
+  script(src='https://cdn.datatables.net/2.1.8/js/dataTables.min.js')
+
+  script.
+    $(document).ready(function () {
+      var table = $('#tablaTurnos').DataTable({
+        dom: 't',
+        paging: false,
+        info: false,
+        ordering: true,
+        order: [[0, 'desc'], [1, 'asc']],
+        autoWidth: false,
+        columnDefs: [
+          { targets: 0, width: '95px' },
+          { targets: 1, width: '70px' },
+          { targets: 5, width: '90px' },
+          { targets: 7, width: '110px' }
+        ]
+      });
+
+      var activeFilter = 'todos';
+      
+      var filterMap = {
+        todos: [],
+        confirmado: ['4'],
+        pendiente: ['2'],
+        atendido: ['3'],
+        cancelado: ['6']
+      };
+
+      function applyFilters() {
+        var searchVal = $('#searchInput').val().toLowerCase().trim();
+        var allowedStates = filterMap[activeFilter];
+        
+        var visibleDesktop = 0;
+        var visibleMobile = 0;
+
+        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+            var rowNode = table.row(dataIndex).node();
+            var estado = String($(rowNode).data('estado'));
+            
+            var matchState = (activeFilter === 'todos') || (allowedStates.indexOf(estado) !== -1);
+
+            var rowText = $(rowNode).text().toLowerCase();
+            var matchSearch = !searchVal || rowText.indexOf(searchVal) !== -1;
+
+            if (matchState && matchSearch) {
+                visibleDesktop++;
+                return true; 
+            }
+            return false;
+        });
+        
+        table.draw();
+        $.fn.dataTable.ext.search.pop();
+
+
+        $('.turno-card').each(function() {
+          var card = $(this);
+          var estado = String(card.data('estado'));
+          var text = card.text().toLowerCase();
+          
+          var matchState = (activeFilter === 'todos') || (allowedStates.indexOf(estado) !== -1);
+          var matchSearch = !searchVal || text.indexOf(searchVal) !== -1;
+
+          if (matchState && matchSearch) {
+            card.show();
+            visibleMobile++;
+          } else {
+            card.hide();
+          }
+        });
+
+        var totalVisible = Math.max(visibleDesktop, visibleMobile);
+        
+        $('#visibleCount').text(totalVisible);
+
+        if (totalVisible === 0) {
+          $('#emptyState').fadeIn(200);
+          $('#tableFooter').hide();
+        } else {
+          $('#emptyState').hide();
+          $('#tableFooter').show();
+        }
+
+        if (searchVal) {
+          $('#clearSearch').show();
+        } else {
+          $('#clearSearch').hide();
+        }
+      }
+
+      $('#searchInput').on('keyup', function() { 
+        applyFilters();
+      });
+
+      $('#clearSearch').on('click', function() {
+        $('#searchInput').val('');
+        applyFilters();
+      });
+
+      $('.filter-pill').on('click', function() {
+        $('.filter-pill').removeClass('filter-pill--active');
+        $(this).addClass('filter-pill--active');
+        activeFilter = $(this).data('filter'); 
+        applyFilters();
+      });
+
+      $('#clearAll').on('click', function() {
+        $('#searchInput').val('');
+        $('.filter-pill').removeClass('filter-pill--active');
+        $('[data-filter="todos"]').addClass('filter-pill--active');
+        activeFilter = 'todos';
+        applyFilters();
+      });
+
+      $('table.turnos-table tbody tr').each(function(i) {
+        $(this).css({ opacity: 0, transform: 'translateY(10px)' });
+        $(this).delay(i * 50).animate({ opacity: 1 }, 300, function() {
+            $(this).css('transform', 'translateY(0)');
+        });
+      });
+    });
+
+  style.
+    :root {
+      --color-primary: #0891b2;
+      --color-primary-light: #ecfeff;
+      --color-primary-border: #cffafe;
+      --color-success: #059669;
+      --color-success-light: #ecfdf5;
+      --color-success-border: #a7f3d0;
+      --color-warning: #d97706;
+      --color-warning-light: #fffbeb;
+      --color-warning-border: #fde68a;
+      --color-danger: #dc2626;
+      --color-danger-light: #fef2f2;
+      --color-danger-border: #fecaca;
+      --color-info: #2563eb;
+      --color-info-light: #eff6ff;
+      --color-info-border: #bfdbfe;
+      --color-bg: #f5f7fa;
+      --color-card: #ffffff;
+      --color-text: #1e293b;
+      --color-text-secondary: #64748b;
+      --color-text-dimmed: #94a3b8;
+      --color-border: #e2e8f0;
+      --color-border-light: #f1f5f9;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --radius-full: 999px;
+    }
+
+    .turnos-page {
+      width: 100%;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    @media (min-width: 640px) {
+      .turnos-page { padding: 2rem 1.5rem; }
+    }
+    @media (min-width: 1024px) {
+      .turnos-page { padding: 2rem; }
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+    .page-header-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--color-primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25);
+      flex-shrink: 0;
+    }
+    .page-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--color-text);
+      margin: 0;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+    }
+    .page-subtitle {
+      font-size: 0.875rem;
+      color: var(--color-text-secondary);
+      margin: 0.15rem 0 0 0;
+    }
+    @media (min-width: 640px) {
+      .page-title { font-size: 1.875rem; }
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    @media (min-width: 1024px) {
+      .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .stat-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.25rem;
+      border-radius: var(--radius-lg);
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .stat-card__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-card__value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+    .stat-card__label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      margin-top: 0.1rem;
+    }
+    .stat-card--total { border-color: var(--color-primary-border); }
+    .stat-card--total .stat-card__icon { background: var(--color-primary-light); color: var(--color-primary); }
+    .stat-card--total .stat-card__value { color: var(--color-primary); }
+
+    .stat-card--confirmado { border-color: var(--color-success-border); }
+    .stat-card--confirmado .stat-card__icon { background: var(--color-success-light); color: var(--color-success); }
+    .stat-card--confirmado .stat-card__value { color: var(--color-success); }
+
+    .stat-card--pendiente { border-color: var(--color-warning-border); }
+    .stat-card--pendiente .stat-card__icon { background: var(--color-warning-light); color: var(--color-warning); }
+    .stat-card--pendiente .stat-card__value { color: var(--color-warning); }
+
+    .stat-card--cancelado { border-color: var(--color-danger-border); }
+    .stat-card--cancelado .stat-card__icon { background: var(--color-danger-light); color: var(--color-danger); }
+    .stat-card--cancelado .stat-card__value { color: var(--color-danger); }
+
+    .table-container {
+      background: var(--color-card);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+    }
+
+    .table-toolbar {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    @media (min-width: 640px) {
+      .table-toolbar { padding: 1.5rem 2rem; }
+    }
+
+    .search-wrapper {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-text-dimmed);
+      pointer-events: none;
+      display: flex;
+    }
+    .search-input {
+      width: 100%;
+      padding: 14px 44px 14px 48px;
+      border: 2px solid var(--color-border);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      color: var(--color-text);
+      background: #f8fafc;
+      outline: none;
+      transition: all 0.25s ease;
+      font-family: inherit;
+    }
+    .search-input:focus {
+      border-color: var(--color-primary);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+    }
+    .search-input::placeholder {
+      color: var(--color-text-dimmed);
+      font-weight: 500;
+    }
+    .clear-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: var(--color-text-dimmed);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .clear-btn:hover {
+      background: var(--color-border-light);
+      color: var(--color-text);
+    }
+
+    .filter-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .filter-pill {
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-full);
+      border: none;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      background: #f1f5f9;
+      color: var(--color-text-secondary);
+      transition: all 0.25s ease;
+      font-family: inherit;
+    }
+    .filter-pill:hover {
+      background: #e2e8f0;
+      color: var(--color-text);
+    }
+    .filter-pill--active {
+      background: var(--color-primary) !important;
+      color: white !important;
+      box-shadow: 0 2px 8px rgba(8, 145, 178, 0.25);
+    }
+
+    .table-scroll { overflow-x: auto; }
+
+    table.turnos-table { width: 100%; border-collapse: collapse; }
+    table.turnos-table thead th {
+      background: #f8fafc;
+      padding: 1rem;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.75rem;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 2px solid var(--color-border);
+      white-space: nowrap;
+    }
+    table.turnos-table tbody td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--color-border-light);
+      vertical-align: middle;
+      color: var(--color-text);
+      font-size: 0.9rem;
+      background: white;
+      transition: background 0.2s;
+    }
+    table.turnos-table tbody tr:hover td {
+      background: #f0f9ff;
+    }
+    table.turnos-table tbody tr {
+      transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .cell-fecha { font-weight: 600; white-space: nowrap; }
+    .hora-badge {
+      display: inline-block;
+      padding: 0.3rem 0.6rem;
+      border-radius: 8px;
+      background: var(--color-info-light);
+      font-family: 'Roboto Mono', 'SF Mono', monospace;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--color-info);
+    }
+    .cell-medico { font-weight: 600; }
+    .cell-especialidad { color: var(--color-text-secondary); }
+    .sucursal-name { font-weight: 600; font-size: 0.9rem; }
+    .sucursal-dir { font-size: 0.78rem; color: var(--color-text-dimmed); margin-top: 0.1rem; }
+    .cell-motivo {
+      max-width: 180px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-style: italic;
+      color: var(--color-text-secondary);
+      font-size: 0.85rem;
+    }
+    .text-dimmed { color: var(--color-text-dimmed); }
+
+    .dataTables_wrapper .dataTables_filter { display: none !important; }
+    .dataTables_wrapper .dataTables_info { display: none !important; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-full);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .badge__dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .badge--normal { background: #f0f4f8; color: #4a5568; border: 1px solid #e2e8f0; }
+    .badge--normal .badge__dot { background: #a0aec0; }
+    .badge--warning { background: var(--color-warning-light); color: #92600a; border: 1px solid var(--color-warning-border); }
+    .badge--warning .badge__dot { background: var(--color-warning); }
+    .badge--success { background: var(--color-success-light); color: #065f46; border: 1px solid var(--color-success-border); }
+    .badge--success .badge__dot { background: var(--color-success); }
+    .badge--danger { background: var(--color-danger-light); color: #991b1b; border: 1px solid var(--color-danger-border); }
+    .badge--danger .badge__dot { background: var(--color-danger); }
+    .badge--info { background: var(--color-info-light); color: #1e40af; border: 1px solid var(--color-info-border); }
+    .badge--info .badge__dot { background: var(--color-info); }
+    .badge--small { font-size: 0.6rem; padding: 0.2rem 0.5rem; margin-left: auto; }
+
+    .mobile-cards { display: none; }
+    @media (max-width: 1023px) {
+      .table-scroll { display: none; }
+      .mobile-cards {
+        display: block;
+        padding: 1rem;
+      }
+    }
+    .turno-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 0.75rem;
+      transition: all 0.2s;
+    }
+    .turno-card:hover { box-shadow: var(--shadow-sm); }
+    .turno-card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .turno-card__date {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .turno-card__date-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--color-info-light);
+      color: var(--color-info);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .turno-card__date-text {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+    .turno-card__body { display: flex; flex-direction: column; gap: 0.6rem; }
+    .turno-card__row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .turno-card__row-icon {
+      color: var(--color-text-dimmed);
+      display: flex;
+      flex-shrink: 0;
+    }
+    .turno-card__medico { font-size: 0.875rem; font-weight: 600; color: var(--color-text); }
+    .turno-card__especialidad { font-size: 0.875rem; color: var(--color-text-secondary); }
+    .turno-card__location { display: flex; flex-direction: column; }
+    .turno-card__sucursal { font-size: 0.875rem; font-weight: 500; color: var(--color-text); }
+    .turno-card__dir { font-size: 0.75rem; color: var(--color-text-dimmed); }
+    .turno-card__motivo {
+      margin-top: 0.35rem;
+      background: #f8fafc;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-style: italic;
+      color: var(--color-text-secondary);
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 1rem;
+      text-align: center;
+    }
+    .empty-state__icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      color: var(--color-text-dimmed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .empty-state__title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--color-text);
+      margin: 0 0 0.35rem 0;
+    }
+    .empty-state__text {
+      font-size: 0.9rem;
+      color: var(--color-text-secondary);
+      max-width: 320px;
+      margin: 0;
+    }
+    .empty-state__btn {
+      margin-top: 1rem;
+      padding: 0.6rem 1.25rem;
+      border-radius: var(--radius-full);
+      border: none;
+      background: var(--color-primary);
+      color: white;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-family: inherit;
+    }
+    .empty-state__btn:hover { background: #0e7490; }
+
+    .table-footer {
+      padding: 0.9rem 1.5rem;
+      border-top: 1px solid var(--color-border-light);
+      background: #fafbfc;
+      font-size: 0.85rem;
+      color: var(--color-text-secondary);
+    }
+    .table-footer strong { color: var(--color-text); }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .stat-card { animation: fadeInUp 0.4s ease both; }
+    .stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .stat-card:nth-child(2) { animation-delay: 0.1s; }
+    .stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .stat-card:nth-child(4) { animation-delay: 0.2s; }
+    .table-container { animation: fadeInUp 0.5s ease 0.25s both; }

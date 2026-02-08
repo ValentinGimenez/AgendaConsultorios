@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const limpiarbtn = document.getElementById('limpiarbtn');
     const divs = document.getElementById('available-times');
     const sucursalesPorAgenda = {};
-
+    const esPaciente = document.getElementById('esPacienteHidden')?.value === "1";
     function buildSucursalPorAgenda(agendas) {
         for (const a of agendas) {
             const idAgenda = a.idAgenda;
@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                     const turnosParaMostrar = filtrados.filter(turno => {
                                         const idAgenda = turno.idAgenda;
-                                        const maxSob = maxSobreturnoPorAgenda[idAgenda] || 0;
+                                        const maxSob = esPaciente ? 0 : (maxSobreturnoPorAgenda[idAgenda] || 0);
 
                                         const keyDia = `${idAgenda}|${selectedDate}`;
                                         const usados = sobreturnosPorFecha.get(keyDia) || 0;
@@ -646,7 +646,26 @@ document.addEventListener('DOMContentLoaded', function () {
             info: false,
             paging: true,
             language: {
-                url: '//cdn.datatables.net/plug-ins/2.1.8/i18n/es-ES.json'
+                processing: "Procesando...",
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros",
+                info: "Mostrando _START_ a _END_ de _TOTAL_ horarios",
+                infoEmpty: "No hay horarios disponibles",
+                infoFiltered: "(filtrado de _MAX_ totales)",
+                infoPostFix: "",
+                loadingRecords: "Cargando...",
+                zeroRecords: "No hay horarios en este rango",
+                emptyTable: "No hay horarios disponibles para esta fecha",
+                paginate: {
+                    first: "Primero",
+                    previous: "Anterior",
+                    next: "Siguiente",
+                    last: "Último"
+                },
+                aria: {
+                    sortAscending: ": Activar para ordenar la columna de manera ascendente",
+                    sortDescending: ": Activar para ordenar la columna de manera descendente"
+                }
             }
         });
 
@@ -675,7 +694,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (count >= limit) break;
 
             const idAgenda = turno.idAgenda;
-            const maxSobreturnos = maxSobreturnoPorAgenda[idAgenda] || 0;
+            const maxSobreturnos = esPaciente ? 0 : (maxSobreturnoPorAgenda[idAgenda] || 0);
 
             const keyDia = `${idAgenda}|${selectedDate}`;
             const usados = sobreturnosPorFecha.get(keyDia) || 0;
@@ -729,9 +748,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     async function abrirModal(id_turno, esSobreturno) {
-        const url = window.location.href;
-        const match = url.match(/\/(\d+)\/agendarTurno/);
-        const idPaciente = match ? match[1] : null;
+        const inputOculto = document.getElementById('idPacienteHidden');
+        let idPaciente = inputOculto ? inputOculto.value : null;
+
+        if (!idPaciente) {
+             const url = window.location.href;
+             const match = url.match(/\/(\d+)\/agendarTurno/);
+             idPaciente = match ? match[1] : null;
+        }
+
+        if (!idPaciente) {
+            alert("Error: No se pudo identificar al paciente.");
+            return;
+        }
 
         modal.style.display = 'flex';
         confirmado = false;

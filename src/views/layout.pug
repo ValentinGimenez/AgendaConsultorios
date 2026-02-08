@@ -293,7 +293,7 @@ html(lang="es")
                         span Mis Turnos
                     
                     li.sidebar-menu-item
-                      a.sidebar-link(href="/turno/solicitar" class=isActive('/turno/solicitar') ? 'active' : '')
+                      a.sidebar-link(href="/paciente/solicitarturno" class=isActive('/paciente/solicitarturno') ? 'active' : '')
                         span.sidebar-link-icon
                           svg.icon(viewBox="0 0 24 24")
                             path(d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z")
@@ -301,21 +301,6 @@ html(lang="es")
                             line(x1="12" y1="18" x2="12" y2="12")
                             line(x1="9" y1="15" x2="15" y2="15")
                         span Solicitar Turno
-
-                    li.sidebar-menu-item
-                      a.sidebar-link(href="/historia-clinica" class=isActive('/historia-clinica') ? 'active' : '')
-                        span.sidebar-link-icon
-                          svg.icon(viewBox="0 0 24 24")
-                            path(d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z")
-                        span Historia Clínica
-
-                    li.sidebar-menu-item
-                      a.sidebar-link(href="/perfil" class=isActive('/perfil') ? 'active' : '')
-                        span.sidebar-link-icon
-                          svg.icon(viewBox="0 0 24 24")
-                            path(d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2")
-                            circle(cx="12" cy="7" r="4")
-                        span Perfil
 
           .sidebar-footer
             .sidebar-user

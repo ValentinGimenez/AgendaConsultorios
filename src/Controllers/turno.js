@@ -1,6 +1,6 @@
 const Turno = require('../models/turno');
 const MedicoEspecialidad = require('../models/medico_especialidad');
-
+const Paciente = require('../models/paciente');
 const ESTADOS = {
     LIBRE: 1,
     RESERVADO: 2,
@@ -152,12 +152,41 @@ const turnoController = {
             throw error;
         }
     },
+    async getDatosPaciente(req) {
+        try {
+            const idPersona = req.session.user.idPersona;
+            
+            const paciente = await Paciente.obtenerPacienteidPersona(idPersona);
+            
+            if (!paciente) {
+                return { turnos: [] };
+            }
+
+            const idPaciente = paciente.pacienteID || paciente.ID;
+            
+            const turnos = await Turno.obtenerTurnosPaciente(idPaciente);
+
+            turnos.forEach(t => {
+                const d = new Date(t.fecha);
+                const userTimezoneOffset = d.getTimezoneOffset() * 60000;
+                const fechaCorrecta = new Date(d.getTime() + userTimezoneOffset);
+                
+                t.fechaFormateada = fechaCorrecta.toLocaleDateString('es-AR');
+            });
+
+            return { turnos };
+
+        } catch (error) {
+            console.error('Error obteniendo datos paciente:', error);
+            throw error;
+        }
+    },
 
     async cambiarEstado(req, res) {
         try {
             const idTurno = req.params.id;
-            const { idEstadoTurno } = req.body;
-            await Turno.cambiarEstado(idTurno, idEstadoTurno);
+            const { idEstadoTurno, tipo } = req.body;
+            await Turno.cambiarEstado(idTurno, idEstadoTurno,tipo);
             res.redirect('back');
         } catch (error) {
             console.error(error);

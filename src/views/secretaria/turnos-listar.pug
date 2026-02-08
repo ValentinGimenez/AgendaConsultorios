@@ -104,6 +104,7 @@ block content
                       each a in acc
                         form.action-form(method="POST", action=`/turno/${t.ID}/estado`)
                           input(type="hidden", name="idEstadoTurno", value=a.to)
+                          input(type="hidden", name="tipo", value=t.tipo)
                           button.action-btn(type="submit", class=a.class, title=a.title, aria-label=a.title)= a.icon
                     else
                       span.no-actions -
