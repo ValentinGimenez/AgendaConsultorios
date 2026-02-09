@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const hora_inicio = document.getElementById('hora_inicio').value;
         const hora_fin = document.getElementById('hora_fin').value;
         const sobreTurnoMax = Number(sobreTurnoMaxInput.value)
-        const hoy = new Date(); 
+        const hoy = new Date();
 
         if (!idMedico_especialidad || idMedico_especialidad === '-1') {
             alert('Seleccione una especialidad.');
@@ -128,11 +128,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('La hora de fin debe ser un múltiplo de 10 minutos.');
             return;
         }
-        if(sobreTurnoMax < 0){
+        if (sobreTurnoMax < 0) {
             alert('El sobreturno maximo debe ser mayor a 0');
             return;
         }
-        if(sobreTurnoMax > 10){
+        if (sobreTurnoMax > 10) {
             alert('El sobreturno maximo debe ser menor a 10');
             return;
         }
@@ -146,17 +146,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         horaFinDate.setHours(horaFinArray[0], horaFinArray[1], 0);
 
         if (horaFinDate <= horaInicioDate) {
-            horaFinDate.setDate(horaFinDate.getDate() + 1); 
+            horaFinDate.setDate(horaFinDate.getDate() + 1);
         }
 
         const diferenciaEnMilisegundosHoras = horaFinDate - horaInicioDate;
-        const diferenciaEnMinutos = diferenciaEnMilisegundosHoras / (1000 * 60); 
+        const diferenciaEnMinutos = diferenciaEnMilisegundosHoras / (1000 * 60);
 
         if (diferenciaEnMinutos < duracionTurno) {
             alert(`La duración entre la hora de inicio y la hora de fin debe ser al menos ${duracionTurno} minutos.`);
             return;
         }
-        if (diferenciaEnMinutos > 480) { 
+        if (diferenciaEnMinutos > 480) {
             alert('La duración entre la hora de inicio y la hora de fin no puede exceder las 8 horas laborales.');
             return;
         }
@@ -168,17 +168,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const horariosExistentes = await obtenerAgendaHorario(idMedico, semanaNorm);
         const r = validarSolapamiento({
-        diasSeleccionados: semanaNorm,
-        fechaInicioNueva: fecha_init,
-        fechaFinNueva: fecha_fin,
-        horaInicioNueva: hora_inicio,
-        horaFinNueva: hora_fin,
-        horariosExistentes
+            diasSeleccionados: semanaNorm,
+            fechaInicioNueva: fecha_init,
+            fechaFinNueva: fecha_fin,
+            horaInicioNueva: hora_inicio,
+            horaFinNueva: hora_fin,
+            horariosExistentes
         });
 
         if (r.hayConflicto) {
             alert(r.mensaje);
-            return; 
+            return;
         }
         //alert("Validación exitosa. Los datos son correctos.");
 
@@ -197,18 +197,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         const resp = await fetch('/agenda/crearAgendaConHorarios', {
             method: 'POST',
             headers: {
-                 'Content-Type': 'application/json' 
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload)
         })
         const data = await resp.json();
 
-        if(resp.ok){
+        if (resp.ok) {
             alert('Agenda registrada.');
             console.log(data.message + 'Agenda creada correctamente');
             formHorario.reset();
+            await cargarHorariosYRender(idMedico);
 
-        }else{
+        } else {
             console.log(data.message + 'Error al crear la agenda');
         }
 
@@ -279,12 +280,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         //                 alert(`Error al registrar el horario para ${dia}`);
         //             }
         //         } else {
-            //             alert(`Error al crear la agenda para ${dia}`);
-            //         }
-            //     } catch (error) {
-                //     }
-                // }
-                
+        //             alert(`Error al crear la agenda para ${dia}`);
+        //         }
+        //     } catch (error) {
+        //     }
+        // }
+
 
     });
     function seSolapanFechas(nuevoIni, nuevoFin, exIni, exFin) {
@@ -296,8 +297,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return nI <= eF && nF >= eI;
     }
     function horaAMinutos(hora) {
-    const [h, m] = hora.split(':').map(Number);
-    return h * 60 + m;
+        const [h, m] = hora.split(':').map(Number);
+        return h * 60 + m;
     }
     function seSolapanHoras(nuevaIni, nuevaFin, exIni, exFin) {
         let nI = horaAMinutos(nuevaIni);
@@ -311,12 +312,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         return nI < eF && nF > eI;
     }
     function validarSolapamiento({
-    diasSeleccionados,
-    fechaInicioNueva,
-    fechaFinNueva,
-    horaInicioNueva,
-    horaFinNueva,
-    horariosExistentes
+        diasSeleccionados,
+        fechaInicioNueva,
+        fechaFinNueva,
+        horaInicioNueva,
+        horaFinNueva,
+        horariosExistentes
     }) {
         const porDia = new Map();
         for (const h of horariosExistentes) {
@@ -330,27 +331,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             const lista = porDia.get(dia) || [];
 
             for (const h of lista) {
-            // if (h.estado && h.estado !== 'libre') continue;
+                // if (h.estado && h.estado !== 'libre') continue;
 
-            const pisaFechas = seSolapanFechas(
-                fechaInicioNueva, fechaFinNueva,
-                h.fecha_inicio, h.fecha_fin
-            );
-            if (!pisaFechas) continue;
+                const pisaFechas = seSolapanFechas(
+                    fechaInicioNueva, fechaFinNueva,
+                    h.fecha_inicio, h.fecha_fin
+                );
+                if (!pisaFechas) continue;
 
-            const pisaHoras = seSolapanHoras(
-                horaInicioNueva, horaFinNueva,
-                h.hora_inicio, h.hora_fin
-            );
+                const pisaHoras = seSolapanHoras(
+                    horaInicioNueva, horaFinNueva,
+                    h.hora_inicio, h.hora_fin
+                );
 
-            if (pisaHoras) {
-                return {
-                hayConflicto: true,
-                dia,
-                conflicto: h,
-                mensaje: `No se puede guardar.\nEl ${dia} (${horaInicioNueva}–${horaFinNueva}) se superpone con un horario ya cargado.`
-                };
-            }
+                if (pisaHoras) {
+                    return {
+                        hayConflicto: true,
+                        dia,
+                        conflicto: h,
+                        mensaje: `No se puede guardar.\nEl ${dia} (${horaInicioNueva}–${horaFinNueva}) se superpone con un horario ya cargado.`
+                    };
+                }
             }
         }
 
@@ -422,11 +423,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             return null;
         }
     }
-    async function obtenerAgendaHorario(idMedico,diasSemana) {
-        try{
-            const response = await fetch('/horario/obtenerAgendaHorario',{
+    async function obtenerAgendaHorario(idMedico, diasSemana) {
+        try {
+            const response = await fetch('/horario/obtenerAgendaHorario', {
 
-                method :   'POST',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -437,10 +438,117 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             const horariosExistentes = await response.json();
             return horariosExistentes;
-        }catch (error) {
+        } catch (error) {
             console.error('Error al obtener los horarios:', error);
             return null;
         }
-        
+
     }
-})
+    async function cargarHorariosYRender(idMedico) {
+        const resp = await fetch(`/horario/obtenerAgendaMedico/${idMedico}`);
+        if (!resp.ok) throw new Error("No se pudieron obtener los horarios del médico");
+        const horarios = await resp.json();
+        console.log("horarios", horarios);
+        const vigentes = filtrarHorariosVigentes(horarios);
+        const porDia = agruparPorDia(vigentes);
+        renderGrillaSemanal('grillaSemanal', porDia);
+    }
+
+    await cargarHorariosYRender(idMedico);
+
+
+
+
+    function ymd(d) {
+        if (!d) return "";
+        const s = String(d);
+        return s.includes("T") ? s.split("T")[0] : s.slice(0, 10);
+    }
+
+    function getHoyYMD() {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, "0");
+        const dd = String(now.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function filtrarHorariosVigentes(list) {
+        const hoy = getHoyYMD();
+        return (list || []).filter(h => ymd(h.fecha_fin) >= hoy);
+    }
+
+    function normalizarDia(d) {
+        return String(d || "")
+            .trim()
+            .toUpperCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function hhmm(timeStr) {
+        const [h, m] = String(timeStr).split(":");
+        return `${h}:${m}`;
+    }
+
+    function agruparPorDia(list) {
+        const map = new Map();
+        for (const h of (list || [])) {
+            const dia = normalizarDia(h.dia_semana);
+            if (!map.has(dia)) map.set(dia, []);
+            map.get(dia).push(h);
+        }
+        for (const [dia, arr] of map) {
+            arr.sort((a, b) => hhmm(a.hora_inicio).localeCompare(hhmm(b.hora_inicio)));
+        }
+        return map;
+    }
+
+    function renderGrillaSemanal(containerId, horariosPorDia) {
+        const DIAS = ["LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO"];
+        const LABEL = { LUNES: "Lun", MARTES: "Mar", MIERCOLES: "Mié", JUEVES: "Jue", VIERNES: "Vie", SABADO: "Sáb" };
+
+        const el = document.getElementById(containerId);
+        if (!el) return;
+
+        const table = document.createElement("table");
+        table.className = "weekly-table";
+
+        const thead = document.createElement("thead");
+        const trh = document.createElement("tr");
+        trh.innerHTML = DIAS.map(d => `<th>${LABEL[d]}</th>`).join("");
+        thead.appendChild(trh);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        const tr = document.createElement("tr");
+
+        for (const dia of DIAS) {
+            const td = document.createElement("td");
+            const items = horariosPorDia.get(dia) || [];
+
+            if (items.length === 0) {
+                td.innerHTML = `<div class="slot empty">—</div>`;
+            } else {
+                for (const h of items) {
+                    const div = document.createElement("div");
+                    div.className = "slot vigente";
+                    div.innerHTML = `
+                        <strong>${h.especialidad}</strong>
+                        <small>${h.sucursal}</small>
+                        <div>${hhmm(h.hora_inicio)}–${hhmm(h.hora_fin)}</div>
+                        <small>${ymd(h.fecha_inicio)} → ${ymd(h.fecha_fin)}</small>
+                `;
+                    td.appendChild(div);
+                }
+            }
+            tr.appendChild(td);
+        }
+
+        tbody.appendChild(tr);
+        table.appendChild(tbody);
+
+        el.innerHTML = "";
+        el.appendChild(table);
+    }
+});

@@ -31,6 +31,20 @@ const Horario = {
         const [rows] = await pool.query(`SELECT a.ID, h.dia_semana, h.fecha_inicio, h.fecha_fin, h.hora_inicio, h.hora_fin, h.estado FROM agenda a JOIN horario h ON h.idAgenda = a.ID JOIN medico_especialidad me ON me.ID = a.idEspecialidadMedico WHERE me.idMedico = ? AND h.estado = 'activo'`, [idMedico,...diasSemana]);
         return rows;
     },
+    async obtenerAgendaMedico(idMedico) {  
+    const [rows] = await pool.query(
+        ` SELECT 
+      a.ID AS idAgenda, s.nombre AS sucursal, e.nombre AS especialidad, h.dia_semana, h.fecha_inicio, h.fecha_fin, h.hora_inicio, h.hora_fin, h.estado
+        FROM agenda a
+        JOIN horario h ON h.idAgenda = a.ID
+        JOIN medico_especialidad me ON me.ID = a.idEspecialidadMedico
+        JOIN especialidad e ON e.ID = me.idEspecialidad
+        JOIN sucursal s ON s.ID = a.idSucursal
+        WHERE me.idMedico = ?
+            AND h.estado = 'activo'
+        ORDER BY s.nombre, e.nombre, h.dia_semana, h.hora_inicio`, [idMedico]);
+        return rows;
+    },
     async obtenerHorariosPorAgenda(id){
         const [rows] = await pool.query('SELECT a.ID, h.dia_semana, h.fecha_inicio, h.fecha_fin, h.hora_inicio, h.hora_fin, h.estado, h.sobreturnoMax FROM agenda a JOIN horario h ON h.idAgenda = a.ID JOIN medico_especialidad me ON me.ID = a.idEspecialidadMedico WHERE h.estado = "activo" AND a.ID=?;', [id]);
         return rows;

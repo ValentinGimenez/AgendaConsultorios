@@ -9,7 +9,10 @@ router.put('/actualizarHorario/:id', horarioController.update);
 router.delete('/eliminarHorario/:id', horarioController.delete);
 router.get('/obtenerRango/:id', horarioController.obtenerRango);
 router.post('/obtenerAgendaHorario', horarioController.obtenerAgendaHorarios);
+router.get('/obtenerAgendaMedico/:id', horarioController.obtenerAgendaMedico);
 router.get('/obtenerHorariosPorAgenda/:id', horarioController.obtenerHorariosPorAgenda);
+
+
 
 
 module.exports = router;
