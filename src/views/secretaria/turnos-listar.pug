@@ -1,7 +1,7 @@
 extends ../layout
 
 block content
-  - const f = filtros || { fecha: '', idMedico: 'all', idEspecialidad: 'all', idEstadoTurno: 'all' }
+  - const f = filtros || { fecha: '', idMedico: 'all', idEspecialidad: 'all', idEstadoTurno: 'all', idSucursal: 'all' }
   - const ms = Array.isArray(medicos) ? medicos : []
   - const esps = Array.isArray(especialidades) ? especialidades : []
   - const ests = Array.isArray(estados) ? estados : []
@@ -11,7 +11,7 @@ block content
     .filters-container
       .filter-card.date-filter
         .filter-header
-          h3.filter-title Búsqueda por Fecha
+          h3.filter-title Busqueda por Fecha
         .filter-body
           form#formFecha(method="GET", action="/turno/listar")
             .date-form-group
@@ -21,6 +21,7 @@ block content
             input(type="hidden", name="idMedico", value=f.idMedico)
             input(type="hidden", name="idEspecialidad", value=f.idEspecialidad)
             input(type="hidden", name="idEstadoTurno", value=f.idEstadoTurno)
+            input(type="hidden", name="idSucursal", value=f.idSucursal)
 
       .filter-card.advanced-filter
         .filter-header
@@ -30,22 +31,19 @@ block content
             input(type="hidden", name="fecha", value=f.fecha)
             .advanced-form-group
               .form-field
-                label(for="medico") Médico
+                label(for="sucursal") Sucursal
+                select#sucursal(name="idSucursal")
+                  option(value="all") Cargando...
+
+              .form-field
+                label(for="medico") Medico
                 select#medico(name="idMedico")
-                  option(value="all", selected=f.idMedico=='all') Todos los médicos
-                  each m in ms
-                    - const mValue = m.medico_id || m.idMedico || m.id || m.ID
-                    option(value=mValue, selected=String(mValue) === String(f.idMedico))
-                      = m.nombre_completo || m.nombre || `${m.nombre || ''} ${m.apellido || ''}`.trim()
+                  option(value="all") Cargando...
 
               .form-field
                 label(for="especialidad") Especialidad
                 select#especialidad(name="idEspecialidad")
-                  option(value="all", selected=f.idEspecialidad=='all') Todas las especialidades
-                  each e in esps
-                    - const eValue = e.idEspecialidad || e.especialidad_id || e.id || e.ID
-                    option(value=eValue, selected=String(eValue) === String(f.idEspecialidad))
-                      = e.nombre || e.descripcion
+                  option(value="all") Cargando...
 
               .form-field
                 label(for="estado") Estado del Turno
@@ -55,12 +53,14 @@ block content
                     - const stValue = st.id || st.ID
                     option(value=stValue, selected=String(stValue) === String(f.idEstadoTurno))= st.descripcion
 
-              button.btn.btn-primary(type="submit") Aplicar Filtros
+              .filter-buttons
+                button.btn.btn-primary(type="submit") Aplicar Filtros
+                button#btnLimpiarFiltros.btn.btn-secondary(type="button") Limpiar Filtros
 
     .table-container
       .table-header
         .table-title-section
-          h2.table-title Turnos del #{f.fecha || 'día seleccionado'}
+          h2.table-title Turnos del #{f.fecha || 'dia seleccionado'}
         .table-info
           span.turnos-badge Total: #{ts.length} turno(s)
       
@@ -70,7 +70,7 @@ block content
             tr
               th Hora Inicio
               th Hora Fin
-              th Médico
+              th Medico
               th Especialidad
               th Paciente
               th Tipo
@@ -80,7 +80,7 @@ block content
           tbody
             each t in ts
               - const acc = Array.isArray(t.acciones) ? t.acciones : []
-              tr
+              tr(data-turno-id=t.ID data-turno-hora=t.hora_inicio data-turno-horafin=t.hora_fin data-turno-medico=t.medico data-turno-especialidad=t.especialidad data-turno-paciente=(t.paciente || '') data-turno-tipo=t.tipo data-turno-motivo=(t.motivo_consulta || '') data-turno-estado=t.estado data-turno-idestado=t.idEstadoTurno data-turno-fecha=f.fecha)
                 td.time-cell= t.hora_inicio
                 td.time-cell= t.hora_fin
                 td.text-cell= t.medico
@@ -98,6 +98,10 @@ block content
                 td.badge-cell
                   span.badge(class=`badge-estado-${t.idEstadoTurno}`)= t.estado
                 
+                -
+                  var esLibre = !t.paciente || String(t.estado).toLowerCase() === 'libre'
+                  var esCancelado = String(t.idEstadoTurno) === '6' || String(t.estado).toLowerCase() === 'cancelado'
+                  var esAtendido = String(t.estado).toLowerCase() === 'atendido'
                 td.actions-cell
                   .action-buttons
                     if acc.length
@@ -106,133 +110,176 @@ block content
                           input(type="hidden", name="idEstadoTurno", value=a.to)
                           input(type="hidden", name="tipo", value=t.tipo)
                           button.action-btn(type="submit", class=a.class, title=a.title, aria-label=a.title)= a.icon
-                    else
-                      span.no-actions -
+                    
+                    if esLibre && !esCancelado
+                      button.action-btn.btn-agendar(type="button", title="Agendar turno", aria-label="Agendar turno", data-turno-id=t.ID, data-turno-hora=t.hora_inicio, data-turno-horafin=t.hora_fin, data-turno-medico=t.medico, data-turno-especialidad=t.especialidad, data-turno-fecha=f.fecha) +
+                    
+                    if esAtendido && !esCancelado
+                      button.action-btn.btn-copiar(type="button", title="Copiar turno", aria-label="Copiar turno", data-turno-id=t.ID) &#9112;
+                    if !esLibre && !esCancelado && !esAtendido && t.paciente
+                      button.action-btn.btn-transferir(type="button", title="Transferir turno", aria-label="Transferir turno", data-turno-id=t.ID) &#8644;
+                      button.action-btn.btn-copiar(type="button", title="Copiar turno", aria-label="Copiar turno", data-turno-id=t.ID) &#9112;
 
-  script(src='https://code.jquery.com/jquery-3.7.1.min.js')
-  script(src='https://cdn.datatables.net/2.1.8/js/dataTables.min.js')
-  script.
-    $(document).ready(function () {
-      const table = $('#tablaTurnos').DataTable({
-        dom: 'frtip',
-        pageLength: 50,
-        order: [[0, 'asc']],
-        info: false,
-        language: {
-          search: "Buscar:",
-          searchPlaceholder: "Filtrar en la tabla...",
-          zeroRecords: "No hay turnos para mostrar",
-          infoEmpty: "No hay datos",
-          infoFiltered: "(filtrado de _MAX_ totales)",
-          lengthMenu: "Mostrar _MENU_",
-          paginate: { first: "Primero", last: "Último", next: "›", previous: "‹" }
-        },
-        scrollX: false,
-        autoWidth: false,
-        responsive: true,
-        columnDefs: [
-          { targets: [0, 1], width: '80px' },
-          { targets: [2, 3, 4], width: '140px' },
-          { targets: 5, width: '100px' },
-          { targets: 6, width: '180px' },
-          { targets: 7, width: '110px' },
-          { targets: 8, width: '140px', orderable: false }
-        ]
-      });
+    #wizardModal.wizard-modal-overlay
+      .wizard-modal-box
+        .wizard-modal-header
+          h3#wizardModalTitle Transferir Turno
+          button#wizardModalClose.wizard-modal-close-btn &times;
+        .wizard-modal-body
+          .turno-origen-card
+            h4 Turno Original
+            .turno-origen-info
+              .turno-dato
+                strong Paciente:
+                span#origenPaciente -
+              .turno-dato
+                strong Medico:
+                span#origenMedico -
+              .turno-dato
+                strong Especialidad:
+                span#origenEspecialidad -
+              .turno-dato
+                strong Hora:
+                span#origenHora -
+              .turno-dato
+                strong Fecha:
+                span#origenFecha -
+              .turno-dato
+                strong Motivo:
+                span#origenMotivo -
 
-      $('form.action-form button').on('click', function(e) {
-        const action = $(this).attr('title');
-        if (action && !confirm(`¿Confirmar: ${action}?`)) {
-          e.preventDefault();
-        }
-      });
+          //- Filtros para seleccionar agenda destino
+          .wizard-section
+            h4.wizard-section-title Seleccionar destino
+            .wizard-filtros
+              .wizard-field
+                label Sucursal
+                select#wizSucursal
+                  option(value="") Seleccionar sucursal
+              .wizard-field
+                label Especialidad
+                select#wizEspecialidad
+                  option(value="") Seleccionar especialidad
+              .wizard-field
+                label Medico
+                select#wizMedico
+                  option(value="") Seleccionar medico
+              .wizard-field
+                button#wizLimpiar.btn.btn-secondary Limpiar
 
-      const medicoSel = document.getElementById('medico');
-      const espSel = document.getElementById('especialidad');
-      const fechaInput = document.getElementById('fecha');
+          .wizard-section
+            .wizard-agenda-info
+              span#wizAgendaMedico
+              span#wizAgendaEspecialidad
+            .wizard-calendar-container
+              #wizCalendar.wizard-calendar
+              .wizard-horas-panel
+                h4#wizDateTitle Selecciona una fecha
+                #wizTimeFilter(style="display:none")
+                #wizAvailableTimes
+                table#wizTablaHoras.display(style="width:100%; display:none;")
+                  thead
+                    tr
+                      th
+                      th
+                      th
+                  tbody
 
-      const getEspId = (e) => e?.idEspecialidad ?? e?.especialidad_id ?? e?.id ?? e?.ID;
-      const getEspNombre = (e) => e?.nombre ?? e?.descripcion ?? `Especialidad ${getEspId(e)}`;
-      const getMedicoId = (m) => m?.medico_id ?? m?.idMedico ?? m?.id ?? m?.ID;
-      const getMedicoNombre = (m) => m?.nombre_completo ?? m?.nombre ?? `${m?.nombre || ''} ${m?.apellido || ''}`.trim();
+        .wizard-modal-footer
+          button#wizCancelar.btn.btn-secondary Cancelar
+          button#wizConfirmar.btn.btn-primary(disabled) Confirmar
 
-      async function actualizarEspecialidades(medicoId, prevEsp = 'all') {
-        const url = medicoId === 'all' 
-          ? `/medico_especialidad/obtenerTodasEspecialidades`
-          : `/medico_especialidad/obtenerEspecialidad/${medicoId}`;
-        try {
-          const res = await fetch(url);
-          if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
-          const data = await res.json();
-          const fragment = document.createDocumentFragment();
-          const defaultOpt = document.createElement('option');
-          defaultOpt.value = 'all';
-          defaultOpt.textContent = 'Todas las especialidades';
-          fragment.appendChild(defaultOpt);
-          data.forEach(e => {
-            const id = getEspId(e);
-            if (!id) return;
-            const opt = document.createElement('option');
-            opt.value = String(id);
-            opt.textContent = getEspNombre(e);
-            fragment.appendChild(opt);
-          });
-          espSel.innerHTML = '';
-          espSel.appendChild(fragment);
-          espSel.value = prevEsp;
-          if (espSel.selectedIndex === -1) espSel.value = 'all';
-        } catch (err) {
-          console.error('Error al cargar especialidades:', err);
-        }
-      }
+    #agendarModal.wizard-modal-overlay
+      .wizard-modal-box.agendar-box
+        .wizard-modal-header
+          h3#agendarModalTitle Agendar Turno
+          button#agendarModalClose.wizard-modal-close-btn &times;
+        .wizard-modal-body
+          .turno-origen-card
+            h4 Turno Seleccionado
+            .turno-origen-info
+              .turno-dato
+                strong Medico:
+                span#agendarMedico -
+              .turno-dato
+                strong Especialidad:
+                span#agendarEspecialidad -
+              .turno-dato
+                strong Hora:
+                span#agendarHora -
+              .turno-dato
+                strong Fecha:
+                span#agendarFecha -
+          .wizard-section
+            h4.wizard-section-title Buscar Paciente
+            .agendar-buscar-row
+              input#agendarBuscarDni(type="text", placeholder="Ingrese DNI sin puntos...", maxlength="15", autocomplete="off")
+              button#agendarBuscarBtn.btn.btn-primary(type="button") Buscar
+            .agendar-paciente-info#agendarPacienteInfo
+              span.agendar-pac-nombre#agendarPacNombre
+              span.agendar-pac-dni#agendarPacDni
+              button.agendar-btn-limpiar(type="button", id="agendarBtnLimpiar") Cambiar
+            .agendar-paciente-error#agendarErrorPaciente
+          .wizard-section
+            h4.wizard-section-title Motivo de consulta
+            textarea#agendarMotivo(rows="2", placeholder="Motivo de la consulta...", style="width:100%;border:2px solid #cbd5e0;border-radius:8px;padding:0.5rem;font-family:inherit;font-size:0.875rem;")
+        .wizard-modal-footer
+          button#agendarCancelar.btn.btn-secondary Cancelar
+          button#agendarConfirmar.btn.btn-primary(disabled) Confirmar Turno
 
-      async function actualizarMedicos(espId, prevMedico = 'all') {
-        const url = espId === 'all'
-          ? `/medico_especialidad/obtenerTodosMedicos`
-          : `/medico_especialidad/obtenerMedicosActivos/${espId}`;
-        try {
-          const res = await fetch(url);
-          if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
-          const data = await res.json();
-          const fragment = document.createDocumentFragment();
-          const defaultOpt = document.createElement('option');
-          defaultOpt.value = 'all';
-          defaultOpt.textContent = 'Todos los médicos';
-          fragment.appendChild(defaultOpt);
-          data.forEach(m => {
-            const id = getMedicoId(m);
-            if (!id) return;
-            const opt = document.createElement('option');
-            opt.value = String(id);
-            opt.textContent = getMedicoNombre(m);
-            fragment.appendChild(opt);
-          });
-          medicoSel.innerHTML = '';
-          medicoSel.appendChild(fragment);
-          medicoSel.value = prevMedico;
-          if (medicoSel.selectedIndex === -1) medicoSel.value = 'all';
-        } catch (err) {
-          console.error('Error al cargar médicos:', err);
-        }
-      }
+    #confirmModal.wizard-modal-overlay
+      .wizard-modal-box.confirm-box
+        .wizard-modal-header
+          h3#confirmModalTitle Confirmar Transferencia
+          button#confirmModalClose.wizard-modal-close-btn &times;
+        .wizard-modal-body
+          .confirm-detail
+            .confirm-col
+              h4 Turno Original
+              p
+                strong Paciente:
+                span#confOrigenPaciente
+              p
+                strong Medico:
+                span#confOrigenMedico
+              p
+                strong Fecha:
+                span#confOrigenFecha
+              p
+                strong Hora:
+                span#confOrigenHora
+            .confirm-arrow &#10132;
+            .confirm-col
+              h4 Nuevo Destino
+              p
+                strong Medico:
+                span#confDestinoMedico
+              p
+                strong Especialidad:
+                span#confDestinoEspecialidad
+              p
+                strong Sucursal:
+                span#confDestinoSucursal
+              p
+                strong Fecha:
+                span#confDestinoFecha
+              p
+                strong Hora:
+                span#confDestinoHora
+          .confirm-motivo
+            label Motivo de consulta:
+            textarea#confMotivo(rows="2")
+        .wizard-modal-footer
+          button#confCancelar.btn.btn-secondary Cancelar
+          button#confAceptar.btn.btn-primary Confirmar
 
-      medicoSel.addEventListener('change', () => {
-        actualizarEspecialidades(medicoSel.value, espSel.value);
-      });
-
-      espSel.addEventListener('change', () => {
-        actualizarMedicos(espSel.value, medicoSel.value);
-      });
-
-      if (fechaInput && !fechaInput.value) {
-        fechaInput.value = new Date().toISOString().split('T')[0];
-      }
-
-      $('form').on('submit', function() {
-        const btn = $(this).find('button[type="submit"]');
-        btn.prop('disabled', true).text('Procesando...');
-      });
-    });
+  link(rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css")
+  script(src="https://code.jquery.com/jquery-3.7.1.min.js")
+  script(src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js")
+  script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/index.global.min.js")
+  script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.15/index.global.min.js")
+  script(src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.15/index.global.min.js")
+  script(src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js")
 
   style.
     .turnos-page { width: 100%; }
@@ -295,9 +342,33 @@ block content
 
     .advanced-form-group {
       display: grid;
-      grid-template-columns: repeat(3, 1fr) auto;
+      grid-template-columns: repeat(2, 1fr);
       gap: 1rem;
       align-items: flex-end;
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      grid-column: 1 / -1;
+      padding-top: 0.25rem;
+    }
+
+    .btn-secondary {
+      background-color: #718096;
+      color: white;
+      border: none;
+      padding: 0.625rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background-color: #4a5568;
     }
 
     .form-field {
@@ -349,9 +420,20 @@ block content
       transform: translateY(-1px);
     }
 
+    .btn-secondary {
+      background: #edf2f7;
+      color: #4a5568;
+      border: 1px solid #cbd5e0;
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
     .btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+      transform: none !important;
     }
 
     .table-container {
@@ -448,7 +530,7 @@ block content
     .badge-estado-8 { background: #bee3f8; color: #2c5282; }
     .badge-estado-9 { background: #e9d8fd; color: #553c9a; }
 
-    .action-buttons { display: flex; gap: 0.375rem; }
+    .action-buttons { display: flex; gap: 0.375rem; flex-wrap: wrap; }
     .action-form { display: inline; }
     .action-btn { width: 32px; height: 32px; border: none; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 0.875rem; transition: all 0.2s; color: white; }
     .action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); }
@@ -459,7 +541,304 @@ block content
     .btn-consulta { background: #9f7aea; }
     .btn-atendido { background: #38a169; }
     .btn-liberar { background: #fc8181; }
+    .btn-transferir { background: #0891b2; font-size: 1rem; }
+    .btn-transferir:hover { background: #0e7490; }
+    .btn-copiar { background: #7c3aed; font-size: 1rem; }
+    .btn-copiar:hover { background: #6d28d9; }
+    .btn-agendar { background: #38a169; font-size: 1.1rem; font-weight: 700; }
+    .btn-agendar:hover { background: #2f855a; }
     .no-actions { color: #cbd5e0; }
+
+    .agendar-box { max-width: 650px; }
+    .agendar-buscar-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .agendar-buscar-row input {
+      flex: 1;
+      padding: 0.625rem 0.875rem;
+      border: 2px solid #cbd5e0;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+    }
+    .agendar-buscar-row input:focus {
+      outline: none;
+      border-color: #3182ce;
+      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+    }
+    .agendar-paciente-info {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-top: 0.5rem;
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .agendar-paciente-info.show { display: flex; }
+    .agendar-pac-nombre { font-weight: 600; color: #166534; text-transform: uppercase; }
+    .agendar-pac-dni { font-size: 0.85rem; color: #15803d; }
+    .agendar-btn-limpiar {
+      background: none; border: none; color: #dc2626; cursor: pointer;
+      font-size: 0.8rem; padding: 0; margin-left: auto; text-decoration: underline;
+    }
+    .agendar-btn-limpiar:hover { color: #991b1b; }
+    .agendar-paciente-error {
+      color: #dc2626;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      display: none;
+    }
+    .agendar-paciente-error.show { display: block; }
+
+    .wizard-modal-overlay {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 30px;
+      overflow-y: auto;
+    }
+    .wizard-modal-overlay.active {
+      display: flex;
+    }
+    .wizard-modal-box {
+      background: #fff;
+      border-radius: 14px;
+      width: 95%;
+      max-width: 1100px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      animation: wizSlideIn 0.3s ease;
+      margin-bottom: 30px;
+    }
+    .confirm-box { max-width: 700px; }
+    .wizard-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 1.5rem;
+      background: #f7fafc;
+      border-bottom: 1px solid #e2e8f0;
+      border-radius: 14px 14px 0 0;
+    }
+    .wizard-modal-header h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #2d3748;
+    }
+    .wizard-modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 1.6rem;
+      cursor: pointer;
+      color: #718096;
+      line-height: 1;
+    }
+    .wizard-modal-close-btn:hover { color: #2d3748; }
+    .wizard-modal-body { padding: 1.5rem; }
+    .wizard-modal-footer {
+      padding: 1rem 1.5rem;
+      background: #f7fafc;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      border-radius: 0 0 14px 14px;
+    }
+
+    .turno-origen-card {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .turno-origen-card h4 {
+      margin: 0 0 0.75rem 0;
+      color: #0c4a6e;
+      font-size: 0.95rem;
+    }
+    .turno-origen-info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem 1.5rem;
+    }
+    .turno-dato { font-size: 0.875rem; }
+    .turno-dato strong { color: #475569; margin-right: 4px; }
+    .turno-dato span { color: #1e293b; }
+
+    .wizard-section { margin-bottom: 1.25rem; }
+    .wizard-section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #2d3748;
+      margin: 0 0 0.75rem 0;
+    }
+    .wizard-filtros {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 1rem;
+      align-items: end;
+    }
+    .wizard-field { display: flex; flex-direction: column; }
+    .wizard-field label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #4a5568;
+      margin-bottom: 0.35rem;
+    }
+
+    .wizard-agenda-info {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+      font-size: 1rem;
+      color: #2d3748;
+    }
+    .wizard-calendar-container {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+    }
+    .wizard-calendar { min-height: 300px; }
+    .wizard-horas-panel { max-height: 420px; overflow-y: auto; }
+
+    .wiz-btn-hora {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 2px solid transparent;
+      min-width: 80px;
+      text-align: center;
+    }
+    .wiz-btn-hora.libre {
+      background: #e0f7fa;
+      color: #00695c;
+      border-color: #b2dfdb;
+    }
+    .wiz-btn-hora.libre:hover {
+      background: #b2dfdb;
+      transform: translateY(-1px);
+    }
+    .wiz-btn-hora.libre.selected {
+      background: #3182ce;
+      color: #fff;
+      border-color: #2c5282;
+    }
+    .wiz-btn-hora.ocupado {
+      background: #fef5e7;
+      color: #d69e2e;
+      border-color: #fbd38d;
+    }
+    .wiz-btn-hora.ocupado:hover {
+      background: #fbd38d;
+      transform: translateY(-1px);
+    }
+    .wiz-btn-hora.ocupado.selected {
+      background: #d69e2e;
+      color: #fff;
+      border-color: #b7791f;
+    }
+
+    .confirm-detail {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .confirm-col { flex: 1; }
+    .confirm-col h4 {
+      margin: 0 0 0.75rem 0;
+      color: #2d3748;
+      font-size: 1rem;
+    }
+    .confirm-col p { margin: 0.35rem 0; font-size: 0.875rem; }
+    .confirm-col strong { color: #475569; display: inline-block; width: 100px; }
+    .confirm-arrow {
+      font-size: 2rem;
+      color: #3182ce;
+      display: flex;
+      align-items: center;
+      padding-top: 2rem;
+    }
+    .confirm-motivo { margin-top: 0.75rem; }
+    .confirm-motivo label { font-size: 0.875rem; font-weight: 600; color: #475569; display: block; margin-bottom: 0.35rem; }
+    .confirm-motivo textarea {
+      width: 100%;
+      border: 2px solid #cbd5e0;
+      border-radius: 8px;
+      padding: 0.5rem;
+      font-family: inherit;
+      font-size: 0.875rem;
+    }
+
+    .wiz-turnos-vacio {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 2rem 0;
+    }
+
+    .wiz-time-filter-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .wiz-time-filter-row label { font-size: 0.8rem; font-weight: 500; color: #475569; }
+    .wiz-time-filter-row input[type="time"] {
+      padding: 0.4rem 0.5rem;
+      border: 2px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+    .wiz-time-filter-row button {
+      padding: 0.4rem 0.75rem;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      background: #f7fafc;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .turno-reservado {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: #3182ce;
+      color: white;
+      border-radius: 999px;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+    }
+    .selected-day { background: #bee3f8 !important; }
+
+    @keyframes wizSlideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
     .dataTables_wrapper .dataTables_filter { margin-bottom: 1.25rem; }
     .dataTables_wrapper .dataTables_filter label { font-weight: 500; color: #4a5568; display: flex; align-items: center; gap: 0.75rem; }
@@ -474,9 +853,925 @@ block content
     @media (max-width: 1200px) {
       .filters-container { grid-template-columns: 1fr; }
       .advanced-form-group { grid-template-columns: 1fr; }
+      .wizard-filtros { grid-template-columns: 1fr 1fr; }
+      .wizard-calendar-container { grid-template-columns: 1fr; }
+      .turno-origen-info { grid-template-columns: 1fr 1fr; }
     }
 
     @media (max-width: 768px) {
       .table-content { padding: 1rem; }
       .dataTables_wrapper .dataTables_filter input { min-width: 100%; }
+      .wizard-filtros { grid-template-columns: 1fr; }
+      .confirm-detail { flex-direction: column; }
+      .confirm-arrow { transform: rotate(90deg); align-self: center; padding: 0; }
+      .turno-origen-info { grid-template-columns: 1fr; }
     }
+
+  script.
+    $(document).ready(function () {
+      const table = $('#tablaTurnos').DataTable({
+        dom: 'frtip',
+        pageLength: 50,
+        order: [[0, 'asc']],
+        info: false,
+        language: {
+          search: "Buscar:",
+          searchPlaceholder: "Filtrar en la tabla...",
+          zeroRecords: "No hay turnos para mostrar",
+          infoEmpty: "No hay datos",
+          infoFiltered: "(filtrado de _MAX_ totales)",
+          lengthMenu: "Mostrar _MENU_",
+          paginate: { first: "Primero", last: "Ultimo", next: "\u203A", previous: "\u2039" }
+        },
+        scrollX: false,
+        autoWidth: false,
+        responsive: true,
+        columnDefs: [
+          { targets: [0, 1], width: '80px' },
+          { targets: [2, 3, 4], width: '140px' },
+          { targets: 5, width: '100px' },
+          { targets: 6, width: '180px' },
+          { targets: 7, width: '110px' },
+          { targets: 8, width: '160px', orderable: false }
+        ]
+      });
+
+      $('form.action-form button').on('click', function(e) {
+        const action = $(this).attr('title');
+        if (action && !confirm('Confirmar: ' + action + '?')) {
+          e.preventDefault();
+        }
+      });
+
+      var filtroSucursal = document.getElementById('sucursal');
+      var filtroMedico = document.getElementById('medico');
+      var filtroEspecialidad = document.getElementById('especialidad');
+      var fechaInput = document.getElementById('fecha');
+
+      var _urlParams = new URLSearchParams(window.location.search);
+
+      function _getPrevFiltro(urlKey, backendVal) {
+        var fromUrl = (_urlParams.get(urlKey) || '').trim();
+        if (fromUrl && fromUrl !== 'all' && fromUrl !== 'undefined' && fromUrl !== 'null') {
+          return fromUrl;
+        }
+        var fromBackend = String(backendVal || '').trim();
+        if (fromBackend && fromBackend !== 'all' && fromBackend !== 'undefined' && fromBackend !== 'null') {
+          return fromBackend;
+        }
+        return 'all';
+      }
+
+      var prevSucursal = _getPrevFiltro('idSucursal', '#{f.idSucursal}');
+      var prevMedico = _getPrevFiltro('idMedico', '#{f.idMedico}');
+      var prevEspecialidad = _getPrevFiltro('idEspecialidad', '#{f.idEspecialidad}');
+
+      var filtroAgendas = [];
+
+      function filtroUniqueBy(arr, key) {
+        var seen = {};
+        return arr.filter(function(item) {
+          var k = String(item[key]);
+          if (seen[k]) return false;
+          seen[k] = true;
+          return true;
+        });
+      }
+
+      function filtroFillSelect(sel, items, valueKey, labelKey, placeholderText, desiredValue) {
+        sel.innerHTML = '';
+        var optAll = document.createElement('option');
+        optAll.value = 'all';
+        optAll.textContent = placeholderText;
+        sel.appendChild(optAll);
+        items.forEach(function(item) {
+          var opt = document.createElement('option');
+          opt.value = String(item[valueKey]).trim();
+          opt.textContent = item[labelKey];
+          sel.appendChild(opt);
+        });
+        var targetVal = (desiredValue && desiredValue !== 'all') ? String(desiredValue).trim() : '';
+        if (targetVal) {
+          var found = false;
+          for (var i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value.trim() === targetVal) {
+              sel.selectedIndex = i;
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            sel.selectedIndex = 0;
+          }
+        } else {
+          sel.selectedIndex = 0;
+        }
+      }
+
+      var _filtroCascadaUpdating = false;
+
+      function actualizarFiltrosCascadaConValores(sId, mId, eId) {
+        if (_filtroCascadaUpdating) return;
+        _filtroCascadaUpdating = true;
+
+        sId = (sId && sId !== 'all') ? String(sId).trim() : 'all';
+        mId = (mId && mId !== 'all') ? String(mId).trim() : 'all';
+        eId = (eId && eId !== 'all') ? String(eId).trim() : 'all';
+
+        var all = filtroAgendas;
+
+        function matchId(agendaVal, filterVal) {
+          return String(agendaVal).trim() === filterVal;
+        }
+
+        var baseSuc = all.slice();
+        if (eId !== 'all') baseSuc = baseSuc.filter(function(a) { return matchId(a.idEspecialidad, eId); });
+        if (mId !== 'all') baseSuc = baseSuc.filter(function(a) { return matchId(a.idMedico, mId); });
+        var sucursales = filtroUniqueBy(baseSuc.map(function(a) {
+          return {
+            idSucursal: String(a.idSucursal).trim(),
+            sucursalLabel: (a.sucursalNombre || 'Sucursal ' + a.idSucursal) + (a.sucursalDireccion ? ' - ' + a.sucursalDireccion : '')
+          };
+        }), 'idSucursal').sort(function(a, b) { return a.sucursalLabel.localeCompare(b.sucursalLabel); });
+
+        var baseMed = all.slice();
+        if (sId !== 'all') baseMed = baseMed.filter(function(a) { return matchId(a.idSucursal, sId); });
+        if (eId !== 'all') baseMed = baseMed.filter(function(a) { return matchId(a.idEspecialidad, eId); });
+        var medicos = filtroUniqueBy(baseMed.map(function(a) {
+          return { idMedico: String(a.idMedico).trim(), medicoNombre: a.medicoNombre || 'Medico ' + a.idMedico };
+        }), 'idMedico').sort(function(a, b) { return a.medicoNombre.localeCompare(b.medicoNombre); });
+
+        var baseEsp = all.slice();
+        if (sId !== 'all') baseEsp = baseEsp.filter(function(a) { return matchId(a.idSucursal, sId); });
+        if (mId !== 'all') baseEsp = baseEsp.filter(function(a) { return matchId(a.idMedico, mId); });
+        var especialidades = filtroUniqueBy(baseEsp.map(function(a) {
+          return { idEspecialidad: String(a.idEspecialidad).trim(), especialidadNombre: a.especialidadNombre || 'Especialidad ' + a.idEspecialidad };
+        }), 'idEspecialidad').sort(function(a, b) { return a.especialidadNombre.localeCompare(b.especialidadNombre); });
+
+        filtroFillSelect(filtroSucursal, sucursales, 'idSucursal', 'sucursalLabel', 'Todas las sucursales', sId);
+        filtroFillSelect(filtroMedico, medicos, 'idMedico', 'medicoNombre', 'Todos los medicos', mId);
+        filtroFillSelect(filtroEspecialidad, especialidades, 'idEspecialidad', 'especialidadNombre', 'Todas las especialidades', eId);
+
+        _filtroCascadaUpdating = false;
+      }
+
+      function actualizarFiltrosCascada() {
+        actualizarFiltrosCascadaConValores(
+          filtroSucursal.value,
+          filtroMedico.value,
+          filtroEspecialidad.value
+        );
+      }
+
+      async function cargarFiltrosCascada() {
+        try {
+          var res = await fetch('/agenda/activas', {
+            method: 'GET', credentials: 'same-origin', headers: { 'Accept': 'application/json' }
+          });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          var data = await res.json();
+          filtroAgendas = Array.isArray(data) ? data : [];
+
+          actualizarFiltrosCascadaConValores(prevSucursal, prevMedico, prevEspecialidad);
+
+        } catch (err) {
+          console.error('Error al cargar filtros:', err);
+          filtroFillSelect(filtroSucursal, [], 'idSucursal', 'sucursalLabel', 'Todas las sucursales', 'all');
+          filtroFillSelect(filtroMedico, [], 'idMedico', 'medicoNombre', 'Todos los medicos', 'all');
+          filtroFillSelect(filtroEspecialidad, [], 'idEspecialidad', 'especialidadNombre', 'Todas las especialidades', 'all');
+        }
+      }
+
+      filtroSucursal.addEventListener('change', actualizarFiltrosCascada);
+      filtroMedico.addEventListener('change', actualizarFiltrosCascada);
+      filtroEspecialidad.addEventListener('change', actualizarFiltrosCascada);
+
+      if (fechaInput && !fechaInput.value) fechaInput.value = new Date().toISOString().split('T')[0];
+
+      cargarFiltrosCascada();
+
+      $('#filtrosForm').on('submit', function() {
+        var formFecha = document.getElementById('formFecha');
+        if (formFecha) {
+          formFecha.querySelector('input[name="idSucursal"]').value = filtroSucursal.value;
+          formFecha.querySelector('input[name="idMedico"]').value = filtroMedico.value;
+          formFecha.querySelector('input[name="idEspecialidad"]').value = filtroEspecialidad.value;
+          var estadoSel = document.getElementById('estado');
+          if (estadoSel) formFecha.querySelector('input[name="idEstadoTurno"]').value = estadoSel.value;
+        }
+        $(this).find('button[type="submit"]').prop('disabled', true).text('Aplicando...');
+      });
+
+      $('#formFecha').on('submit', function() {
+        var hiddenSuc = this.querySelector('input[name="idSucursal"]');
+        var hiddenMed = this.querySelector('input[name="idMedico"]');
+        var hiddenEsp = this.querySelector('input[name="idEspecialidad"]');
+        var hiddenEst = this.querySelector('input[name="idEstadoTurno"]');
+        if (hiddenSuc) hiddenSuc.value = filtroSucursal.value;
+        if (hiddenMed) hiddenMed.value = filtroMedico.value;
+        if (hiddenEsp) hiddenEsp.value = filtroEspecialidad.value;
+        var estadoSel = document.getElementById('estado');
+        if (hiddenEst && estadoSel) hiddenEst.value = estadoSel.value;
+        $(this).find('button[type="submit"]').prop('disabled', true).text('Buscando...');
+      });
+
+      $('form.action-form').on('submit', function() {
+        $(this).find('button[type="submit"]').prop('disabled', true);
+      });
+
+      document.getElementById('btnLimpiarFiltros').addEventListener('click', function() {
+        filtroSucursal.value = 'all';
+        filtroMedico.value = 'all';
+        filtroEspecialidad.value = 'all';
+        var estadoSel = document.getElementById('estado');
+        if (estadoSel) estadoSel.value = 'all';
+        actualizarFiltrosCascada();
+      });
+
+
+      let wizMode = ''; // 'transferir' | 'copiar'
+      let turnoOrigen = {};
+      let wizAgendas = [];
+      let wizAgendasView = [];
+      let wizCalendar = null;
+      let wizDtHoras = null;
+      let wizSelectedTurno = null; // { id, idAgenda, hora_inicio, fecha, esSobre }
+      const wizSucursalesPorAgenda = {};
+
+      const $wizModal = $('#wizardModal');
+      const $confModal = $('#confirmModal');
+
+      const wizSucursal = document.getElementById('wizSucursal');
+      const wizEspecialidad = document.getElementById('wizEspecialidad');
+      const wizMedico = document.getElementById('wizMedico');
+
+      function wizSetPlaceholder(sel, text) {
+        sel.innerHTML = '';
+        var opt = document.createElement('option');
+        opt.value = ''; opt.textContent = text; opt.disabled = true; opt.selected = true;
+        sel.appendChild(opt);
+      }
+      function wizFillSelect(sel, items, valueKey, labelKey, placeholder) {
+        wizSetPlaceholder(sel, placeholder);
+        items.forEach(function(it) {
+          var opt = document.createElement('option');
+          opt.value = String(it[valueKey]); opt.textContent = it[labelKey];
+          sel.appendChild(opt);
+        });
+        sel.disabled = false;
+      }
+      function wizUniqueBy(arr, key) {
+        var map = new Map();
+        arr.forEach(function(x) { map.set(x[key], x); });
+        return Array.from(map.values());
+      }
+      function wizTimeToMinutes(hhmmss) {
+        var parts = String(hhmmss).split(':');
+        return Number(parts[0]) * 60 + Number(parts[1]);
+      }
+      function wizMinutesToHHMM(min) {
+        return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0');
+      }
+
+      function wizBuildSucursalPorAgenda(agendas) {
+        agendas.forEach(function(a) {
+          if (!a.idAgenda) return;
+          wizSucursalesPorAgenda[a.idAgenda] = { idSucursal: a.idSucursal, nombre: a.sucursalNombre, direccion: a.sucursalDireccion };
+        });
+      }
+
+      function wizBuildFilters(agendas) {
+        var sucursales = wizUniqueBy(agendas.map(function(a) {
+          return { idSucursal: a.idSucursal, sucursalLabel: a.sucursalNombre + ' - ' + a.sucursalDireccion };
+        }), 'idSucursal').sort(function(a, b) { return a.sucursalLabel.localeCompare(b.sucursalLabel); });
+
+        var especialidades = wizUniqueBy(agendas.map(function(a) {
+          return { idEspecialidad: a.idEspecialidad, especialidadNombre: a.especialidadNombre };
+        }), 'idEspecialidad').sort(function(a, b) { return a.especialidadNombre.localeCompare(b.especialidadNombre); });
+
+        var medicos = wizUniqueBy(agendas.map(function(a) {
+          return { idMedico: a.idMedico, medicoNombre: a.medicoNombre };
+        }), 'idMedico').sort(function(a, b) { return a.medicoNombre.localeCompare(b.medicoNombre); });
+
+        wizFillSelect(wizSucursal, sucursales, 'idSucursal', 'sucursalLabel', 'Seleccione una sucursal');
+        wizFillSelect(wizEspecialidad, especialidades, 'idEspecialidad', 'especialidadNombre', 'Seleccione una especialidad');
+        wizFillSelect(wizMedico, medicos, 'idMedico', 'medicoNombre', 'Seleccione un medico');
+      }
+
+      function wizRefreshBidirectional() {
+        var sId = wizSucursal.value, eId = wizEspecialidad.value, mId = wizMedico.value;
+        var all = wizAgendas;
+
+        var baseSuc = all.slice();
+        if (eId) baseSuc = baseSuc.filter(function(a) { return String(a.idEspecialidad) === eId; });
+        if (mId) baseSuc = baseSuc.filter(function(a) { return String(a.idMedico) === mId; });
+        var sucursales = wizUniqueBy(baseSuc.map(function(a) {
+          return { idSucursal: a.idSucursal, sucursalLabel: a.sucursalNombre + ' - ' + a.sucursalDireccion };
+        }), 'idSucursal').sort(function(a,b){return a.sucursalLabel.localeCompare(b.sucursalLabel)});
+
+        var baseEsp = all.slice();
+        if (sId) baseEsp = baseEsp.filter(function(a) { return String(a.idSucursal) === sId; });
+        if (mId) baseEsp = baseEsp.filter(function(a) { return String(a.idMedico) === mId; });
+        var especialidades = wizUniqueBy(baseEsp.map(function(a) {
+          return { idEspecialidad: a.idEspecialidad, especialidadNombre: a.especialidadNombre };
+        }), 'idEspecialidad').sort(function(a,b){return a.especialidadNombre.localeCompare(b.especialidadNombre)});
+
+        var baseMed = all.slice();
+        if (sId) baseMed = baseMed.filter(function(a) { return String(a.idSucursal) === sId; });
+        if (eId) baseMed = baseMed.filter(function(a) { return String(a.idEspecialidad) === eId; });
+        var medicos = wizUniqueBy(baseMed.map(function(a) {
+          return { idMedico: a.idMedico, medicoNombre: a.medicoNombre };
+        }), 'idMedico').sort(function(a,b){return a.medicoNombre.localeCompare(b.medicoNombre)});
+
+        wizFillSelect(wizSucursal, sucursales, 'idSucursal', 'sucursalLabel', 'Sucursales');
+        wizFillSelect(wizEspecialidad, especialidades, 'idEspecialidad', 'especialidadNombre', 'Especialidades');
+        wizFillSelect(wizMedico, medicos, 'idMedico', 'medicoNombre', 'Medicos');
+
+        if (sId && sucursales.some(function(x){return String(x.idSucursal)===sId})) wizSucursal.value = sId; else wizSucursal.value = '';
+        if (eId && especialidades.some(function(x){return String(x.idEspecialidad)===eId})) wizEspecialidad.value = eId; else wizEspecialidad.value = '';
+        if (mId && medicos.some(function(x){return String(x.idMedico)===mId})) wizMedico.value = mId; else wizMedico.value = '';
+      }
+
+      function wizGetAgendasSeleccionadas() {
+        var mId = wizMedico.value, eId = wizEspecialidad.value, sId = wizSucursal.value;
+        return wizAgendas.filter(function(a) {
+          return String(a.idMedico) === mId && String(a.idEspecialidad) === eId && (!sId || String(a.idSucursal) === sId);
+        });
+      }
+
+      function wizObtenerDiasSemana(horarios) {
+        var map = { LUNES:1, MARTES:2, MIERCOLES:3, JUEVES:4, VIERNES:5, SABADO:6 };
+        var set = new Set();
+        horarios.forEach(function(h) {
+          if (!h.dia_semana) return;
+          var n = map[String(h.dia_semana).trim().toUpperCase()];
+          if (n) set.add(n);
+        });
+        return Array.from(set).sort();
+      }
+
+      function wizCrearCalendario(diasSemana, turnosLibres, turnosReservados, sobreturnos, maxSobPorAgenda) {
+        var selectedDayEl = null;
+        var calEl = document.getElementById('wizCalendar');
+
+        var sobreturnosPorFecha = new Map();
+        var sobreturnoPorHorario = new Set();
+        sobreturnos.forEach(function(t) {
+          var fecha = new Date(t.fecha).toISOString().split('T')[0];
+          var kDia = t.idAgenda + '|' + fecha;
+          sobreturnosPorFecha.set(kDia, (sobreturnosPorFecha.get(kDia) || 0) + 1);
+          sobreturnoPorHorario.add(t.idAgenda + '|' + fecha + '|' + t.hora_inicio);
+        });
+
+        wizCalendar = new FullCalendar.Calendar(calEl, {
+          locale: 'es',
+          initialView: 'dayGridMonth',
+          headerToolbar: { left: 'prev,next,today', center: 'title', right: '' },
+          businessHours: { daysOfWeek: diasSemana },
+          validRange: { start: new Date() },
+          dayCellDidMount: function(info) {
+            var today = new Date(); today.setHours(0,0,0,0);
+            if (info.date >= today && diasSemana.includes(info.date.getUTCDay())) {
+              info.el.style.cursor = 'pointer';
+              info.el.style.backgroundColor = '#E0F7FA';
+
+              var selectedDate = info.date.toISOString().split('T')[0];
+              var horariosDisponibles = [];
+              var horariosOcupados = [];
+
+              turnosLibres.forEach(function(d) {
+                if (new Date(d.fecha).toISOString().split('T')[0] === selectedDate) {
+                  horariosDisponibles.push({ hora_inicio: d.hora_inicio, id: d.ID, idAgenda: d.idAgenda });
+                }
+              });
+              turnosReservados.forEach(function(d) {
+                if (new Date(d.fecha).toISOString().split('T')[0] === selectedDate) {
+                  horariosOcupados.push({ hora_inicio: d.hora_inicio, id: d.ID, idAgenda: d.idAgenda });
+                }
+              });
+
+              if (horariosDisponibles.length === 0 && horariosOcupados.length === 0) {
+                info.el.style.pointerEvents = 'none'; info.el.style.opacity = '0.5';
+              } else {
+                if (horariosDisponibles.length > 0) {
+                  info.el.style.position = 'relative';
+                  var badge = document.createElement('div');
+                  badge.className = 'turno-reservado';
+                  badge.textContent = horariosDisponibles.length;
+                  info.el.appendChild(badge);
+                }
+
+                info.el.addEventListener('click', function() {
+                  if (selectedDayEl) selectedDayEl.classList.remove('selected-day');
+                  info.el.classList.add('selected-day');
+                  selectedDayEl = info.el;
+
+                  var combined = horariosDisponibles.map(function(t){return Object.assign({}, t, {estado:'libre'})})
+                    .concat(horariosOcupados.map(function(t){return Object.assign({}, t, {estado:'ocupado'})}));
+                  combined.sort(function(a,b){return a.hora_inicio.localeCompare(b.hora_inicio)});
+
+                  var turnosParaMostrar = combined.filter(function(turno) {
+                    var idAg = turno.idAgenda;
+                    var maxSob = maxSobPorAgenda[idAg] || 0;
+                    var kDia = idAg + '|' + selectedDate;
+                    var usados = sobreturnosPorFecha.get(kDia) || 0;
+                    var hayCupo = usados < maxSob;
+                    var kHora = idAg + '|' + selectedDate + '|' + turno.hora_inicio;
+                    var yaTiene = sobreturnoPorHorario.has(kHora);
+                    if (turno.estado === 'ocupado' && (!hayCupo || yaTiene)) return false;
+                    turno._esSobre = (turno.estado === 'ocupado');
+                    return true;
+                  });
+
+                  wizRenderHoras(turnosParaMostrar, selectedDate);
+                });
+              }
+            } else {
+              info.el.style.pointerEvents = 'none'; info.el.style.opacity = '0.5';
+            }
+          }
+        });
+        wizCalendar.render();
+      }
+
+      function wizRenderHoras(turnos, selectedDate) {
+        var container = document.getElementById('wizAvailableTimes');
+        container.innerHTML = '';
+        var titleEl = document.getElementById('wizDateTitle');
+        titleEl.textContent = 'Horarios del ' + selectedDate;
+
+        wizSelectedTurno = null;
+        document.getElementById('wizConfirmar').disabled = true;
+
+        if (turnos.length === 0) {
+          container.innerHTML = '<div class="wiz-turnos-vacio">No hay turnos disponibles para esta fecha</div>';
+          return;
+        }
+
+        turnos.forEach(function(t) {
+          var btn = document.createElement('div');
+          btn.className = 'wiz-btn-hora ' + (t.estado === 'libre' ? 'libre' : 'ocupado');
+          btn.textContent = t.hora_inicio;
+          btn.dataset.id = t.id;
+          btn.dataset.idagenda = t.idAgenda;
+          btn.dataset.hora = t.hora_inicio;
+          btn.dataset.estado = t.estado;
+          btn.dataset.fecha = selectedDate;
+          btn.dataset.essobre = t._esSobre ? '1' : '0';
+
+          btn.addEventListener('click', function() {
+            container.querySelectorAll('.wiz-btn-hora.selected').forEach(function(el) { el.classList.remove('selected'); });
+            btn.classList.add('selected');
+            wizSelectedTurno = {
+              id: Number(btn.dataset.id),
+              idAgenda: Number(btn.dataset.idagenda),
+              hora_inicio: btn.dataset.hora,
+              fecha: btn.dataset.fecha,
+              esSobre: btn.dataset.essobre === '1'
+            };
+            document.getElementById('wizConfirmar').disabled = false;
+          });
+
+          container.appendChild(btn);
+        });
+
+        container.style.display = 'flex';
+        container.style.flexWrap = 'wrap';
+        container.style.gap = '0.5rem';
+      }
+
+      async function wizCargarHorarios() {
+        var agendasSel = wizGetAgendasSeleccionadas();
+        if (agendasSel.length === 0) return;
+
+        var horariosData = await wizFetchHorarios(agendasSel);
+        var horarios = horariosData.flatMap(function(a) { return a.horarios || []; });
+        var dias = wizObtenerDiasSemana(horarios);
+
+        if (horarios.length === 0) {
+          document.getElementById('wizDateTitle').innerHTML = '<div class="wiz-turnos-vacio">Sin turnos disponibles</div>';
+          return;
+        }
+
+        var agendaIds = Array.from(new Set(horariosData.map(function(h) { return h.idAgenda; }).filter(Boolean)));
+
+        var maxSobPorAgenda = {};
+        horariosData.forEach(function(a) {
+          (a.horarios || []).forEach(function(h) {
+            maxSobPorAgenda[a.idAgenda] = Math.max(maxSobPorAgenda[a.idAgenda] || 0, h.sobreturnoMax || 0);
+          });
+        });
+
+        var turnosLibres = await wizFetchTurnosLibres(agendaIds);
+        var turnosReservados = await wizFetchTurnosSinSobreturno(agendaIds);
+        var sobreturnos = await wizFetchSobreturnos(agendaIds);
+
+        var hoyStr = new Date().toISOString().split('T')[0];
+        turnosLibres = turnosLibres.filter(function(t) { return new Date(t.fecha).toISOString().split('T')[0] >= hoyStr; });
+
+        document.getElementById('wizAgendaMedico').innerHTML = 'Agenda de <strong>' + (wizMedico.selectedOptions[0]?.text || '') + '</strong>';
+        document.getElementById('wizAgendaEspecialidad').innerHTML = 'Especialidad: <strong>' + (wizEspecialidad.selectedOptions[0]?.text || '') + '</strong>';
+
+        if (wizCalendar) { wizCalendar.destroy(); wizCalendar = null; }
+        wizCrearCalendario(dias, turnosLibres, turnosReservados, sobreturnos, maxSobPorAgenda);
+      }
+
+      async function wizFetchAgendasActivas() {
+        var res = await fetch('/agenda/activas');
+        if (!res.ok) throw new Error('No se pudieron obtener agendas');
+        return res.json();
+      }
+      async function wizFetchHorarios(agendas) {
+        return Promise.all(agendas.map(async function(a) {
+          var res = await fetch('/horario/obtenerHorariosPorAgenda/' + a.idAgenda);
+          if (!res.ok) throw new Error('Error horarios');
+          var h = await res.json();
+          return Object.assign({}, a, { horarios: h });
+        }));
+      }
+      async function wizFetchTurnosLibres(ids) {
+        var results = await Promise.all(ids.map(async function(id) {
+          var res = await fetch('/turno/turnosLibres/' + Number(id));
+          if (!res.ok) return [];
+          var data = await res.json();
+          return Array.isArray(data) ? data : [];
+        }));
+        return results.flat();
+      }
+      async function wizFetchTurnosSinSobreturno(ids) {
+        var results = [];
+        for (var i = 0; i < ids.length; i++) {
+          var res = await fetch('/turno/turnosSinSobreturno/' + ids[i]);
+          if (res.ok) { var data = await res.json(); if (data.length) results.push.apply(results, data); }
+        }
+        return results;
+      }
+      async function wizFetchSobreturnos(ids) {
+        var results = [];
+        for (var i = 0; i < ids.length; i++) {
+          var res = await fetch('/turno/obtenerSobreturnos/' + ids[i]);
+          if (res.ok) { var data = await res.json(); if (data.length) results.push.apply(results, data); }
+        }
+        return results;
+      }
+
+      function wizResetUI() {
+        if (wizCalendar) { wizCalendar.destroy(); wizCalendar = null; }
+        wizSelectedTurno = null;
+        document.getElementById('wizConfirmar').disabled = true;
+        document.getElementById('wizAvailableTimes').innerHTML = '';
+        document.getElementById('wizDateTitle').textContent = 'Selecciona una fecha';
+        document.getElementById('wizAgendaMedico').innerHTML = '';
+        document.getElementById('wizAgendaEspecialidad').innerHTML = '';
+        document.getElementById('wizTimeFilter').style.display = 'none';
+      }
+
+      async function openWizard(mode, row) {
+        wizMode = mode;
+        var turnoId = Number(row.data('turnoId'));
+        turnoOrigen = {
+          id: turnoId,
+          hora: row.data('turnoHora'),
+          horaFin: row.data('turnoHorafin'),
+          medico: row.data('turnoMedico'),
+          especialidad: row.data('turnoEspecialidad'),
+          paciente: row.data('turnoPaciente'),
+          tipo: row.data('turnoTipo'),
+          motivo: row.data('turnoMotivo'),
+          estado: row.data('turnoEstado'),
+          idEstado: row.data('turnoIdestado'),
+          idPaciente: null,
+          fecha: row.data('turnoFecha')
+        };
+
+        try {
+          var resp = await fetch('/turno/obtenerTurno/' + turnoId, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' }
+          });
+          var contentType = resp.headers.get('content-type') || '';
+          if (resp.ok && contentType.indexOf('application/json') !== -1) {
+            var turnoData = await resp.json();
+            turnoOrigen.idPaciente = turnoData.idPaciente || turnoData.id_paciente || null;
+          }
+        } catch (e) {
+
+        }
+
+        if (!turnoOrigen.idPaciente || Number(turnoOrigen.idPaciente) <= 0) {
+          alert('Error: No se pudo obtener el paciente del turno. Verifique que el turno tenga un paciente reservado. (idPaciente=' + turnoOrigen.idPaciente + ')');
+          return;
+        }
+        turnoOrigen.idPaciente = Number(turnoOrigen.idPaciente);
+
+        document.getElementById('wizardModalTitle').textContent = mode === 'transferir' ? 'Transferir Turno' : 'Copiar Turno';
+
+        document.getElementById('origenPaciente').textContent = turnoOrigen.paciente || '-';
+        document.getElementById('origenMedico').textContent = turnoOrigen.medico || '-';
+        document.getElementById('origenEspecialidad').textContent = turnoOrigen.especialidad || '-';
+        document.getElementById('origenHora').textContent = (turnoOrigen.hora || '') + ' - ' + (turnoOrigen.horaFin || '');
+        document.getElementById('origenFecha').textContent = turnoOrigen.fecha || '-';
+        document.getElementById('origenMotivo').textContent = turnoOrigen.motivo || '-';
+
+        wizResetUI();
+
+        $wizModal.addClass('active');
+
+        try {
+          wizSucursal.disabled = true; wizEspecialidad.disabled = true; wizMedico.disabled = true;
+          wizSetPlaceholder(wizSucursal, 'Cargando...'); wizSetPlaceholder(wizEspecialidad, 'Cargando...'); wizSetPlaceholder(wizMedico, 'Cargando...');
+          wizAgendas = await wizFetchAgendasActivas();
+          wizBuildSucursalPorAgenda(wizAgendas);
+          wizBuildFilters(wizAgendas);
+        } catch (err) {
+          alert('Error al cargar agendas: ' + err.message);
+        }
+      }
+
+      function wizOnFilterChange() {
+        wizResetUI();
+        wizRefreshBidirectional();
+        if (wizMedico.value && wizEspecialidad.value) {
+          wizCargarHorarios();
+        }
+      }
+      wizSucursal.addEventListener('change', wizOnFilterChange);
+      wizEspecialidad.addEventListener('change', wizOnFilterChange);
+      wizMedico.addEventListener('change', wizOnFilterChange);
+
+      document.getElementById('wizLimpiar').addEventListener('click', function() {
+        wizResetUI();
+        wizSucursal.value = ''; wizEspecialidad.value = ''; wizMedico.value = '';
+        wizBuildFilters(wizAgendas);
+      });
+
+      function closeWizard() {
+        $wizModal.removeClass('active');
+        wizResetUI();
+      }
+      document.getElementById('wizardModalClose').addEventListener('click', closeWizard);
+      document.getElementById('wizCancelar').addEventListener('click', closeWizard);
+
+      document.getElementById('wizConfirmar').addEventListener('click', function() {
+        if (!wizSelectedTurno) return;
+        document.getElementById('confirmModalTitle').textContent = wizMode === 'transferir' ? 'Confirmar Transferencia' : 'Confirmar Copia';
+        document.getElementById('confOrigenPaciente').textContent = turnoOrigen.paciente || '-';
+        document.getElementById('confOrigenMedico').textContent = turnoOrigen.medico || '-';
+        document.getElementById('confOrigenFecha').textContent = turnoOrigen.fecha || '-';
+        document.getElementById('confOrigenHora').textContent = turnoOrigen.hora || '-';
+
+        document.getElementById('confDestinoMedico').textContent = wizMedico.selectedOptions[0]?.text || '-';
+        document.getElementById('confDestinoEspecialidad').textContent = wizEspecialidad.selectedOptions[0]?.text || '-';
+        var sucInfo = wizSucursalesPorAgenda[wizSelectedTurno.idAgenda];
+        document.getElementById('confDestinoSucursal').textContent = sucInfo ? (sucInfo.nombre + ' - ' + sucInfo.direccion) : '-';
+        document.getElementById('confDestinoFecha').textContent = wizSelectedTurno.fecha || '-';
+        document.getElementById('confDestinoHora').textContent = wizSelectedTurno.hora_inicio || '-';
+        document.getElementById('confMotivo').value = turnoOrigen.motivo || '';
+
+        $confModal.addClass('active');
+      });
+
+      function closeConfirm() { $confModal.removeClass('active'); }
+      document.getElementById('confirmModalClose').addEventListener('click', closeConfirm);
+      document.getElementById('confCancelar').addEventListener('click', closeConfirm);
+
+      async function asignarTurnoDestino(idPaciente, idTurno, motivoConsulta) {
+        var response = await fetch('/turno/asignarTurno/' + idTurno, {
+          method: 'PUT',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idPaciente: idPaciente, motivoConsulta: motivoConsulta })
+        });
+        if (!response.ok) {
+          var data = await response.json().catch(function() { return {}; });
+          throw new Error(data.message || 'Error al asignar turno destino');
+        }
+        return response.json();
+      }
+
+      async function asignarSobreturnoDestino(idPaciente, idTurno, motivoConsulta) {
+        var response = await fetch('/turno/crearSobreturno/' + idTurno, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idPaciente: idPaciente, motivoConsulta: motivoConsulta })
+        });
+        if (!response.ok) {
+          var data = await response.json().catch(function() { return {}; });
+          throw new Error(data.message || 'Error al crear sobreturno destino');
+        }
+        return response.json();
+      }
+
+      async function liberarTurnoOrigen(idTurno, tipo) {
+        var response = await fetch('/turno/' + idTurno + '/estado', {
+          method: 'POST',
+          credentials: 'same-origin',
+          redirect: 'manual',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idEstadoTurno: 6, tipo: tipo })
+        });
+        if (response.type === 'opaqueredirect' || response.status === 0 || response.status === 302 || response.status === 301 || response.ok) {
+          return { success: true };
+        }
+        throw new Error('Error al liberar turno original (status: ' + response.status + ')');
+      }
+
+      document.getElementById('confAceptar').addEventListener('click', async function() {
+        var btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Procesando...';
+
+        var motivoConsulta = document.getElementById('confMotivo').value.trim();
+        var idPaciente = turnoOrigen.idPaciente;
+        var idTurnoDestino = wizSelectedTurno.id;
+        var esSobre = wizSelectedTurno.esSobre;
+
+        if (!idPaciente || isNaN(Number(idPaciente)) || Number(idPaciente) <= 0) {
+          alert('Error: No se pudo identificar al paciente del turno original (idPaciente: ' + idPaciente + ')');
+          btn.disabled = false;
+          btn.textContent = 'Confirmar';
+          return;
+        }
+
+        idPaciente = Number(idPaciente);
+
+        try {
+          if (esSobre) {
+            await asignarSobreturnoDestino(idPaciente, idTurnoDestino, motivoConsulta);
+          } else {
+            await asignarTurnoDestino(idPaciente, idTurnoDestino, motivoConsulta);
+          }
+
+          if (wizMode === 'transferir') {
+            try {
+              await liberarTurnoOrigen(turnoOrigen.id, turnoOrigen.tipo);
+            } catch (libErr) {
+              alert('El turno destino se asigno correctamente, pero hubo un error al liberar el turno original. Liberelo manualmente.');
+              closeConfirm();
+              closeWizard();
+              window.location.reload();
+              return;
+            }
+            alert('Turno transferido exitosamente');
+          } else {
+            alert('Turno copiado exitosamente');
+          }
+
+          closeConfirm();
+          closeWizard();
+          window.location.reload();
+
+        } catch (err) {
+          alert('Error: ' + err.message);
+          btn.disabled = false;
+          btn.textContent = 'Confirmar';
+        }
+      });
+
+      $(document).on('click', '.btn-transferir', function(e) {
+        e.preventDefault();
+        var row = $(this).closest('tr');
+        openWizard('transferir', row);
+      });
+
+      $(document).on('click', '.btn-copiar', function(e) {
+        e.preventDefault();
+        var row = $(this).closest('tr');
+        openWizard('copiar', row);
+      });
+
+      var $agendarModal = $('#agendarModal');
+      var agendarTurnoId = null;
+      var agendarPacienteId = null;
+
+      var agendarInputDni = document.getElementById('agendarBuscarDni');
+      var agendarBtnBuscar = document.getElementById('agendarBuscarBtn');
+      var agendarPacienteInfo = document.getElementById('agendarPacienteInfo');
+      var agendarPacNombre = document.getElementById('agendarPacNombre');
+      var agendarPacDni = document.getElementById('agendarPacDni');
+      var agendarErrorPaciente = document.getElementById('agendarErrorPaciente');
+      var agendarBtnLimpiar = document.getElementById('agendarBtnLimpiar');
+
+      function limpiarPacienteAgendar() {
+        agendarPacienteId = null;
+        agendarInputDni.value = '';
+        agendarInputDni.disabled = false;
+        agendarBtnBuscar.style.display = '';
+        agendarPacienteInfo.classList.remove('show');
+        agendarErrorPaciente.classList.remove('show');
+        document.getElementById('agendarConfirmar').disabled = true;
+      }
+
+      function closeAgendar() {
+        $agendarModal.removeClass('active');
+        agendarTurnoId = null;
+        limpiarPacienteAgendar();
+        document.getElementById('agendarMotivo').value = '';
+      }
+
+      $(document).on('click', '.btn-agendar', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        agendarTurnoId = Number(btn.data('turnoId'));
+        document.getElementById('agendarMedico').textContent = btn.data('turnoMedico') || '-';
+        document.getElementById('agendarEspecialidad').textContent = btn.data('turnoEspecialidad') || '-';
+        document.getElementById('agendarHora').textContent = (btn.data('turnoHora') || '') + ' - ' + (btn.data('turnoHorafin') || '');
+        document.getElementById('agendarFecha').textContent = btn.data('turnoFecha') || '-';
+
+        limpiarPacienteAgendar();
+        document.getElementById('agendarMotivo').value = '';
+
+        $agendarModal.addClass('active');
+      });
+
+      document.getElementById('agendarModalClose').addEventListener('click', closeAgendar);
+      document.getElementById('agendarCancelar').addEventListener('click', closeAgendar);
+
+      agendarBtnLimpiar.addEventListener('click', function() {
+        limpiarPacienteAgendar();
+      });
+
+      async function buscarPacienteAgendar() {
+        var dni = agendarInputDni.value.trim();
+
+        agendarErrorPaciente.classList.remove('show');
+        agendarPacienteInfo.classList.remove('show');
+        agendarPacienteId = null;
+        document.getElementById('agendarConfirmar').disabled = true;
+
+        if (!dni) {
+          agendarErrorPaciente.textContent = 'Por favor ingrese un DNI';
+          agendarErrorPaciente.classList.add('show');
+          return;
+        }
+
+        var originalText = agendarBtnBuscar.innerText;
+        agendarBtnBuscar.innerText = 'Buscando...';
+        agendarBtnBuscar.disabled = true;
+
+        try {
+          var response = await fetch('/paciente/buscarPorDniConDatos/' + encodeURIComponent(dni), {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          if (response.ok) {
+            var data = await response.json();
+
+            agendarPacienteId = Number(data.id);
+            agendarPacNombre.textContent = (data.nombre || '') + ' ' + (data.apellido || '');
+            agendarPacDni.textContent = ' (DNI: ' + (data.dni || dni) + ')';
+            agendarPacienteInfo.classList.add('show');
+            agendarInputDni.disabled = true;
+            agendarBtnBuscar.style.display = 'none';
+            document.getElementById('agendarConfirmar').disabled = false;
+          } else {
+            var errorData = await response.json().catch(function() { return {}; });
+            agendarErrorPaciente.textContent = errorData.message || 'Paciente no encontrado. Verifique el DNI.';
+            agendarErrorPaciente.classList.add('show');
+          }
+
+        } catch (err) {
+          agendarErrorPaciente.textContent = 'Error de conexion con el servidor.';
+          agendarErrorPaciente.classList.add('show');
+        } finally {
+          agendarBtnBuscar.innerText = originalText;
+          agendarBtnBuscar.disabled = false;
+        }
+      }
+
+      agendarBtnBuscar.addEventListener('click', buscarPacienteAgendar);
+      agendarInputDni.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); buscarPacienteAgendar(); }
+      });
+
+      document.getElementById('agendarConfirmar').addEventListener('click', async function() {
+        if (!agendarPacienteId || !agendarTurnoId) return;
+        var btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Procesando...';
+        var motivoConsulta = document.getElementById('agendarMotivo').value.trim();
+
+        try {
+          var response = await fetch('/turno/asignarTurno/' + agendarTurnoId, {
+            method: 'PUT', credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idPaciente: agendarPacienteId, motivoConsulta: motivoConsulta })
+          });
+          if (!response.ok) {
+            var data = await response.json().catch(function() { return {}; });
+            throw new Error(data.message || 'Error al agendar turno');
+          }
+          alert('Turno agendado exitosamente');
+          closeAgendar();
+          window.location.reload();
+        } catch (err) {
+          alert('Error: ' + err.message);
+          btn.disabled = false;
+          btn.textContent = 'Confirmar Turno';
+        }
+      });
+
+    });
