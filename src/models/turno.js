@@ -105,7 +105,7 @@ const Turno = {
             `SELECT * FROM turno t WHERE t.idAgenda = ? AND t.tipo = 'sobreturno'`, [idAgenda]);
         return rows;
     },
-    async obtenerTurnosSecretaria({ fecha, idMedico = null, idEspecialidad = null, idEstadoTurno = null }) {
+    async obtenerTurnosSecretaria({ fecha, idMedico = null, idEspecialidad = null, idEstadoTurno = null, idSucursal = null }) {
         try {
             const sql = `
                 SELECT
@@ -133,13 +133,20 @@ const Turno = {
                 LEFT JOIN paciente pa ON pa.ID = t.idPaciente
                 LEFT JOIN persona pp ON pp.ID = pa.idPersona
                 WHERE t.fecha = ?
-                  AND t.idEstadoTurno != 0
-                  AND (? IS NULL OR me.idMedico = ?)
-                  AND (? IS NULL OR me.idEspecialidad = ?)
-                  AND (? IS NULL OR t.idEstadoTurno = ?)
+                AND t.idEstadoTurno != 0
+                AND (? IS NULL OR me.idMedico = ?)
+                AND (? IS NULL OR me.idEspecialidad = ?)
+                AND (? IS NULL OR t.idEstadoTurno = ?)
+                AND (? IS NULL OR a.idSucursal = ?)
                 ORDER BY t.hora_inicio;
             `;
-            const params = [fecha, idMedico, idMedico, idEspecialidad, idEspecialidad, idEstadoTurno, idEstadoTurno];
+            const params = [
+                fecha, 
+                idMedico, idMedico, 
+                idEspecialidad, idEspecialidad, 
+                idEstadoTurno, idEstadoTurno,
+                idSucursal, idSucursal
+            ];
             const [rows] = await pool.query(sql, params);
             return rows;
         } catch (error) { console.error(error); throw error; }
@@ -185,8 +192,7 @@ const Turno = {
                         [idTurno]
                     );
                     return r.affectedRows;
-                } 
-                else {
+                } else {
                     const [r] = await pool.query(
                         'UPDATE turno SET idEstadoTurno = ?, idPaciente = NULL, motivo_consulta = NULL, tipo = NULL WHERE ID = ?',
                         [idEstadoTurno, idTurno]
@@ -194,7 +200,15 @@ const Turno = {
                     return r.affectedRows;
                 }
 
-            } else {
+            } 
+            else if (Number(idEstadoTurno) === 6) {
+                const [r] = await pool.query(
+                    'UPDATE turno SET idEstadoTurno = ?, tipo = NULL WHERE ID = ?',
+                    [idEstadoTurno, idTurno]
+                );
+                return r.affectedRows;
+            }
+            else {
                 const [r] = await pool.query(
                     'UPDATE turno SET idEstadoTurno = ? WHERE ID = ?',
                     [idEstadoTurno, idTurno]

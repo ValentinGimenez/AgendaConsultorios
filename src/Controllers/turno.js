@@ -116,6 +116,7 @@ const turnoController = {
             const idMedico = req.query.idMedico && req.query.idMedico !== 'all' ? req.query.idMedico : null;
             const idEspecialidad = req.query.idEspecialidad && req.query.idEspecialidad !== 'all' ? req.query.idEspecialidad : null;
             const idEstadoTurno = req.query.idEstadoTurno && req.query.idEstadoTurno !== 'all' ? req.query.idEstadoTurno : null;
+            const idSucursal = req.query.idSucursal && req.query.idSucursal !== 'all' ? req.query.idSucursal : null;
 
             const medicos = await MedicoEspecialidad.obtenerTodosMedicos();
             const estados = await Turno.findAllEstados();
@@ -128,7 +129,7 @@ const turnoController = {
             }
 
             const turnos = await Turno.obtenerTurnosSecretaria({ 
-                fecha, idMedico, idEspecialidad, idEstadoTurno 
+                fecha, idMedico, idEspecialidad, idEstadoTurno, idSucursal 
             });
 
             turnos.forEach(t => {
@@ -144,7 +145,8 @@ const turnoController = {
                     fecha, 
                     idMedico: req.query.idMedico || 'all', 
                     idEspecialidad: req.query.idEspecialidad || 'all',
-                    idEstadoTurno: req.query.idEstadoTurno || 'all' 
+                    idEstadoTurno: req.query.idEstadoTurno || 'all',
+                    idSucursal: req.query.idSucursal || 'all' 
                 }
             };
         } catch (error) {

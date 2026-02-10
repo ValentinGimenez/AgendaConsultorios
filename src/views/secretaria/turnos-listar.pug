@@ -103,7 +103,7 @@ block content
                   var esCancelado = String(t.idEstadoTurno) === '6' || String(t.estado).toLowerCase() === 'cancelado'
                   var esAtendido = String(t.estado).toLowerCase() === 'atendido'
                 td.actions-cell
-                  .action-buttons
+                  .action-buttons(data-turno-fecha=f.fecha, data-es-libre=esLibre, data-es-cancelado=esCancelado, data-es-atendido=esAtendido, data-tiene-paciente=!!t.paciente)
                     if acc.length
                       each a in acc
                         form.action-form(method="POST", action=`/turno/${t.ID}/estado`)
@@ -113,6 +113,7 @@ block content
                     
                     if esLibre && !esCancelado
                       button.action-btn.btn-agendar(type="button", title="Agendar turno", aria-label="Agendar turno", data-turno-id=t.ID, data-turno-hora=t.hora_inicio, data-turno-horafin=t.hora_fin, data-turno-medico=t.medico, data-turno-especialidad=t.especialidad, data-turno-fecha=f.fecha) +
+                      button.action-btn.btn-copiar.btn-copiar-libre(type="button", title="Copiar turno (fecha pasada)", aria-label="Copiar turno", data-turno-id=t.ID, style="display:none") &#9112;
                     
                     if esAtendido && !esCancelado
                       button.action-btn.btn-copiar(type="button", title="Copiar turno", aria-label="Copiar turno", data-turno-id=t.ID) &#9112;
@@ -821,22 +822,52 @@ block content
       font-size: 0.8rem;
     }
 
-    .turno-reservado {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      background: #3182ce;
-      color: white;
-      border-radius: 999px;
-      width: 20px;
-      height: 20px;
+    .fc .fc-daygrid-day-frame {
+      min-height: 65px;
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 4px 0;
+    }
+    .fc .fc-daygrid-day-top {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+    .fc .fc-daygrid-day-events { display: none; }
+    .fc .fc-daygrid-day.fc-day-today {
+      background: #dbeafe !important;
+    }
+    .fc .fc-daygrid-day:not(.fc-day-disabled):not(.fc-day-other) {
+      transition: background 0.2s ease;
+    }
+    .fc .fc-daygrid-day:not(.fc-day-disabled):not(.fc-day-other):hover {
+      background: #e0f2fe !important;
+    }
+
+    .turno-reservado {
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.65rem;
+      margin-top: 3px;
+      background: linear-gradient(135deg, #3182ce, #2c5282);
+      color: white;
+      border-radius: 999px;
+      padding: 1px 7px;
+      font-size: 0.6rem;
       font-weight: 700;
+      text-align: center;
+      line-height: 1.4;
+      letter-spacing: 0.3px;
+      box-shadow: 0 1px 3px rgba(49, 130, 206, 0.35);
+      min-width: 20px;
+      height: 18px;
     }
-    .selected-day { background: #bee3f8 !important; }
+    .selected-day {
+      background: #bfdbfe !important;
+      box-shadow: inset 0 0 0 2px #3182ce;
+      border-radius: 4px;
+    }
 
     @keyframes wizSlideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
@@ -868,7 +899,72 @@ block content
     }
 
   script.
+    // Helper: obtener fecha y hora actual de Buenos Aires (America/Argentina/Buenos_Aires)
+    function getBuenosAiresNow() {
+      var now = new Date();
+      // Convertir a string en zona horaria de Buenos Aires
+      var parts = now.toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires', hour12: false }).split(', ');
+      // parts[0] = "M/D/YYYY", parts[1] = "HH:MM:SS"
+      var dateParts = parts[0].split('/');
+      var timeParts = parts[1].split(':');
+      var month = String(dateParts[0]).padStart(2, '0');
+      var day = String(dateParts[1]).padStart(2, '0');
+      var year = dateParts[2];
+      var hours = Number(timeParts[0]);
+      var minutes = Number(timeParts[1]);
+      return {
+        dateStr: year + '-' + month + '-' + day, // "YYYY-MM-DD"
+        hours: hours,
+        minutes: minutes,
+        totalMinutes: hours * 60 + minutes
+      };
+    }
+
     $(document).ready(function () {
+
+      // --- Ocultar botones de agendar/transferir en turnos pasados (dia anterior O hora pasada hoy) ---
+      (function() {
+        var ba = getBuenosAiresNow();
+        var hoyBA = ba.dateStr;
+        document.querySelectorAll('.action-buttons').forEach(function(container) {
+          var turnoFecha = container.getAttribute('data-turno-fecha');
+          if (!turnoFecha) return;
+
+          // Obtener la hora del turno desde el tr padre
+          var row = container.closest('tr');
+          var turnoHora = row ? (row.getAttribute('data-turno-hora') || '') : '';
+
+          var esFechaPasada = turnoFecha < hoyBA;
+
+          // Si es hoy, verificar si la hora del turno ya paso
+          var esHoraPasada = false;
+          if (turnoFecha === hoyBA && turnoHora) {
+            var partsH = turnoHora.split(':');
+            var turnoMinutos = Number(partsH[0]) * 60 + Number(partsH[1] || 0);
+            esHoraPasada = turnoMinutos <= ba.totalMinutes;
+          }
+
+          var esTurnoPasado = esFechaPasada || esHoraPasada;
+
+          if (esTurnoPasado) {
+            // Ocultar boton agendar (+) y mostrar copiar-libre en su lugar
+            var btnAgendar = container.querySelector('.btn-agendar');
+            if (btnAgendar) btnAgendar.style.display = 'none';
+            var btnCopiarLibre = container.querySelector('.btn-copiar-libre');
+            if (btnCopiarLibre) btnCopiarLibre.style.display = 'none';
+
+            // Ocultar boton transferir en turnos pasados
+            var btnTransferir = container.querySelector('.btn-transferir');
+            if (btnTransferir) btnTransferir.style.display = 'none';
+
+            // Ocultar botones de accion de estado (confirmar, presente, etc.) en turnos pasados
+            container.querySelectorAll('form.action-form').forEach(function(form) {
+              form.style.display = 'none';
+            });
+          }
+        });
+      })();
+
       const table = $('#tablaTurnos').DataTable({
         dom: 'frtip',
         pageLength: 50,
@@ -1046,7 +1142,7 @@ block content
       filtroMedico.addEventListener('change', actualizarFiltrosCascada);
       filtroEspecialidad.addEventListener('change', actualizarFiltrosCascada);
 
-      if (fechaInput && !fechaInput.value) fechaInput.value = new Date().toISOString().split('T')[0];
+      if (fechaInput && !fechaInput.value) fechaInput.value = getBuenosAiresNow().dateStr;
 
       cargarFiltrosCascada();
 
@@ -1228,9 +1324,10 @@ block content
           initialView: 'dayGridMonth',
           headerToolbar: { left: 'prev,next,today', center: 'title', right: '' },
           businessHours: { daysOfWeek: diasSemana },
-          validRange: { start: new Date() },
+          validRange: { start: getBuenosAiresNow().dateStr },
           dayCellDidMount: function(info) {
-            var today = new Date(); today.setHours(0,0,0,0);
+            var baHoy = getBuenosAiresNow().dateStr;
+            var today = new Date(baHoy + 'T00:00:00');
             if (info.date >= today && diasSemana.includes(info.date.getUTCDay())) {
               info.el.style.cursor = 'pointer';
               info.el.style.backgroundColor = '#E0F7FA';
@@ -1254,11 +1351,15 @@ block content
                 info.el.style.pointerEvents = 'none'; info.el.style.opacity = '0.5';
               } else {
                 if (horariosDisponibles.length > 0) {
-                  info.el.style.position = 'relative';
                   var badge = document.createElement('div');
                   badge.className = 'turno-reservado';
                   badge.textContent = horariosDisponibles.length;
-                  info.el.appendChild(badge);
+                  var dayFrame = info.el.querySelector('.fc-daygrid-day-frame');
+                  if (dayFrame) {
+                    dayFrame.appendChild(badge);
+                  } else {
+                    info.el.appendChild(badge);
+                  }
                 }
 
                 info.el.addEventListener('click', function() {
@@ -1366,7 +1467,7 @@ block content
         var turnosReservados = await wizFetchTurnosSinSobreturno(agendaIds);
         var sobreturnos = await wizFetchSobreturnos(agendaIds);
 
-        var hoyStr = new Date().toISOString().split('T')[0];
+        var hoyStr = getBuenosAiresNow().dateStr;
         turnosLibres = turnosLibres.filter(function(t) { return new Date(t.fecha).toISOString().split('T')[0] >= hoyStr; });
 
         document.getElementById('wizAgendaMedico').innerHTML = 'Agenda de <strong>' + (wizMedico.selectedOptions[0]?.text || '') + '</strong>';
@@ -1633,6 +1734,24 @@ block content
       $(document).on('click', '.btn-transferir', function(e) {
         e.preventDefault();
         var row = $(this).closest('tr');
+
+        var turnoFecha = String(row.data('turnoFecha') || '');
+        var turnoHora = String(row.data('turnoHora') || '');
+        var ba = getBuenosAiresNow();
+
+        if (turnoFecha < ba.dateStr) {
+          alert('No se puede transferir un turno de una fecha pasada.');
+          return;
+        }
+        if (turnoFecha === ba.dateStr && turnoHora) {
+          var partsH = turnoHora.split(':');
+          var turnoMinutos = Number(partsH[0]) * 60 + Number(partsH[1] || 0);
+          if (turnoMinutos <= ba.totalMinutes) {
+            alert('No se puede transferir un turno cuya hora ya paso.');
+            return;
+          }
+        }
+
         openWizard('transferir', row);
       });
 
@@ -1674,6 +1793,24 @@ block content
       $(document).on('click', '.btn-agendar', function(e) {
         e.preventDefault();
         var btn = $(this);
+
+        var turnoFecha = String(btn.data('turnoFecha') || '');
+        var turnoHora = String(btn.data('turnoHora') || '');
+        var ba = getBuenosAiresNow();
+
+        if (turnoFecha < ba.dateStr) {
+          alert('No se puede agendar un turno en una fecha pasada.');
+          return;
+        }
+        if (turnoFecha === ba.dateStr && turnoHora) {
+          var partsH = turnoHora.split(':');
+          var turnoMinutos = Number(partsH[0]) * 60 + Number(partsH[1] || 0);
+          if (turnoMinutos <= ba.totalMinutes) {
+            alert('No se puede agendar un turno cuya hora ya paso.');
+            return;
+          }
+        }
+
         agendarTurnoId = Number(btn.data('turnoId'));
         document.getElementById('agendarMedico').textContent = btn.data('turnoMedico') || '-';
         document.getElementById('agendarEspecialidad').textContent = btn.data('turnoEspecialidad') || '-';
