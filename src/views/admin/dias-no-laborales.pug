@@ -1,4 +1,9 @@
 extends ../layout.pug
+append styles
+  link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css")
+
+append scripts
+  script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js")
 
 block content
   .dias-container
@@ -116,6 +121,34 @@ block content
           else
             p.dias-empty No hay días no laborables cargados.
 
+  div.modal.fade#modalTurnosAfectados(tabindex='-1' aria-hidden='true')
+    div.modal-dialog.modal-lg.modal-dialog-centered
+     div.modal-content
+      div.modal-header
+        h5.modal-title Turnos afectados por día no laboral
+        button.btn-close(type='button' data-bs-dismiss='modal' aria-label='Close')
+
+      div.modal-body
+        p#msgTurnosAfectados.mb-2
+        div.alert.alert-info.py-2.mb-3
+          small
+            | Podés enviar estos turnos a lista de espera para que Secretaría los reasigne.
+
+        div.table-responsive
+          table.table.table-sm.align-middle
+            thead
+              tr
+                th Paciente
+                th Fecha
+                th Horario
+                th Sucursal
+            tbody#tablaTurnosAfectados
+              tr
+                td(colspan='6') Cargando...
+
+      div.modal-footer
+        button.btn.btn-primary#btnEnviarEspera(type='button') Enviar a lista de espera
+
   script.
     document.addEventListener('DOMContentLoaded', () => {
       const form = document.getElementById('diaForm');
@@ -177,14 +210,202 @@ block content
         }
       }
 
-      selectAlcance.addEventListener('change', () => refreshAlcanceUI(false));
-        document.querySelectorAll('input[name="all_day"]').forEach(r => {
-        r.addEventListener('change', () => refreshHorasUI(false));
+          selectAlcance.addEventListener('change', () => refreshAlcanceUI(false));
+            document.querySelectorAll('input[name="all_day"]').forEach(r => {
+            r.addEventListener('change', () => refreshHorasUI(false));
+          });
+      selectMedico.addEventListener('change', () => {
+        resolverBloquesAusencia().catch(e => showAlert(e.message, 'error'));
       });
+
+      inputFechaInicio.addEventListener('change', () => {
+        resolverBloquesAusencia().catch(e => showAlert(e.message, 'error'));
+      });
+
+      document.querySelectorAll('input[name="all_day"]').forEach(r => {
+        r.addEventListener('change', () => {
+          refreshHorasUI(false);
+          resolverBloquesAusencia().catch(e => showAlert(e.message, 'error'));
+        });
+      });
+
+      inputHoraInicio.addEventListener('change', () => {
+        resolverBloquesAusencia().catch(e => showAlert(e.message, 'error'));
+      });
+      inputHoraFin.addEventListener('change', () => {
+        resolverBloquesAusencia().catch(e => showAlert(e.message, 'error'));
+      });
+
+      selectTipo.addEventListener('change', () => {
+        limpiarBloquesUI();
+        resolverBloquesAusencia().catch(() => {});
+      });
+      selectAlcance.addEventListener('change', () => {
+        limpiarBloquesUI();
+        resolverBloquesAusencia().catch(() => {});
+      });
+
+          const inputBloquesJson = document.getElementById('bloquesJson');
+    const groupBloques = document.getElementById('groupBloques');
+    const listaBloques = document.getElementById('listaBloques');
+
+    let bloquesResueltos = []; 
+
+    function limpiarBloquesUI() {
+      bloquesResueltos = [];
+      if (inputBloquesJson) inputBloquesJson.value = '';
+      if (groupBloques) groupBloques.style.display = 'none';
+      if (listaBloques) listaBloques.innerHTML = '';
+    }
+
+    function renderBloquesUI(bloques) {
+      if (!groupBloques || !listaBloques) return;
+      listaBloques.innerHTML = '';
+
+      if (!bloques || bloques.length === 0) {
+        groupBloques.style.display = 'none';
+        return;
+      }
+
+      for (const b of bloques) {
+        const li = document.createElement('li');
+        li.textContent = `Agenda #${b.idAgenda} | Sucursal #${b.idSucursal} | ${b.hora_inicio}–${b.hora_fin}`;
+        listaBloques.appendChild(li);
+      }
+      groupBloques.style.display = 'block';
+    }
+
+    async function resolverBloquesAusencia() {
+      limpiarBloquesUI();
+
+      const tipo = selectTipo.value;
+      const alcance = selectAlcance.value;
+
+      if (tipo !== 'AUSENCIA' || alcance !== 'PROFESIONAL') return;
+
+      const idMedico = Number(selectMedico.value || 0);
+      const fecha = inputFechaInicio.value; 
+      if (!idMedico || !fecha) return;
+
+      const all_day = getAllDayValue();
+      let hora_inicio = null;
+      let hora_fin = null;
+
+      if (all_day === '0') {
+        hora_inicio = (inputHoraInicio.value || '').slice(0,5);
+        hora_fin = (inputHoraFin.value || '').slice(0,5);
+        if (!hora_inicio || !hora_fin || hora_fin <= hora_inicio) return;
+      }
+
+      const resp = await fetch('/dia_no_laborales/resolver-bloques-ausencia', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idMedico,
+          fecha,
+          all_day: Number(all_day),
+          hora_inicio,
+          hora_fin
+        })
+      });
+
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        throw new Error(data.message || 'Error resolviendo bloques de ausencia');
+      }
+
+      bloquesResueltos = Array.isArray(data.bloques) ? data.bloques : [];
+      if (inputBloquesJson) inputBloquesJson.value = JSON.stringify(bloquesResueltos);
+
+      renderBloquesUI(bloquesResueltos);
+
+      if (bloquesResueltos.length === 1) {
+        const sId = String(bloquesResueltos[0].idSucursal);
+        selectSucursal.value = sId;
+      }
+    }
+
 
 
       refreshAlcanceUI();
       refreshHorasUI();
+
+      let payloadPendiente = null;
+      let requestPendiente = null;
+      
+
+
+      async function verificarTurnos(payload, isEditing, editingId) {
+        const resp = await fetch('/dia_no_laborales/verificar-turnos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...payload,
+            excludeDiaId: isEditing ? Number(editingId) : null
+          })
+        });
+
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) throw new Error(data.message || 'Error verificando turnos');
+        return data; 
+      }
+
+      function renderTablaTurnos(turnos) {
+        const tbody = document.getElementById('tablaTurnosAfectados');
+        tbody.innerHTML = '';
+
+        if (!turnos || turnos.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6">Sin turnos</td></tr>`;
+          return;
+        }
+
+          console.log(turnos);
+        for (const t of turnos) {
+          const tr = document.createElement('tr');
+          const fecha = (t.fecha || t.fecha_turno || '').toString().slice(0,10);
+
+          tr.innerHTML = `
+            <td>${t.paciente || '-'}</td>
+            <td>${fecha || '-'}</td>
+            <td>${(t.hora_inicio || t.hora || '-')}${t.hora_fin ? '–' + t.hora_fin : ''}</td>
+            <td>${t.sucursal || '-'}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      }
+
+      function abrirModalTurnos({ count, turnos }, payload) {
+        document.getElementById('msgTurnosAfectados').textContent =
+          `Se detectaron ${count} turnos reservados/confirmados dentro del rango ${payload.fecha_inicio} → ${payload.fecha_fin}.`;
+
+        renderTablaTurnos(turnos);
+
+        const modalEl = document.getElementById('modalTurnosAfectados');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+      }
+
+        async function guardarConAccion(accionTurnos) {
+          const { url, method } = requestPendiente;
+
+          const resp = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...payloadPendiente,
+              accion_turnos: accionTurnos
+            })
+          });
+
+          const data = await resp.json().catch(() => ({}));
+          if (!resp.ok) throw new Error(data.message || 'Error al guardar');
+
+          showAlert(data.message || 'Guardado.', 'success');
+          document.activeElement?.blur();
+          setTimeout(() => window.location.reload(), 800);
+        }
+
+
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -260,6 +481,12 @@ block content
           console.log("fecha_fin value:", inputFechaFin?.value);
           console.log("idMedico: ", idMedico);
 
+          if (tipo === 'AUSENCIA' && alcance === 'PROFESIONAL') {
+            if (!bloquesResueltos || bloquesResueltos.length === 0) {
+              showAlert('No se pudo determinar en qué agendas aplica la ausencia (no hay horarios en ese rango).', 'error');
+              return;
+            }
+          }
         const payload = {
           tipo,
           alcance,
@@ -270,11 +497,12 @@ block content
           all_day: Number(all_day), 
           hora_inicio: horaInicioToSend,
           hora_fin: horaFinToSend,
-          descripcion
+          descripcion,
+          bloques: bloquesResueltos
         };
           console.log("PAYLOAD FINAL:", payload);
 
-        try {
+               try {
           const isEditing = !!editingId;
           const url = isEditing
             ? `/dia_no_laborales/actualizarDiaNoLaboral/${editingId}`
@@ -282,25 +510,21 @@ block content
 
           const method = isEditing ? 'PUT' : 'POST';
 
-          const response = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
+          payloadPendiente = payload;
+          requestPendiente = { url, method };
 
-          const data = await response.json().catch(() => ({}));
+          const ver = await verificarTurnos(payload, isEditing, editingId);
 
-          if (!response.ok) {
-            showAlert(data.message || 'Error al guardar el registro.', 'error');
+          if (ver.count > 0) {
+            abrirModalTurnos(ver, payload);
             return;
           }
 
-          showAlert(data.message || (isEditing ? 'Registro actualizado.' : 'Registro creado.'), 'success');
-          setTimeout(() => window.location.reload(), 800);
+          await guardarConAccion("NINGUNA");
 
         } catch (error) {
           console.error(error);
-          showAlert('Error al procesar la solicitud.', 'error');
+          showAlert(error.message || 'Error al procesar la solicitud.', 'error');
         }
       });
 
@@ -434,6 +658,21 @@ block content
         if (idSucursal) return 'SUCURSAL';
         return 'GLOBAL';
       }
+    document.getElementById('btnEnviarEspera')?.addEventListener('click', async () => {
+      try {
+        await guardarConAccion("ESPERA");
+      } catch (e) {
+        showAlert(e.message || 'Error', 'error');
+      }
+    });
+
+    document.getElementById('btnCancelarTurnos')?.addEventListener('click', async () => {
+      try {
+        await guardarConAccion("CANCELAR");
+      } catch (e) {
+        showAlert(e.message || 'Error', 'error');
+      }
+    });
 
     });
   

@@ -14,5 +14,8 @@ router.get("/obtenerDiaNoLaboral/:id",  authMiddleware,  adminMiddleware,  diaNo
 router.put("/actualizarDiaNoLaboral/:id",  authMiddleware,  adminMiddleware, diaNoLaboralController.update);
 
 router.delete("/eliminarDiaNoLaboral/:id",  authMiddleware,  adminMiddleware,  diaNoLaboralController.delete);
+router.post('/resolver-bloques-ausencia', diaNoLaboralController.resolverBloquesAusencia);
+router.post('/verificar-turnos', diaNoLaboralController.verificarTurnos);
+router.post('/aplicarAccionTurnos', diaNoLaboralController.aplicarAccionTurnos);
 
 module.exports = router;
