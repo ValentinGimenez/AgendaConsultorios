@@ -1,0 +1,577 @@
+extends ../layout
+
+block content
+  style.
+    /* ── Page Layout ── */
+    .agendas-page {
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+    .agendas-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .agendas-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1a73e8;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0;
+    }
+
+    /* ── Filtros ── */
+    .agendas-filtros {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0.875rem 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .agendas-filtros select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 2px solid #cbd5e0;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      color: #2d3748;
+      background: #fff;
+      cursor: pointer;
+      appearance: auto;
+    }
+    .agendas-filtros select:focus {
+      outline: none;
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+    }
+
+    /* ── Grid de tarjetas ── */
+    .agendas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+
+    /* ── Tarjeta Agenda ── */
+    .agenda-card {
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      transition: box-shadow 0.2s, border-color 0.2s;
+      position: relative;
+    }
+    .agenda-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-color: #cbd5e0;
+    }
+    .agenda-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .agenda-card-medico {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a202c;
+      text-transform: uppercase;
+    }
+    .agenda-card-warning {
+      color: #d69e2e;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      cursor: help;
+    }
+
+    /* ── Badge Especialidad ── */
+    .badge-especialidad {
+      display: inline-block;
+      padding: 0.15rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .badge-general      { background: #e6f4ea; color: #137333; }
+    .badge-endocrinologia { background: #fef3cd; color: #856404; border: 1px solid #ffc107; }
+    .badge-dermatologia  { background: #fff3cd; color: #856404; }
+    .badge-neurologia    { background: #cce5ff; color: #004085; }
+    .badge-cardiologia   { background: #f8d7da; color: #721c24; }
+    .badge-psiquiatria   { background: #d4edda; color: #155724; border: 1px solid #28a745; }
+    .badge-geriatria     { background: #fff3cd; color: #856404; border: 1px solid #ffc107; }
+    .badge-pediatria     { background: #e0f2fe; color: #0369a1; }
+    .badge-traumatologia { background: #fce7f3; color: #9d174d; }
+    .badge-oftalmologia  { background: #ede9fe; color: #5b21b6; }
+    .badge-default       { background: #e2e8f0; color: #4a5568; }
+
+    /* ── Ausente ── */
+    .agenda-card-ausente {
+      color: #c53030;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .agenda-card-ausente i { font-size: 0.85rem; }
+
+    /* ── Horario rows ── */
+    .horario-list { display: flex; flex-direction: column; gap: 0.4rem; }
+    .horario-row {
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 0.5rem 0.65rem;
+      font-size: 0.8rem;
+      color: #2d3748;
+    }
+    .horario-row-time {
+      font-weight: 700;
+      color: #1a73e8;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      margin-bottom: 0.15rem;
+    }
+    .horario-row-time i { font-size: 0.8rem; color: #718096; }
+    .horario-row-dia {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      color: #4a5568;
+      margin-bottom: 0.1rem;
+    }
+    .horario-row-dia i { font-size: 0.8rem; color: #718096; }
+    .horario-row-meta {
+      display: flex;
+      gap: 0.75rem;
+      color: #718096;
+      font-size: 0.72rem;
+    }
+    .horario-row-vigencia {
+      font-size: 0.7rem;
+      color: #a0aec0;
+    }
+
+    /* ── Info row (sucursal) ── */
+    .agenda-card-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      font-size: 0.825rem;
+      color: #4a5568;
+    }
+    .agenda-card-info-row {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .agenda-card-info-row i {
+      font-size: 0.85rem;
+      color: #718096;
+      width: 16px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* ── Botones ── */
+    .agenda-card-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+    .btn-gestionar {
+      width: 100%;
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 0;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+    }
+    .btn-gestionar:hover { background: #1557b0; }
+
+    /* ── Loading / empty ── */
+    .agendas-loading {
+      text-align: center;
+      padding: 3rem;
+      color: #718096;
+      font-size: 1rem;
+    }
+    .agendas-empty {
+      text-align: center;
+      padding: 3rem;
+      color: #a0aec0;
+      font-size: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .agendas-filtros { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .agendas-filtros { grid-template-columns: 1fr; }
+      .agendas-page { padding: 1rem; }
+    }
+
+  .agendas-page
+    .agendas-header
+      h1
+        i.fas.fa-calendar-alt
+        |  Gestion de Agendas
+
+    .agendas-filtros
+      select#filtroEspecialidad
+        option(value="all") Especialidad: Todas
+      select#filtroMedico
+        option(value="all") Medico: Todos
+      select#filtroDia
+        option(value="all") Dia: Todos
+        option(value="LUNES") Lunes
+        option(value="MARTES") Martes
+        option(value="MIERCOLES") Miercoles
+        option(value="JUEVES") Jueves
+        option(value="VIERNES") Viernes
+        option(value="SABADO") Sabado
+      select#filtroSucursal
+        option(value="all") Sucursal: Todas
+
+    #agendasLoading.agendas-loading Cargando agendas...
+    #agendasGrid.agendas-grid
+    #agendasEmpty.agendas-empty(style="display:none") No se encontraron agendas con los filtros seleccionados.
+
+  script.
+    (function() {
+      var allAgendas = [];
+
+      var filtroEspecialidad = document.getElementById('filtroEspecialidad');
+      var filtroMedico       = document.getElementById('filtroMedico');
+      var filtroDia          = document.getElementById('filtroDia');
+      var filtroSucursal     = document.getElementById('filtroSucursal');
+
+      var gridEl    = document.getElementById('agendasGrid');
+      var loadingEl = document.getElementById('agendasLoading');
+      var emptyEl   = document.getElementById('agendasEmpty');
+
+      /* ── Helpers ── */
+      function getBuenosAiresNow() {
+        var d = new Date();
+        var ba = new Date(d.toLocaleString('en-US', { timeZone: 'America/Buenos_Aires' }));
+        var yyyy = ba.getFullYear();
+        var mm = String(ba.getMonth() + 1).padStart(2, '0');
+        var dd = String(ba.getDate()).padStart(2, '0');
+        return { dateStr: yyyy + '-' + mm + '-' + dd, date: ba };
+      }
+
+      function ymd(d) { return d ? String(d).substring(0, 10) : ''; }
+
+      function formatDate(d) {
+        if (!d) return '';
+        var p = ymd(d).split('-');
+        return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : '';
+      }
+
+      function hhmm(t) {
+        if (!t) return '';
+        var p = String(t).split(':');
+        return p[0] + ':' + p[1];
+      }
+
+      var DIA_MAP = {
+        LUNES: 'Lunes', MARTES: 'Martes', MIERCOLES: 'Miercoles',
+        JUEVES: 'Jueves', VIERNES: 'Viernes', SABADO: 'Sabado', DOMINGO: 'Domingo'
+      };
+      var DIA_ORDER = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
+
+      function normDia(d) {
+        return String(d || '').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      }
+
+      function escHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+      }
+
+      function uniqueBy(arr, key) {
+        var seen = {};
+        return arr.filter(function(item) {
+          var k = String(item[key]).trim();
+          if (seen[k]) return false;
+          seen[k] = true;
+          return true;
+        });
+      }
+
+      function fillSelect(sel, items, valKey, labelKey, defaultLabel) {
+        var current = sel.value;
+        sel.innerHTML = '';
+        var opt = document.createElement('option');
+        opt.value = 'all';
+        opt.textContent = defaultLabel;
+        sel.appendChild(opt);
+        items.forEach(function(item) {
+          var o = document.createElement('option');
+          o.value = item[valKey];
+          o.textContent = item[labelKey];
+          sel.appendChild(o);
+        });
+        for (var i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value === current) { sel.selectedIndex = i; break; }
+        }
+      }
+
+      function badgeClass(nombre) {
+        if (!nombre) return 'badge-default';
+        var n = nombre.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (n === 'general') return 'badge-general';
+        if (n.indexOf('endocrin') !== -1) return 'badge-endocrinologia';
+        if (n.indexOf('dermatol') !== -1) return 'badge-dermatologia';
+        if (n.indexOf('neurolog') !== -1) return 'badge-neurologia';
+        if (n.indexOf('cardiolog') !== -1) return 'badge-cardiologia';
+        if (n.indexOf('psiquiatr') !== -1) return 'badge-psiquiatria';
+        if (n.indexOf('geriatr') !== -1) return 'badge-geriatria';
+        if (n.indexOf('pediatr') !== -1) return 'badge-pediatria';
+        if (n.indexOf('traumatol') !== -1) return 'badge-traumatologia';
+        if (n.indexOf('oftalmol') !== -1) return 'badge-oftalmologia';
+        return 'badge-default';
+      }
+
+      /* ── Fetch agendas + horarios ── */
+      async function cargarAgendas() {
+        loadingEl.style.display = '';
+        gridEl.innerHTML = '';
+        emptyEl.style.display = 'none';
+
+        try {
+          var res = await fetch('/agenda/activas', {
+            method: 'GET', credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' }
+          });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          var agendas = await res.json();
+
+          var promises = agendas.map(function(a) {
+            return fetch('/horario/obtenerHorariosPorAgenda/' + a.idAgenda, {
+              credentials: 'same-origin',
+              headers: { 'Accept': 'application/json' }
+            })
+            .then(function(r) { return r.ok ? r.json() : []; })
+            .then(function(horarios) {
+              return Object.assign({}, a, { horarios: horarios || [] });
+            })
+            .catch(function() { return Object.assign({}, a, { horarios: [] }); });
+          });
+
+          allAgendas = await Promise.all(promises);
+
+          // Fetch ausencias activas
+          try {
+            var ausRes = await fetch('/dia_no_laborales/listar', {
+              credentials: 'same-origin',
+              headers: { 'Accept': 'application/json' }
+            });
+            if (ausRes.ok) {
+              var ausencias = await ausRes.json();
+              var hoy = getBuenosAiresNow().dateStr;
+              allAgendas.forEach(function(a) {
+                a.profesionalAusente = ausencias.some(function(aus) {
+                  if (String(aus.estado) === 'inactivo') return false;
+                  if (Number(aus.idMedico) !== Number(a.idMedico)) return false;
+                  var tipo = String(aus.tipo || '').toUpperCase();
+                  if (tipo !== 'AUSENCIA' && tipo !== 'VACACIONES') return false;
+                  var fi = ymd(aus.fecha_inicio);
+                  var ff = ymd(aus.fecha_fin);
+                  return fi <= hoy && hoy <= ff;
+                });
+              });
+            }
+          } catch(e) {}
+
+          actualizarFiltros();
+          renderCards();
+        } catch (err) {
+          console.error('Error cargando agendas:', err);
+          gridEl.innerHTML = '<div class="agendas-empty">Error al cargar las agendas.</div>';
+        } finally {
+          loadingEl.style.display = 'none';
+        }
+      }
+
+      /* ── Filtros cascada ── */
+      function actualizarFiltros() {
+        var sId = filtroSucursal.value;
+        var mId = filtroMedico.value;
+        var eId = filtroEspecialidad.value;
+        var base = allAgendas.slice();
+
+        var baseSuc = base.slice();
+        if (eId !== 'all') baseSuc = baseSuc.filter(function(a) { return String(a.idEspecialidad).trim() === eId; });
+        if (mId !== 'all') baseSuc = baseSuc.filter(function(a) { return String(a.idMedico).trim() === mId; });
+        var sucursales = uniqueBy(baseSuc.map(function(a) {
+          return { idSucursal: String(a.idSucursal).trim(), sucursalLabel: (a.sucursalNombre || 'Sucursal ' + a.idSucursal) };
+        }), 'idSucursal').sort(function(a, b) { return a.sucursalLabel.localeCompare(b.sucursalLabel); });
+
+        var baseMed = base.slice();
+        if (sId !== 'all') baseMed = baseMed.filter(function(a) { return String(a.idSucursal).trim() === sId; });
+        if (eId !== 'all') baseMed = baseMed.filter(function(a) { return String(a.idEspecialidad).trim() === eId; });
+        var medicos = uniqueBy(baseMed.map(function(a) {
+          return { idMedico: String(a.idMedico).trim(), medicoNombre: a.medicoNombre || 'Medico ' + a.idMedico };
+        }), 'idMedico').sort(function(a, b) { return a.medicoNombre.localeCompare(b.medicoNombre); });
+
+        var baseEsp = base.slice();
+        if (sId !== 'all') baseEsp = baseEsp.filter(function(a) { return String(a.idSucursal).trim() === sId; });
+        if (mId !== 'all') baseEsp = baseEsp.filter(function(a) { return String(a.idMedico).trim() === mId; });
+        var especialidades = uniqueBy(baseEsp.map(function(a) {
+          return { idEspecialidad: String(a.idEspecialidad).trim(), especialidadNombre: a.especialidadNombre || 'Especialidad ' + a.idEspecialidad };
+        }), 'idEspecialidad').sort(function(a, b) { return a.especialidadNombre.localeCompare(b.especialidadNombre); });
+
+        fillSelect(filtroSucursal, sucursales, 'idSucursal', 'sucursalLabel', 'Sucursal: Todas');
+        fillSelect(filtroMedico, medicos, 'idMedico', 'medicoNombre', 'Medico: Todos');
+        fillSelect(filtroEspecialidad, especialidades, 'idEspecialidad', 'especialidadNombre', 'Especialidad: Todas');
+      }
+
+      function getFilteredAgendas() {
+        var sId = filtroSucursal.value;
+        var mId = filtroMedico.value;
+        var eId = filtroEspecialidad.value;
+        var dId = filtroDia.value;
+
+        return allAgendas.filter(function(a) {
+          if (sId !== 'all' && String(a.idSucursal).trim() !== sId) return false;
+          if (mId !== 'all' && String(a.idMedico).trim() !== mId) return false;
+          if (eId !== 'all' && String(a.idEspecialidad).trim() !== eId) return false;
+          if (dId !== 'all') {
+            var tieneDia = (a.horarios || []).some(function(h) { return normDia(h.dia_semana) === dId; });
+            if (!tieneDia) return false;
+          }
+          return true;
+        });
+      }
+
+      /* ── Render tarjetas ── */
+      function renderCards() {
+        var filtered = getFilteredAgendas();
+        gridEl.innerHTML = '';
+
+        if (filtered.length === 0) { emptyEl.style.display = ''; return; }
+        emptyEl.style.display = 'none';
+
+        filtered.forEach(function(a) {
+          var card = document.createElement('div');
+          card.className = 'agenda-card';
+          var html = '';
+
+          // Header
+          html += '<div class="agenda-card-header">';
+          html += '<span class="agenda-card-medico">' + escHtml(a.medicoNombre || '') + '</span>';
+          if (a.profesionalAusente) {
+            html += '<span class="agenda-card-warning" title="Profesional Ausente">&#9888;</span>';
+          }
+          html += '</div>';
+
+          // Badge especialidad
+          html += '<div><span class="badge-especialidad ' + badgeClass(a.especialidadNombre) + '">' + escHtml(a.especialidadNombre || '') + '</span></div>';
+
+          // Ausente label
+          if (a.profesionalAusente) {
+            html += '<div class="agenda-card-ausente"><i class="fas fa-user-slash"></i> Profesional Ausente</div>';
+          }
+
+          // Sucursal
+          html += '<div class="agenda-card-info">';
+          html += '<div class="agenda-card-info-row"><i class="fas fa-map-marker-alt"></i> ' + escHtml(a.sucursalNombre || '') + '</div>';
+          html += '</div>';
+
+          // Horarios agrupados por bloque (misma hora + vigencia)
+          var horarios = (a.horarios || []).slice().sort(function(x, y) {
+            var dx = DIA_ORDER.indexOf(normDia(x.dia_semana));
+            var dy = DIA_ORDER.indexOf(normDia(y.dia_semana));
+            if (dx !== dy) return dx - dy;
+            return hhmm(x.hora_inicio).localeCompare(hhmm(y.hora_inicio));
+          });
+
+          // Agrupar por (hora_inicio + hora_fin + fecha_inicio + fecha_fin)
+          var bloques = {};
+          horarios.forEach(function(h) {
+            var key = hhmm(h.hora_inicio) + '|' + hhmm(h.hora_fin) + '|' + ymd(h.fecha_inicio) + '|' + ymd(h.fecha_fin);
+            if (!bloques[key]) {
+              bloques[key] = {
+                hora_inicio: h.hora_inicio,
+                hora_fin: h.hora_fin,
+                fecha_inicio: h.fecha_inicio,
+                fecha_fin: h.fecha_fin,
+                duracionTurno: h.duracionTurno,
+                sobreturnoMax: h.sobreturnoMax,
+                dias: []
+              };
+            }
+            var dn = normDia(h.dia_semana);
+            if (bloques[key].dias.indexOf(dn) === -1) bloques[key].dias.push(dn);
+          });
+
+          var bloqueArr = Object.values(bloques);
+          if (bloqueArr.length > 0) {
+            html += '<div class="horario-list">';
+            bloqueArr.forEach(function(b) {
+              // Ordenar dias
+              b.dias.sort(function(a, b) { return DIA_ORDER.indexOf(a) - DIA_ORDER.indexOf(b); });
+              var diasStr = b.dias.map(function(d) { return DIA_MAP[d] || d; }).join(', ');
+
+              html += '<div class="horario-row">';
+              html += '<div class="horario-row-time"><i class="far fa-clock"></i> ' + hhmm(b.hora_inicio) + '-' + hhmm(b.hora_fin) + ' hs</div>';
+              html += '<div class="horario-row-dia"><i class="far fa-calendar"></i> ' + diasStr + '</div>';
+              html += '<div class="horario-row-meta">';
+              html += '<span>Dur: ' + (b.duracionTurno ? b.duracionTurno + 'm' : '-') + '</span>';
+              html += '<span>Sob: ' + (b.sobreturnoMax != null ? b.sobreturnoMax : '-') + '</span>';
+              html += '</div>';
+              html += '<div class="horario-row-vigencia">Vigencia: ' + formatDate(b.fecha_inicio) + ' / ' + formatDate(b.fecha_fin) + '</div>';
+              html += '</div>';
+            });
+            html += '</div>';
+          } else {
+            html += '<div style="font-size:0.8rem;color:#a0aec0;text-align:center;padding:0.5rem 0;">Sin horarios configurados</div>';
+          }
+
+          // Gestionar Turnos
+          var hoy = getBuenosAiresNow().dateStr;
+          html += '<div class="agenda-card-actions">';
+          html += '<a class="btn-gestionar" href="/turno/listar?fecha=' + hoy + '&idMedico=' + a.idMedico + '&idEspecialidad=' + a.idEspecialidad + '&idEstadoTurno=all&idSucursal=' + a.idSucursal + '">Gestionar Turnos</a>';
+          html += '</div>';
+
+          card.innerHTML = html;
+          gridEl.appendChild(card);
+        });
+      }
+
+      /* ── Events ── */
+      filtroSucursal.addEventListener('change', function() { actualizarFiltros(); renderCards(); });
+      filtroMedico.addEventListener('change', function() { actualizarFiltros(); renderCards(); });
+      filtroEspecialidad.addEventListener('change', function() { actualizarFiltros(); renderCards(); });
+      filtroDia.addEventListener('change', function() { renderCards(); });
+
+      /* ── Init ── */
+      cargarAgendas();
+    })();

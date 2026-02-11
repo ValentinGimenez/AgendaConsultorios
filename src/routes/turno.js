@@ -39,4 +39,12 @@ router.get('/mis-turnos', userMiddleware, authMiddleware, async (req, res) => {
 });
 router.post('/:id/estado', userMiddleware, authMiddleware, turnoController.cambiarEstado);
 
+router.get('/agendas', userMiddleware, authMiddleware, async (req, res) => {
+    try {
+        res.render('secretaria/agendas');
+    } catch (error) {
+        console.error(error);
+        res.status(500).render('error', { error: 'Error al cargar la secretaría' });
+    }
+});
 module.exports = router;
